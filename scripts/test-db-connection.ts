@@ -72,7 +72,7 @@ async function testConnection() {
     console.error('Error:', error.message);
     console.error('');
     console.error('Please check:');
-    console.error('1. PostgreSQL is running on port 5441');
+    console.error(`1. PostgreSQL is running on port ${process.env.DB_PORT || '5432'}`);
     console.error('2. Database "scientific_plan_db" exists');
     console.error('3. User "sp_admin" has access to the database');
     console.error('4. Credentials in .env.local are correct');
