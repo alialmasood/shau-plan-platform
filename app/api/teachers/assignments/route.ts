@@ -20,6 +20,7 @@ export async function GET(request: NextRequest) {
           assignment_date DATE NOT NULL,
           is_completed BOOLEAN DEFAULT FALSE,
           completion_date DATE,
+          assignment_document TEXT,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
@@ -31,6 +32,7 @@ export async function GET(request: NextRequest) {
         `ALTER TABLE assignments ADD COLUMN IF NOT EXISTS assignment_date DATE`,
         `ALTER TABLE assignments ADD COLUMN IF NOT EXISTS is_completed BOOLEAN DEFAULT FALSE`,
         `ALTER TABLE assignments ADD COLUMN IF NOT EXISTS completion_date DATE`,
+        `ALTER TABLE assignments ADD COLUMN IF NOT EXISTS assignment_document TEXT`,
         `ALTER TABLE assignments ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`,
         `ALTER TABLE assignments ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`,
       ];
@@ -51,7 +53,7 @@ export async function GET(request: NextRequest) {
       `SELECT 
         id, user_id,
         COALESCE(assignment_subject, subject) AS assignment_subject,
-        assignment_date, is_completed, completion_date, created_at, updated_at
+        assignment_date, is_completed, completion_date, assignment_document, created_at, updated_at
       FROM assignments WHERE user_id = $1 ORDER BY assignment_date DESC, created_at DESC`,
       [parseInt(userId)]
     );
@@ -69,7 +71,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { userId, assignmentSubject, assignmentDate, isCompleted, completionDate } = body;
+    const { userId, assignmentSubject, assignmentDate, isCompleted, completionDate, assignmentDocument } = body;
 
     if (!userId || !assignmentSubject || !assignmentDate) {
       return NextResponse.json(
@@ -88,6 +90,7 @@ export async function POST(request: NextRequest) {
           assignment_date DATE NOT NULL,
           is_completed BOOLEAN DEFAULT FALSE,
           completion_date DATE,
+          assignment_document TEXT,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
@@ -99,6 +102,7 @@ export async function POST(request: NextRequest) {
         `ALTER TABLE assignments ADD COLUMN IF NOT EXISTS assignment_date DATE`,
         `ALTER TABLE assignments ADD COLUMN IF NOT EXISTS is_completed BOOLEAN DEFAULT FALSE`,
         `ALTER TABLE assignments ADD COLUMN IF NOT EXISTS completion_date DATE`,
+        `ALTER TABLE assignments ADD COLUMN IF NOT EXISTS assignment_document TEXT`,
         `ALTER TABLE assignments ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`,
         `ALTER TABLE assignments ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`,
       ];
@@ -120,8 +124,8 @@ export async function POST(request: NextRequest) {
     try {
       result = await query(
         `INSERT INTO assignments (
-          user_id, subject, assignment_date, is_completed, completion_date
-        ) VALUES ($1, $2, $3, $4, $5)
+          user_id, subject, assignment_date, is_completed, completion_date, assignment_document
+        ) VALUES ($1, $2, $3, $4, $5, $6)
         RETURNING *`,
         [
           parseInt(userId.toString()),
@@ -129,6 +133,7 @@ export async function POST(request: NextRequest) {
           assignmentDate || null,
           isCompleted || false,
           completionDate || null,
+          assignmentDocument || null,
         ]
       );
       // Map subject to assignment_subject for consistency
@@ -140,8 +145,8 @@ export async function POST(request: NextRequest) {
       if (error.message && (error.message.includes("subject") || error.message.includes("column"))) {
         result = await query(
           `INSERT INTO assignments (
-            user_id, assignment_subject, assignment_date, is_completed, completion_date
-          ) VALUES ($1, $2, $3, $4, $5)
+            user_id, assignment_subject, assignment_date, is_completed, completion_date, assignment_document
+          ) VALUES ($1, $2, $3, $4, $5, $6)
           RETURNING *`,
           [
             parseInt(userId.toString()),
@@ -149,6 +154,7 @@ export async function POST(request: NextRequest) {
             assignmentDate || null,
             isCompleted || false,
             completionDate || null,
+            assignmentDocument || null,
           ]
         );
       } else {
@@ -178,7 +184,7 @@ export async function POST(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   try {
     const body = await request.json();
-    const { id, assignmentSubject, assignmentDate, isCompleted, completionDate } = body;
+    const { id, assignmentSubject, assignmentDate, isCompleted, completionDate, assignmentDocument } = body;
 
     if (!id) {
       return NextResponse.json({ error: "id is required" }, { status: 400 });
@@ -193,14 +199,16 @@ export async function PATCH(request: NextRequest) {
           assignment_date = COALESCE($2, assignment_date),
           is_completed = COALESCE($3, is_completed),
           completion_date = $4,
+          assignment_document = $5,
           updated_at = CURRENT_TIMESTAMP
-        WHERE id = $5
+        WHERE id = $6
         RETURNING *`,
         [
           assignmentSubject || null,
           assignmentDate || null,
           isCompleted !== undefined ? isCompleted : null,
           completionDate || null,
+          assignmentDocument !== undefined ? assignmentDocument : null,
           id,
         ]
       );
@@ -217,14 +225,16 @@ export async function PATCH(request: NextRequest) {
             assignment_date = COALESCE($2, assignment_date),
             is_completed = COALESCE($3, is_completed),
             completion_date = $4,
+            assignment_document = $5,
             updated_at = CURRENT_TIMESTAMP
-          WHERE id = $5
+          WHERE id = $6
           RETURNING *`,
           [
             assignmentSubject || null,
             assignmentDate || null,
             isCompleted !== undefined ? isCompleted : null,
             completionDate || null,
+            assignmentDocument !== undefined ? assignmentDocument : null,
             id,
           ]
         );

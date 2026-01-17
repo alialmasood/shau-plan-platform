@@ -21,6 +21,7 @@ export async function GET(request: NextRequest) {
           type VARCHAR(50) NOT NULL,
           beneficiary_organization VARCHAR(255),
           location VARCHAR(255),
+          assignment_document TEXT,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
@@ -33,6 +34,7 @@ export async function GET(request: NextRequest) {
         `ALTER TABLE seminars ADD COLUMN IF NOT EXISTS type VARCHAR(50)`,
         `ALTER TABLE seminars ADD COLUMN IF NOT EXISTS beneficiary_organization VARCHAR(255)`,
         `ALTER TABLE seminars ADD COLUMN IF NOT EXISTS location VARCHAR(255)`,
+        `ALTER TABLE seminars ADD COLUMN IF NOT EXISTS assignment_document TEXT`,
         `ALTER TABLE seminars ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`,
         `ALTER TABLE seminars ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`,
       ];
@@ -51,7 +53,7 @@ export async function GET(request: NextRequest) {
 
     const result = await query(
       `SELECT 
-        id, user_id, seminar_title, date, type, beneficiary_organization, location, created_at, updated_at
+        id, user_id, seminar_title, date, type, beneficiary_organization, location, assignment_document, created_at, updated_at
       FROM seminars WHERE user_id = $1 ORDER BY date DESC, created_at DESC`,
       [parseInt(userId)]
     );
@@ -69,7 +71,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { userId, seminarTitle, date, type, beneficiaryOrganization, location } = body;
+    const { userId, seminarTitle, date, type, beneficiaryOrganization, location, assignmentDocument } = body;
 
     if (!userId || !seminarTitle || !date || !type) {
       return NextResponse.json(
@@ -89,6 +91,7 @@ export async function POST(request: NextRequest) {
           type VARCHAR(50) NOT NULL,
           beneficiary_organization VARCHAR(255),
           location VARCHAR(255),
+          assignment_document TEXT,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
@@ -101,6 +104,7 @@ export async function POST(request: NextRequest) {
         `ALTER TABLE seminars ADD COLUMN IF NOT EXISTS type VARCHAR(50)`,
         `ALTER TABLE seminars ADD COLUMN IF NOT EXISTS beneficiary_organization VARCHAR(255)`,
         `ALTER TABLE seminars ADD COLUMN IF NOT EXISTS location VARCHAR(255)`,
+        `ALTER TABLE seminars ADD COLUMN IF NOT EXISTS assignment_document TEXT`,
         `ALTER TABLE seminars ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`,
         `ALTER TABLE seminars ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`,
       ];
@@ -119,8 +123,8 @@ export async function POST(request: NextRequest) {
 
     const result = await query(
       `INSERT INTO seminars (
-        user_id, seminar_title, date, type, beneficiary_organization, location
-      ) VALUES ($1, $2, $3, $4, $5, $6)
+        user_id, seminar_title, date, type, beneficiary_organization, location, assignment_document
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING *`,
       [
         parseInt(userId.toString()),
@@ -129,6 +133,7 @@ export async function POST(request: NextRequest) {
         type,
         beneficiaryOrganization || null,
         location || null,
+        assignmentDocument || null,
       ]
     );
 
@@ -145,7 +150,7 @@ export async function POST(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   try {
     const body = await request.json();
-    const { id, seminarTitle, date, type, beneficiaryOrganization, location } = body;
+    const { id, seminarTitle, date, type, beneficiaryOrganization, location, assignmentDocument } = body;
 
     if (!id) {
       return NextResponse.json({ error: "id is required" }, { status: 400 });
@@ -158,8 +163,9 @@ export async function PATCH(request: NextRequest) {
         type = COALESCE($3, type),
         beneficiary_organization = $4,
         location = $5,
+        assignment_document = $6,
         updated_at = CURRENT_TIMESTAMP
-      WHERE id = $6
+      WHERE id = $7
       RETURNING *`,
       [
         seminarTitle || null,
@@ -167,6 +173,7 @@ export async function PATCH(request: NextRequest) {
         type || null,
         beneficiaryOrganization || null,
         location || null,
+        assignmentDocument !== undefined ? assignmentDocument : null,
         id,
       ]
     );

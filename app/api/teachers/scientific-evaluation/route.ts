@@ -21,6 +21,7 @@ export async function GET(request: NextRequest) {
           evaluation_date DATE NOT NULL,
           description TEXT,
           status VARCHAR(50) NOT NULL,
+          evaluation_document TEXT,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
@@ -33,6 +34,7 @@ export async function GET(request: NextRequest) {
         `ALTER TABLE scientific_evaluations ADD COLUMN IF NOT EXISTS evaluation_date DATE`,
         `ALTER TABLE scientific_evaluations ADD COLUMN IF NOT EXISTS description TEXT`,
         `ALTER TABLE scientific_evaluations ADD COLUMN IF NOT EXISTS status VARCHAR(50)`,
+        `ALTER TABLE scientific_evaluations ADD COLUMN IF NOT EXISTS evaluation_document TEXT`,
         `ALTER TABLE scientific_evaluations ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`,
         `ALTER TABLE scientific_evaluations ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`,
       ];
@@ -51,7 +53,7 @@ export async function GET(request: NextRequest) {
 
     const result = await query(
       `SELECT 
-        id, user_id, evaluation_title, evaluation_type, evaluation_date, description, status, created_at, updated_at
+        id, user_id, evaluation_title, evaluation_type, evaluation_date, description, status, evaluation_document, created_at, updated_at
       FROM scientific_evaluations WHERE user_id = $1 ORDER BY evaluation_date DESC, created_at DESC`,
       [parseInt(userId)]
     );
@@ -69,7 +71,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { userId, evaluationTitle, evaluationType, evaluationDate, description, status } = body;
+    const { userId, evaluationTitle, evaluationType, evaluationDate, description, status, evaluationDocument } = body;
 
     if (!userId || !evaluationTitle || !evaluationDate || !status) {
       return NextResponse.json(
@@ -89,6 +91,7 @@ export async function POST(request: NextRequest) {
           evaluation_date DATE NOT NULL,
           description TEXT,
           status VARCHAR(50) NOT NULL,
+          evaluation_document TEXT,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
@@ -101,6 +104,7 @@ export async function POST(request: NextRequest) {
         `ALTER TABLE scientific_evaluations ADD COLUMN IF NOT EXISTS evaluation_date DATE`,
         `ALTER TABLE scientific_evaluations ADD COLUMN IF NOT EXISTS description TEXT`,
         `ALTER TABLE scientific_evaluations ADD COLUMN IF NOT EXISTS status VARCHAR(50)`,
+        `ALTER TABLE scientific_evaluations ADD COLUMN IF NOT EXISTS evaluation_document TEXT`,
         `ALTER TABLE scientific_evaluations ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`,
         `ALTER TABLE scientific_evaluations ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`,
       ];
@@ -119,8 +123,8 @@ export async function POST(request: NextRequest) {
 
     const result = await query(
       `INSERT INTO scientific_evaluations (
-        user_id, evaluation_title, evaluation_type, evaluation_date, description, status
-      ) VALUES ($1, $2, $3, $4, $5, $6)
+        user_id, evaluation_title, evaluation_type, evaluation_date, description, status, evaluation_document
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING *`,
       [
         parseInt(userId.toString()),
@@ -129,6 +133,7 @@ export async function POST(request: NextRequest) {
         evaluationDate || null,
         description || null,
         status,
+        evaluationDocument || null,
       ]
     );
 
@@ -145,7 +150,7 @@ export async function POST(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   try {
     const body = await request.json();
-    const { id, evaluationTitle, evaluationType, evaluationDate, description, status } = body;
+    const { id, evaluationTitle, evaluationType, evaluationDate, description, status, evaluationDocument } = body;
 
     if (!id) {
       return NextResponse.json({ error: "id is required" }, { status: 400 });
@@ -158,8 +163,9 @@ export async function PATCH(request: NextRequest) {
         evaluation_date = COALESCE($3, evaluation_date),
         description = $4,
         status = COALESCE($5, status),
+        evaluation_document = $6,
         updated_at = CURRENT_TIMESTAMP
-      WHERE id = $6
+      WHERE id = $7
       RETURNING *`,
       [
         evaluationTitle || null,
@@ -167,6 +173,7 @@ export async function PATCH(request: NextRequest) {
         evaluationDate || null,
         description || null,
         status || null,
+        evaluationDocument !== undefined ? evaluationDocument : null,
         id,
       ]
     );

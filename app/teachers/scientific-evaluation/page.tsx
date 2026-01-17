@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useLayout } from "../layout";
+import { formatDate } from "@/lib/utils/academic";
 
 interface ScientificEvaluation {
   id?: number;
@@ -10,6 +11,7 @@ interface ScientificEvaluation {
   evaluation_date: string;
   description?: string;
   status: "planned" | "in_progress" | "completed";
+  evaluation_document?: string; // base64 string for PDF/image
   created_at?: string;
   updated_at?: string;
 }
@@ -27,7 +29,10 @@ export default function ScientificEvaluationPage() {
     evaluation_date: "",
     description: "",
     status: "planned",
+    evaluation_document: "",
   });
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [filePreview, setFilePreview] = useState<string>("");
 
   // Fetch evaluations on component mount
   useEffect(() => {
@@ -66,8 +71,60 @@ export default function ScientificEvaluationPage() {
       evaluation_date: evaluation.evaluation_date ? evaluation.evaluation_date.split('T')[0] : "",
       description: evaluation.description || "",
       status: evaluation.status || "planned",
+      evaluation_document: evaluation.evaluation_document || "",
     });
+    setFilePreview(evaluation.evaluation_document || "");
+    setSelectedFile(null);
     setShowForm(true);
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'application/pdf'];
+    if (!validTypes.includes(file.type)) {
+      alert('يرجى اختيار ملف PDF أو صورة (JPG, PNG, GIF)');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('حجم الملف يجب أن يكون أقل من 5 ميجابايت');
+      return;
+    }
+
+    setSelectedFile(file);
+
+    // Create preview for images
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        setFilePreview(base64String);
+        setFormData({ ...formData, evaluation_document: base64String });
+      };
+      reader.readAsDataURL(file);
+    } else if (file.type === 'application/pdf') {
+      // For PDF, we'll convert to base64 but show a placeholder preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        setFilePreview('data:application/pdf;base64,'); // Placeholder
+        setFormData({ ...formData, evaluation_document: base64String });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemoveFile = () => {
+    setSelectedFile(null);
+    setFilePreview("");
+    setFormData({ ...formData, evaluation_document: "" });
+    // Reset file input
+    const fileInput = document.getElementById('evaluation-document') as HTMLInputElement;
+    if (fileInput) fileInput.value = '';
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -80,6 +137,9 @@ export default function ScientificEvaluationPage() {
 
       const method = editingEvaluation?.id ? "PATCH" : "POST";
 
+      // Get the final document value (from preview or formData)
+      const evaluationDocument = filePreview || formData.evaluation_document || null;
+
       const body = editingEvaluation?.id
         ? {
             id: editingEvaluation.id,
@@ -88,6 +148,7 @@ export default function ScientificEvaluationPage() {
             evaluationDate: formData.evaluation_date,
             description: formData.description,
             status: formData.status,
+            evaluationDocument: evaluationDocument,
           }
         : {
             userId: user.id,
@@ -96,6 +157,7 @@ export default function ScientificEvaluationPage() {
             evaluationDate: formData.evaluation_date,
             description: formData.description,
             status: formData.status,
+            evaluationDocument: evaluationDocument,
           };
 
       const response = await fetch(url, {
@@ -142,7 +204,10 @@ export default function ScientificEvaluationPage() {
         evaluation_date: "",
         description: "",
         status: "planned",
+        evaluation_document: "",
       });
+      setSelectedFile(null);
+      setFilePreview("");
     } catch (error: any) {
       console.error("Error saving scientific evaluation:", error);
       alert(error.message || "حدث خطأ أثناء حفظ التقويم");
@@ -203,7 +268,10 @@ export default function ScientificEvaluationPage() {
                 evaluation_date: "",
                 description: "",
                 status: "planned",
+                evaluation_document: "",
               });
+              setSelectedFile(null);
+              setFilePreview("");
               setShowForm(true);
             }}
             className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-300 flex items-center gap-2 min-w-[140px] justify-center"
@@ -249,6 +317,9 @@ export default function ScientificEvaluationPage() {
                     حالة التقويم
                   </th>
                   <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider" style={{ color: '#6B7280' }}>
+                    كتاب/أمر التقويم
+                  </th>
+                  <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider" style={{ color: '#6B7280' }}>
                     الإجراءات
                   </th>
                 </tr>
@@ -268,7 +339,7 @@ export default function ScientificEvaluationPage() {
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap">
                       <div className="text-sm" style={{ color: '#374151' }}>
-                        {evaluation.evaluation_date ? new Date(evaluation.evaluation_date).toLocaleDateString('ar-EG') : "-"}
+                        {formatDate(evaluation.evaluation_date)}
                       </div>
                     </td>
                     <td className="px-4 py-4">
@@ -280,6 +351,87 @@ export default function ScientificEvaluationPage() {
                       <div className="text-sm" style={{ color: '#374151' }}>
                         {getStatusLabel(evaluation.status)}
                       </div>
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap">
+                      {evaluation.evaluation_document ? (
+                        <div className="flex items-center gap-2">
+                          {evaluation.evaluation_document.startsWith('data:image/') ? (
+                            <>
+                              <img 
+                                src={evaluation.evaluation_document} 
+                                alt="معاينة" 
+                                className="w-12 h-12 object-cover rounded border border-gray-200 cursor-pointer hover:opacity-80 transition-opacity"
+                                onClick={() => {
+                                  const newWindow = window.open();
+                                  if (newWindow) {
+                                    newWindow.document.write(`<img src="${evaluation.evaluation_document}" style="max-width: 100%; height: auto;" />`);
+                                  }
+                                }}
+                                title="اضغط لعرض الصورة بالحجم الكامل"
+                              />
+                              <button
+                                onClick={() => {
+                                  const link = document.createElement('a');
+                                  link.href = evaluation.evaluation_document!;
+                                  link.download = `evaluation_${evaluation.id || 'document'}.jpg`;
+                                  document.body.appendChild(link);
+                                  link.click();
+                                  document.body.removeChild(link);
+                                }}
+                                className="p-1 text-teal-600 hover:text-teal-800 hover:bg-teal-50 rounded transition-colors"
+                                title="تحميل الصورة"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                </svg>
+                              </button>
+                            </>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              <div className="w-10 h-10 bg-red-50 border border-red-200 rounded flex items-center justify-center">
+                                <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                </svg>
+                              </div>
+                              <button
+                                onClick={() => {
+                                  const newWindow = window.open();
+                                  if (newWindow && evaluation.evaluation_document) {
+                                    newWindow.document.write(`
+                                      <iframe src="${evaluation.evaluation_document}" style="width: 100%; height: 100vh; border: none;"></iframe>
+                                    `);
+                                  }
+                                }}
+                                className="text-xs text-teal-700 hover:text-teal-900 hover:bg-teal-50 px-2 py-1 rounded flex items-center gap-1 transition-colors"
+                                title="عرض PDF"
+                              >
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                              </button>
+                              <button
+                                onClick={() => {
+                                  const link = document.createElement('a');
+                                  link.href = evaluation.evaluation_document!;
+                                  link.download = `evaluation_${evaluation.id || 'document'}.pdf`;
+                                  document.body.appendChild(link);
+                                  link.click();
+                                  document.body.removeChild(link);
+                                }}
+                                className="text-xs text-teal-700 hover:text-teal-900 hover:bg-teal-50 px-2 py-1 rounded flex items-center gap-1 transition-colors"
+                                title="تحميل PDF"
+                              >
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                </svg>
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-sm text-gray-400">-</span>
+                      )}
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex items-center gap-2">
@@ -343,7 +495,11 @@ export default function ScientificEvaluationPage() {
                 {editingEvaluation?.id ? "تعديل التقويم" : "إضافة تقويم جديد"}
               </h3>
               <button
-                onClick={() => setShowForm(false)}
+                onClick={() => {
+                  setShowForm(false);
+                  setSelectedFile(null);
+                  setFilePreview("");
+                }}
                 className="text-gray-400 hover:text-gray-600 transition-colors"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -372,14 +528,19 @@ export default function ScientificEvaluationPage() {
                 <label className="block text-sm font-medium mb-2" style={{ color: '#374151' }}>
                   نوع التقويم
                 </label>
-                <input
-                  type="text"
+                <select
                   value={formData.evaluation_type}
                   onChange={(e) => handleInputChange("evaluation_type", e.target.value)}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300"
                   style={{ color: '#1F2937', backgroundColor: '#FAFBFC' }}
-                  placeholder="أدخل نوع التقويم"
-                />
+                >
+                  <option value="">اختر نوع التقويم</option>
+                  <option value="بحوث">بحوث</option>
+                  <option value="مقالات علمية">مقالات علمية</option>
+                  <option value="رسائل واطاريح">رسائل واطاريح</option>
+                  <option value="براءات اختراع">براءات اختراع</option>
+                  <option value="استشارات علمية">استشارات علمية</option>
+                </select>
               </div>
 
               <div>
@@ -425,6 +586,50 @@ export default function ScientificEvaluationPage() {
                   <option value="in_progress">قيد التنفيذ</option>
                   <option value="completed">مكتمل</option>
                 </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2" style={{ color: '#374151' }}>
+                  كتاب أو الأمر (PDF أو صورة)
+                </label>
+                <div className="space-y-2">
+                  <input
+                    id="evaluation-document"
+                    type="file"
+                    accept=".pdf,.jpg,.jpeg,.png,.gif,application/pdf,image/*"
+                    onChange={handleFileChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300"
+                    style={{ color: '#1F2937', backgroundColor: '#FAFBFC' }}
+                  />
+                  {filePreview && (
+                    <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium text-gray-700">معاينة:</span>
+                        <button
+                          type="button"
+                          onClick={handleRemoveFile}
+                          className="text-sm text-red-600 hover:text-red-800"
+                        >
+                          إزالة
+                        </button>
+                      </div>
+                      {filePreview.startsWith('data:image/') ? (
+                        <img 
+                          src={filePreview} 
+                          alt="معاينة" 
+                          className="w-32 h-32 object-cover rounded border border-gray-300"
+                        />
+                      ) : (
+                        <div className="flex items-center gap-2 p-2 bg-white rounded border border-gray-300">
+                          <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                          </svg>
+                          <span className="text-sm text-gray-700">تم اختيار ملف PDF</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Buttons */}

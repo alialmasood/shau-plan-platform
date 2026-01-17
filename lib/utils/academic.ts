@@ -1,5 +1,21 @@
 // Utility functions for academic titles and departments
 
+// Format date to dd-mm-yyyy format
+export function formatDate(date: string | Date | null | undefined): string {
+  if (!date) return "-";
+  
+  const dateObj = typeof date === "string" ? new Date(date) : date;
+  
+  // Check if date is valid
+  if (isNaN(dateObj.getTime())) return "-";
+  
+  const day = String(dateObj.getDate()).padStart(2, "0");
+  const month = String(dateObj.getMonth() + 1).padStart(2, "0");
+  const year = dateObj.getFullYear();
+  
+  return `${day}-${month}-${year}`;
+}
+
 // Map academic title values to Arabic display names
 export function getAcademicTitleLabel(title?: string): string {
   const titleMap: Record<string, string> = {

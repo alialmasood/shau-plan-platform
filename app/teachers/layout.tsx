@@ -15,6 +15,7 @@ interface User {
   phone?: string;
   academic_title?: string;
   is_active: boolean;
+  profile_picture?: string;
   created_at: string;
 }
 
@@ -72,6 +73,14 @@ export default function TeachersLayout({
   const [activeMenuItem, setActiveMenuItem] = useState("home");
   const [notificationCount, setNotificationCount] = useState(3);
   const [activitiesDropdownOpen, setActivitiesDropdownOpen] = useState(false);
+  const [profilePictureMenuOpen, setProfilePictureMenuOpen] = useState(false);
+  const [isUploadingPicture, setIsUploadingPicture] = useState(false);
+  const [totalPoints, setTotalPoints] = useState<number | null>(null);
+  const [collegeRank, setCollegeRank] = useState<number | null>(null);
+  const [departmentRank, setDepartmentRank] = useState<number | null>(null);
+  const [onlineUsersCount, setOnlineUsersCount] = useState<number>(0);
+  const [onlineUsersList, setOnlineUsersList] = useState<Array<{ id: number; name: string }>>([]);
+  const [onlineUsersMenuOpen, setOnlineUsersMenuOpen] = useState(false);
 
   // Determine active menu item based on pathname and close dropdown when pathname changes
   useEffect(() => {
@@ -126,6 +135,8 @@ export default function TeachersLayout({
       setActiveMenuItem("collaboration");
     } else if (pathname === "/teachers/communication") {
       setActiveMenuItem("communication");
+    } else if (pathname === "/teachers/users-management") {
+      setActiveMenuItem("users-management");
     }
   }, [pathname]);
 
@@ -156,10 +167,213 @@ export default function TeachersLayout({
     };
   }, [router, pathname]);
 
+  // Fetch total points
+  useEffect(() => {
+    const fetchPoints = async () => {
+      if (!user) return;
+
+      try {
+        const response = await fetch(`/api/teachers/points?userId=${user.id}`);
+        if (response.ok) {
+          const data = await response.json();
+          setTotalPoints(data.totalPoints || 0);
+        }
+      } catch (error) {
+        console.error("Error fetching points:", error);
+      }
+    };
+
+    fetchPoints();
+  }, [user]);
+
+  // Fetch ranking data
+  useEffect(() => {
+    const fetchRanking = async () => {
+      if (!user) return;
+
+      try {
+        const response = await fetch(`/api/teachers/ranking?userId=${user.id}`);
+        if (response.ok) {
+          const data = await response.json();
+          setCollegeRank(data.collegeRank || null);
+          setDepartmentRank(data.departmentRank || null);
+        }
+      } catch (error) {
+        console.error("Error fetching ranking:", error);
+      }
+    };
+
+    fetchRanking();
+  }, [user]);
+
+  // Register user as online and update online users list
+  useEffect(() => {
+    if (!user) return;
+
+    // Register current user as online
+    const registerOnline = async () => {
+      try {
+        await fetch('/api/teachers/online-users', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ userId: user.id }),
+        });
+      } catch (error) {
+        console.error("Error registering online user:", error);
+      }
+    };
+
+    // Fetch online users list
+    const fetchOnlineUsers = async () => {
+      try {
+        const response = await fetch('/api/teachers/online-users');
+        if (response.ok) {
+          const data = await response.json();
+          setOnlineUsersCount(data.count || 0);
+          setOnlineUsersList(data.users || []);
+        }
+      } catch (error) {
+        console.error("Error fetching online users:", error);
+      }
+    };
+
+    // Initial registration and fetch
+    registerOnline();
+    fetchOnlineUsers();
+
+    // Update online status every 30 seconds
+    const onlineInterval = setInterval(() => {
+      registerOnline();
+      fetchOnlineUsers();
+    }, 30000);
+
+    // Cleanup on unmount
+    return () => {
+      clearInterval(onlineInterval);
+    };
+  }, [user]);
+
+  // Close online users menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (onlineUsersMenuOpen && !target.closest('.online-users-container')) {
+        setOnlineUsersMenuOpen(false);
+      }
+    };
+
+    if (onlineUsersMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [onlineUsersMenuOpen]);
+
   const handleLogout = () => {
     localStorage.removeItem("user");
     router.push("/teachers/login");
   };
+
+  const handleProfilePictureClick = () => {
+    setProfilePictureMenuOpen(!profilePictureMenuOpen);
+  };
+
+  const handleFileInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('يرجى اختيار ملف صورة صالح');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('حجم الصورة يجب أن يكون أقل من 5 ميجابايت');
+      return;
+    }
+
+    setIsUploadingPicture(true);
+    setProfilePictureMenuOpen(false);
+
+    try {
+      // Convert image to base64
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        const base64Image = event.target?.result as string;
+
+        try {
+          const response = await fetch('/api/teachers/profile', {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              userId: user.id,
+              profilePicture: base64Image,
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error('فشل تحديث الصورة الشخصية');
+          }
+
+          const result = await response.json();
+          
+          // Update local storage and state
+          const updatedUser = { ...user, profile_picture: result.user.profile_picture };
+          localStorage.setItem('user', JSON.stringify(updatedUser));
+          setUser(updatedUser);
+
+          // Dispatch event to notify other components
+          window.dispatchEvent(new CustomEvent('userUpdated', { detail: updatedUser }));
+        } catch (error) {
+          console.error('Error uploading profile picture:', error);
+          alert('حدث خطأ أثناء رفع الصورة. يرجى المحاولة مرة أخرى.');
+        } finally {
+          setIsUploadingPicture(false);
+        }
+      };
+
+      reader.onerror = () => {
+        console.error('Error reading file');
+        alert('حدث خطأ أثناء قراءة الملف');
+        setIsUploadingPicture(false);
+      };
+
+      reader.readAsDataURL(file);
+    } catch (error) {
+      console.error('Error processing file:', error);
+      alert('حدث خطأ أثناء معالجة الملف');
+      setIsUploadingPicture(false);
+    }
+
+    // Reset input
+    e.target.value = '';
+  };
+
+  // Close profile picture menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (profilePictureMenuOpen && !target.closest('.profile-picture-container')) {
+        setProfilePictureMenuOpen(false);
+      }
+    };
+
+    if (profilePictureMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [profilePictureMenuOpen]);
 
   // Don't show layout for login/register pages
   if (pathname?.includes("/login") || pathname?.includes("/register")) {
@@ -201,7 +415,7 @@ export default function TeachersLayout({
         {/* Header */}
         <header className="bg-white shadow-sm flex-shrink-0 border-b border-gray-100">
           <div className="w-full">
-            <div className="flex justify-between items-center py-4 pr-4 sm:pr-6 lg:pr-8">
+            <div className="flex justify-between items-center py-3 pr-4 sm:pr-6 lg:pr-8">
               {/* Sidebar Toggle Button */}
               <button
                 onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -277,18 +491,91 @@ export default function TeachersLayout({
               </div>
 
               {/* User Profile Picture */}
-              <div className="flex-shrink-0 ml-4">
-                <div className="w-14 h-14 rounded-full overflow-hidden bg-gray-200 border-2 border-gray-200 shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer hover:scale-105">
-                  {user.full_name ? (
-                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600 text-white font-bold text-base">
+              <div className="flex-shrink-0 ml-4 relative profile-picture-container self-center flex items-center">
+                <div 
+                  onClick={handleProfilePictureClick}
+                  className="w-20 h-20 max-h-full rounded-full overflow-hidden bg-gray-200 border-2 border-gray-200 shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer hover:scale-105 relative"
+                >
+                  {isUploadingPicture ? (
+                    <div className="w-full h-full flex items-center justify-center bg-gray-300">
+                      <div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                  ) : user.profile_picture ? (
+                    <Image
+                      src={user.profile_picture}
+                      alt="الصورة الشخصية"
+                      width={80}
+                      height={80}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : user.full_name ? (
+                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600 text-white font-bold text-lg">
                       {user.full_name.split(" / ")[0]?.charAt(0) || user.username?.charAt(0).toUpperCase()}
                     </div>
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600 text-white font-bold text-base">
+                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600 text-white font-bold text-lg">
                       {user.username?.charAt(0).toUpperCase() || 'U'}
                     </div>
                   )}
                 </div>
+
+                {/* Profile Picture Menu */}
+                {profilePictureMenuOpen && (
+                  <div className="absolute left-full ml-2 top-0 mt-0 w-48 bg-white rounded-lg shadow-xl border border-gray-200 z-50 py-2">
+                    <label className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer transition-colors">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleFileInputChange}
+                        disabled={isUploadingPicture}
+                      />
+                      <div className="flex items-center gap-2">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span>رفع صورة جديدة</span>
+                      </div>
+                    </label>
+                    {user.profile_picture && (
+                      <button
+                        onClick={async () => {
+                          if (!user) return;
+                          try {
+                            const response = await fetch('/api/teachers/profile', {
+                              method: 'PATCH',
+                              headers: {
+                                'Content-Type': 'application/json',
+                              },
+                              body: JSON.stringify({
+                                userId: user.id,
+                                profilePicture: null,
+                              }),
+                            });
+
+                            if (response.ok) {
+                              const result = await response.json();
+                              const updatedUser = { ...user, profile_picture: undefined };
+                              localStorage.setItem('user', JSON.stringify(updatedUser));
+                              setUser(updatedUser);
+                              window.dispatchEvent(new CustomEvent('userUpdated', { detail: updatedUser }));
+                              setProfilePictureMenuOpen(false);
+                            }
+                          } catch (error) {
+                            console.error('Error removing profile picture:', error);
+                            alert('حدث خطأ أثناء حذف الصورة');
+                          }
+                        }}
+                        className="w-full text-right px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                        <span>حذف الصورة</span>
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -301,7 +588,7 @@ export default function TeachersLayout({
             className={`shadow-xl flex-shrink-0 flex flex-col transition-all duration-300 ease-in-out ${
               sidebarOpen ? "w-64" : "w-0 overflow-hidden"
             }`}
-            style={{ backgroundColor: '#6366F1' }}
+            style={{ backgroundColor: '#6366F1', zIndex: 1000, position: 'relative' }}
           >
             {/* Sidebar Navigation */}
             <nav className={`flex-1 p-4 space-y-1 ${sidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none"}`}>
@@ -756,6 +1043,24 @@ export default function TeachersLayout({
                 </svg>
                 <span className="font-medium text-sm">نظام التواصل</span>
               </a>
+
+              <a
+                href="/teachers/users-management"
+                onClick={(e) => { e.preventDefault(); setActiveMenuItem("users-management"); router.push("/teachers/users-management"); }}
+                className={`flex items-center gap-3 px-4 py-1.5 text-white rounded-lg transition-all duration-300 ease-in-out group relative ${
+                  activeMenuItem === "users-management" 
+                    ? "bg-white/20 shadow-sm" 
+                    : "hover:bg-white/10"
+                }`}
+              >
+                {activeMenuItem === "users-management" && (
+                  <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-1 h-6 bg-white rounded-r-full"></div>
+                )}
+                <svg className="w-4 h-4 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+                <span className="font-medium text-sm">إدارة المستخدمين</span>
+              </a>
             </nav>
 
             {/* Messages, Notifications and Logout Buttons */}
@@ -787,14 +1092,52 @@ export default function TeachersLayout({
                 </button>
 
                 {/* Online Users Button */}
-                <button
-                  className="w-10 h-10 flex items-center justify-center border-2 border-white text-white hover:bg-white/10 rounded-lg transition-colors"
-                  aria-label="المتصلين"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                  </svg>
-                </button>
+                <div className="relative online-users-container" style={{ zIndex: 10000 }}>
+                  <button
+                    onClick={() => setOnlineUsersMenuOpen(!onlineUsersMenuOpen)}
+                    className="w-10 h-10 flex items-center justify-center border-2 border-white text-white hover:bg-white/10 rounded-lg transition-colors relative"
+                    aria-label="المتصلين"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                    {onlineUsersCount > 0 && (
+                      <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 bg-green-500 text-white text-[10px] font-bold rounded-full border-2 border-[#6366F1]">
+                        {onlineUsersCount > 99 ? '99+' : onlineUsersCount}
+                      </span>
+                    )}
+                  </button>
+
+                  {/* Online Users Dropdown Menu */}
+                  {onlineUsersMenuOpen && (
+                    <div className="absolute bottom-full right-0 mb-2 mr-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 max-h-96 overflow-y-auto" style={{ zIndex: 10001 }}>
+                      <div className="p-3 border-b border-gray-200 sticky top-0 bg-white">
+                        <h3 className="text-sm font-bold" style={{ color: '#1F2937' }}>
+                          المتصلون حالياً ({onlineUsersCount})
+                        </h3>
+                      </div>
+                      <div className="py-2">
+                        {onlineUsersList.length > 0 ? (
+                          onlineUsersList.map((onlineUser) => (
+                            <div
+                              key={onlineUser.id}
+                              className="px-4 py-2 hover:bg-gray-50 flex items-center gap-2"
+                            >
+                              <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
+                              <span className="text-sm" style={{ color: '#1F2937' }}>
+                                {onlineUser.name}
+                              </span>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="px-4 py-3 text-center text-sm text-gray-500">
+                            لا يوجد متصلون حالياً
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
 
                 {/* Logout Button */}
                 <button
@@ -838,7 +1181,9 @@ export default function TeachersLayout({
                       <svg className="w-4 h-4" style={{ color: '#6366F1' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
                       </svg>
-                      <span className="text-sm font-medium" style={{ color: '#1F2937' }}>ترتيبه بالكلية</span>
+                      <span className="text-sm font-medium" style={{ color: '#1F2937' }}>
+                        ترتيبه بالكلية: <span className="font-bold text-indigo-600">{collegeRank !== null ? collegeRank : "..."}</span>
+                      </span>
                     </div>
 
                     {/* Department Rank */}
@@ -846,7 +1191,9 @@ export default function TeachersLayout({
                       <svg className="w-4 h-4" style={{ color: '#6366F1' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                       </svg>
-                      <span className="text-sm font-medium" style={{ color: '#1F2937' }}>ترتيبه بالقسم</span>
+                      <span className="text-sm font-medium" style={{ color: '#1F2937' }}>
+                        ترتيبه بالقسم: <span className="font-bold text-indigo-600">{departmentRank !== null ? departmentRank : "..."}</span>
+                      </span>
                     </div>
 
                     {/* Points */}
@@ -854,7 +1201,9 @@ export default function TeachersLayout({
                       <svg className="w-4 h-4" style={{ color: '#6366F1' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
                       </svg>
-                      <span className="text-sm font-medium" style={{ color: '#1F2937' }}>نقاطه</span>
+                      <span className="text-sm font-medium" style={{ color: '#1F2937' }}>
+                        نقاطه: <span className="font-bold text-indigo-600">{totalPoints !== null ? totalPoints : "..."}</span>
+                      </span>
                     </div>
                   </div>
                 </div>

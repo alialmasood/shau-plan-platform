@@ -20,6 +20,7 @@ export async function GET(request: NextRequest) {
           granting_organization VARCHAR(500) NOT NULL,
           month VARCHAR(50),
           year INTEGER NOT NULL,
+          certificate_document TEXT,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
@@ -31,6 +32,7 @@ export async function GET(request: NextRequest) {
         `ALTER TABLE participation_certificates ADD COLUMN IF NOT EXISTS granting_organization VARCHAR(500)`,
         `ALTER TABLE participation_certificates ADD COLUMN IF NOT EXISTS month VARCHAR(50)`,
         `ALTER TABLE participation_certificates ADD COLUMN IF NOT EXISTS year INTEGER`,
+        `ALTER TABLE participation_certificates ADD COLUMN IF NOT EXISTS certificate_document TEXT`,
         `ALTER TABLE participation_certificates ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`,
         `ALTER TABLE participation_certificates ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`,
       ];
@@ -49,7 +51,7 @@ export async function GET(request: NextRequest) {
 
     const result = await query(
       `SELECT 
-        id, user_id, certificate_subject, granting_organization, month, year, created_at, updated_at
+        id, user_id, certificate_subject, granting_organization, month, year, certificate_document, created_at, updated_at
       FROM participation_certificates WHERE user_id = $1 ORDER BY year DESC, month DESC, created_at DESC`,
       [parseInt(userId)]
     );
@@ -67,7 +69,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { userId, certificateSubject, grantingOrganization, month, year } = body;
+    const { userId, certificateSubject, grantingOrganization, month, year, certificateDocument } = body;
 
     if (!userId || !certificateSubject || !grantingOrganization || !year) {
       return NextResponse.json(
@@ -86,6 +88,7 @@ export async function POST(request: NextRequest) {
           granting_organization VARCHAR(500) NOT NULL,
           month VARCHAR(50),
           year INTEGER NOT NULL,
+          certificate_document TEXT,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
@@ -97,6 +100,7 @@ export async function POST(request: NextRequest) {
         `ALTER TABLE participation_certificates ADD COLUMN IF NOT EXISTS granting_organization VARCHAR(500)`,
         `ALTER TABLE participation_certificates ADD COLUMN IF NOT EXISTS month VARCHAR(50)`,
         `ALTER TABLE participation_certificates ADD COLUMN IF NOT EXISTS year INTEGER`,
+        `ALTER TABLE participation_certificates ADD COLUMN IF NOT EXISTS certificate_document TEXT`,
         `ALTER TABLE participation_certificates ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`,
         `ALTER TABLE participation_certificates ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`,
       ];
@@ -115,8 +119,8 @@ export async function POST(request: NextRequest) {
 
     const result = await query(
       `INSERT INTO participation_certificates (
-        user_id, certificate_subject, granting_organization, month, year
-      ) VALUES ($1, $2, $3, $4, $5)
+        user_id, certificate_subject, granting_organization, month, year, certificate_document
+      ) VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING *`,
       [
         parseInt(userId.toString()),
@@ -124,6 +128,7 @@ export async function POST(request: NextRequest) {
         grantingOrganization,
         month || null,
         parseInt(year.toString()),
+        certificateDocument || null,
       ]
     );
 
@@ -140,7 +145,7 @@ export async function POST(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   try {
     const body = await request.json();
-    const { id, certificateSubject, grantingOrganization, month, year } = body;
+    const { id, certificateSubject, grantingOrganization, month, year, certificateDocument } = body;
 
     if (!id) {
       return NextResponse.json({ error: "id is required" }, { status: 400 });
@@ -152,14 +157,16 @@ export async function PATCH(request: NextRequest) {
         granting_organization = COALESCE($2, granting_organization),
         month = $3,
         year = COALESCE($4, year),
+        certificate_document = $5,
         updated_at = CURRENT_TIMESTAMP
-      WHERE id = $5
+      WHERE id = $6
       RETURNING *`,
       [
         certificateSubject || null,
         grantingOrganization || null,
         month || null,
         year ? parseInt(year.toString()) : null,
+        certificateDocument !== undefined ? certificateDocument : null,
         id,
       ]
     );

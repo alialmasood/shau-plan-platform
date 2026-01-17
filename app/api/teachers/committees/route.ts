@@ -19,6 +19,7 @@ export async function GET(request: NextRequest) {
           committee_name VARCHAR(500) NOT NULL,
           assignment_date DATE NOT NULL,
           assignment_type VARCHAR(50) NOT NULL,
+          assignment_document TEXT,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
@@ -29,6 +30,7 @@ export async function GET(request: NextRequest) {
         `ALTER TABLE committees ADD COLUMN IF NOT EXISTS committee_name VARCHAR(500)`,
         `ALTER TABLE committees ADD COLUMN IF NOT EXISTS assignment_date DATE`,
         `ALTER TABLE committees ADD COLUMN IF NOT EXISTS assignment_type VARCHAR(50)`,
+        `ALTER TABLE committees ADD COLUMN IF NOT EXISTS assignment_document TEXT`,
         `ALTER TABLE committees ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`,
         `ALTER TABLE committees ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`,
       ];
@@ -47,7 +49,7 @@ export async function GET(request: NextRequest) {
 
     const result = await query(
       `SELECT 
-        id, user_id, committee_name, assignment_date, assignment_type, created_at, updated_at
+        id, user_id, committee_name, assignment_date, assignment_type, assignment_document, created_at, updated_at
       FROM committees WHERE user_id = $1 ORDER BY assignment_date DESC, created_at DESC`,
       [parseInt(userId)]
     );
@@ -65,7 +67,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { userId, committeeName, assignmentDate, assignmentType } = body;
+    const { userId, committeeName, assignmentDate, assignmentType, assignmentDocument } = body;
 
     if (!userId || !committeeName || !assignmentDate || !assignmentType) {
       return NextResponse.json(
@@ -83,6 +85,7 @@ export async function POST(request: NextRequest) {
           committee_name VARCHAR(500) NOT NULL,
           assignment_date DATE NOT NULL,
           assignment_type VARCHAR(50) NOT NULL,
+          assignment_document TEXT,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
@@ -93,6 +96,7 @@ export async function POST(request: NextRequest) {
         `ALTER TABLE committees ADD COLUMN IF NOT EXISTS committee_name VARCHAR(500)`,
         `ALTER TABLE committees ADD COLUMN IF NOT EXISTS assignment_date DATE`,
         `ALTER TABLE committees ADD COLUMN IF NOT EXISTS assignment_type VARCHAR(50)`,
+        `ALTER TABLE committees ADD COLUMN IF NOT EXISTS assignment_document TEXT`,
         `ALTER TABLE committees ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`,
         `ALTER TABLE committees ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`,
       ];
@@ -111,14 +115,15 @@ export async function POST(request: NextRequest) {
 
     const result = await query(
       `INSERT INTO committees (
-        user_id, committee_name, assignment_date, assignment_type
-      ) VALUES ($1, $2, $3, $4)
+        user_id, committee_name, assignment_date, assignment_type, assignment_document
+      ) VALUES ($1, $2, $3, $4, $5)
       RETURNING *`,
       [
         parseInt(userId.toString()),
         committeeName,
         assignmentDate || null,
         assignmentType,
+        assignmentDocument || null,
       ]
     );
 
@@ -135,7 +140,7 @@ export async function POST(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   try {
     const body = await request.json();
-    const { id, committeeName, assignmentDate, assignmentType } = body;
+    const { id, committeeName, assignmentDate, assignmentType, assignmentDocument } = body;
 
     if (!id) {
       return NextResponse.json({ error: "id is required" }, { status: 400 });
@@ -146,13 +151,15 @@ export async function PATCH(request: NextRequest) {
         committee_name = COALESCE($1, committee_name),
         assignment_date = COALESCE($2, assignment_date),
         assignment_type = COALESCE($3, assignment_type),
+        assignment_document = $4,
         updated_at = CURRENT_TIMESTAMP
-      WHERE id = $4
+      WHERE id = $5
       RETURNING *`,
       [
         committeeName || null,
         assignmentDate || null,
         assignmentType || null,
+        assignmentDocument !== undefined ? assignmentDocument : null,
         id,
       ]
     );

@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useLayout } from "../layout";
 import jsPDF from "jspdf";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { formatDate } from "@/lib/utils/academic";
 
 interface Publication {
   id?: number;
@@ -258,7 +259,7 @@ export default function PublicationsPage() {
       getLanguageLabel(publication.language),
       getPublicationTypeLabel(publication.publication_type),
       publication.publisher || "",
-      publication.publication_date ? new Date(publication.publication_date).toLocaleDateString('ar-EG') : "",
+      publication.publication_date ? formatDate(publication.publication_date) : "",
       publication.isbn || "",
       publication.pages?.toString() || "",
       publication.edition || "",
@@ -300,7 +301,7 @@ export default function PublicationsPage() {
     // Date
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
-    const currentDate = new Date().toLocaleDateString("ar-EG");
+    const currentDate = formatDate(new Date());
     doc.text(`تاريخ التصدير: ${currentDate}`, pageWidth - margin, yPosition, { align: "right" });
     yPosition += 15;
 
@@ -334,7 +335,7 @@ export default function PublicationsPage() {
         getLanguageLabel(publication.language),
         getPublicationTypeLabel(publication.publication_type),
         publication.publisher || "-",
-        publication.publication_date ? new Date(publication.publication_date).toLocaleDateString('ar-EG') : "-"
+        formatDate(publication.publication_date)
       ];
 
       rowData.forEach((cell, cellIndex) => {
@@ -699,7 +700,7 @@ export default function PublicationsPage() {
                       <div className="text-sm" style={{ color: '#374151' }}>{publication.publisher || "-"}</div>
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap">
-                      <div className="text-sm" style={{ color: '#374151' }}>{publication.publication_date ? new Date(publication.publication_date).toLocaleDateString('ar-EG') : "-"}</div>
+                      <div className="text-sm" style={{ color: '#374151' }}>{formatDate(publication.publication_date)}</div>
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap">
                       <div className="text-sm" style={{ color: '#374151' }}>{publication.isbn || "-"}</div>

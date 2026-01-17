@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useLayout } from "../layout";
 import jsPDF from "jspdf";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { formatDate } from "@/lib/utils/academic";
 
 interface Research {
   id?: number;
@@ -360,7 +361,7 @@ export default function ResearchPage() {
     // Date
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
-    const currentDate = new Date().toLocaleDateString("ar-EG");
+    const currentDate = formatDate(new Date());
     doc.text(`تاريخ التصدير: ${currentDate}`, pageWidth - margin, yPosition, { align: "right" });
     yPosition += 15;
 

@@ -1,0 +1,63 @@
+/* Force supported colors for html2canvas/jsPDF export mode */
+/* This CSS only applies when body has 'export-mode' class */
+/* Overrides lab()/oklch() colors from Tailwind CSS v4 */
+
+body.export-mode,
+body.export-mode *,
+body.export-mode *::before,
+body.export-mode *::after {
+  /* Force RGB colors instead of lab()/oklch() - this is crucial for html2canvas */
+  color: #111827 !important;
+  background-color: #ffffff !important;
+  border-color: #e5e7eb !important;
+  text-shadow: none !important;
+  box-shadow: none !important;
+}
+
+/* Preserve specific colors for better readability */
+body.export-mode h1,
+body.export-mode h2,
+body.export-mode h3,
+body.export-mode h4,
+body.export-mode h5,
+body.export-mode h6 {
+  color: #1f2937 !important;
+}
+
+body.export-mode a {
+  color: #1d4ed8 !important;
+  text-decoration: underline !important;
+}
+
+/* Preserve borders but with safe colors */
+body.export-mode [class*="border"] {
+  border-color: #e5e7eb !important;
+}
+
+/* Override any Tailwind color classes with safe RGB values */
+body.export-mode [class*="bg-"] {
+  background-color: #ffffff !important;
+}
+
+body.export-mode [class*="text-"] {
+  color: #111827 !important;
+}
+
+/* Preserve background colors for specific sections (can be customized) */
+body.export-mode #cv-content {
+  background-color: #ffffff !important;
+  color: #111827 !important;
+}
+
+/* Ensure all computed colors are RGB */
+body.export-mode * {
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+}
+
+/* Override any inline styles that might contain lab() */
+body.export-mode [style] {
+  color: #111827 !important;
+  background-color: #ffffff !important;
+  border-color: #e5e7eb !important;
+}

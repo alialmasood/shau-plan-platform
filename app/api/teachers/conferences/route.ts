@@ -23,6 +23,7 @@ export async function GET(request: NextRequest) {
           sponsoring_organization VARCHAR(255),
           location VARCHAR(255),
           is_committee_member BOOLEAN DEFAULT FALSE,
+          assignment_document TEXT,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
@@ -37,6 +38,7 @@ export async function GET(request: NextRequest) {
         `ALTER TABLE conferences ADD COLUMN IF NOT EXISTS sponsoring_organization VARCHAR(255)`,
         `ALTER TABLE conferences ADD COLUMN IF NOT EXISTS location VARCHAR(255)`,
         `ALTER TABLE conferences ADD COLUMN IF NOT EXISTS is_committee_member BOOLEAN DEFAULT FALSE`,
+        `ALTER TABLE conferences ADD COLUMN IF NOT EXISTS assignment_document TEXT`,
         `ALTER TABLE conferences ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`,
         `ALTER TABLE conferences ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`,
       ];
@@ -55,7 +57,7 @@ export async function GET(request: NextRequest) {
 
     const result = await query(
       `SELECT 
-        id, user_id, conference_title, date, scope, type, sponsoring_organization, location, is_committee_member, created_at, updated_at
+        id, user_id, conference_title, date, scope, type, sponsoring_organization, location, is_committee_member, assignment_document, created_at, updated_at
       FROM conferences WHERE user_id = $1 ORDER BY date DESC, created_at DESC`,
       [parseInt(userId)]
     );
@@ -73,7 +75,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { userId, conferenceTitle, date, scope, type, sponsoringOrganization, location, isCommitteeMember } = body;
+    const { userId, conferenceTitle, date, scope, type, sponsoringOrganization, location, isCommitteeMember, assignmentDocument } = body;
 
     if (!userId || !conferenceTitle || !date || !scope || !type) {
       return NextResponse.json(
@@ -95,6 +97,7 @@ export async function POST(request: NextRequest) {
           sponsoring_organization VARCHAR(255),
           location VARCHAR(255),
           is_committee_member BOOLEAN DEFAULT FALSE,
+          assignment_document TEXT,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
@@ -109,6 +112,7 @@ export async function POST(request: NextRequest) {
         `ALTER TABLE conferences ADD COLUMN IF NOT EXISTS sponsoring_organization VARCHAR(255)`,
         `ALTER TABLE conferences ADD COLUMN IF NOT EXISTS location VARCHAR(255)`,
         `ALTER TABLE conferences ADD COLUMN IF NOT EXISTS is_committee_member BOOLEAN DEFAULT FALSE`,
+        `ALTER TABLE conferences ADD COLUMN IF NOT EXISTS assignment_document TEXT`,
         `ALTER TABLE conferences ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`,
         `ALTER TABLE conferences ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`,
       ];
@@ -127,8 +131,8 @@ export async function POST(request: NextRequest) {
 
     const result = await query(
       `INSERT INTO conferences (
-        user_id, conference_title, date, scope, type, sponsoring_organization, location, is_committee_member
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        user_id, conference_title, date, scope, type, sponsoring_organization, location, is_committee_member, assignment_document
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       RETURNING *`,
       [
         parseInt(userId.toString()),
@@ -139,6 +143,7 @@ export async function POST(request: NextRequest) {
         sponsoringOrganization || null,
         location || null,
         isCommitteeMember || false,
+        assignmentDocument || null,
       ]
     );
 
@@ -155,7 +160,7 @@ export async function POST(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   try {
     const body = await request.json();
-    const { id, conferenceTitle, date, scope, type, sponsoringOrganization, location, isCommitteeMember } = body;
+    const { id, conferenceTitle, date, scope, type, sponsoringOrganization, location, isCommitteeMember, assignmentDocument } = body;
 
     if (!id) {
       return NextResponse.json({ error: "id is required" }, { status: 400 });
@@ -170,8 +175,9 @@ export async function PATCH(request: NextRequest) {
         sponsoring_organization = $5,
         location = $6,
         is_committee_member = COALESCE($7, is_committee_member),
+        assignment_document = $8,
         updated_at = CURRENT_TIMESTAMP
-      WHERE id = $8
+      WHERE id = $9
       RETURNING *`,
       [
         conferenceTitle || null,
@@ -181,6 +187,7 @@ export async function PATCH(request: NextRequest) {
         sponsoringOrganization || null,
         location || null,
         isCommitteeMember !== undefined ? isCommitteeMember : null,
+        assignmentDocument !== undefined ? assignmentDocument : null,
         id,
       ]
     );

@@ -24,6 +24,7 @@ export async function GET(request: NextRequest) {
           duration VARCHAR(100),
           organization VARCHAR(255),
           description TEXT,
+          assignment_document TEXT,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
@@ -35,6 +36,7 @@ export async function GET(request: NextRequest) {
         `ALTER TABLE positions ADD COLUMN IF NOT EXISTS duration VARCHAR(100)`,
         `ALTER TABLE positions ADD COLUMN IF NOT EXISTS organization VARCHAR(255)`,
         `ALTER TABLE positions ADD COLUMN IF NOT EXISTS description TEXT`,
+        `ALTER TABLE positions ADD COLUMN IF NOT EXISTS assignment_document TEXT`,
         `ALTER TABLE positions ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`,
         `ALTER TABLE positions ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`,
       ];
@@ -53,7 +55,7 @@ export async function GET(request: NextRequest) {
 
     // Fetch positions
     const result = await query(
-      `SELECT id, position_title, start_date, duration, organization, description, created_at, updated_at
+      `SELECT id, position_title, start_date, duration, organization, description, assignment_document, created_at, updated_at
        FROM positions
        WHERE user_id = $1
        ORDER BY start_date DESC NULLS LAST, created_at DESC`,
@@ -70,11 +72,11 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST - Add new position
+    // POST - Add new position
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { userId, positionTitle, startDate, duration, organization, description } = body;
+    const { userId, positionTitle, startDate, duration, organization, description, assignmentDocument } = body;
 
     if (!userId || !positionTitle) {
       return NextResponse.json(
@@ -94,6 +96,7 @@ export async function POST(request: NextRequest) {
           duration VARCHAR(100),
           organization VARCHAR(255),
           description TEXT,
+          assignment_document TEXT,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
@@ -105,6 +108,7 @@ export async function POST(request: NextRequest) {
         `ALTER TABLE positions ADD COLUMN IF NOT EXISTS duration VARCHAR(100)`,
         `ALTER TABLE positions ADD COLUMN IF NOT EXISTS organization VARCHAR(255)`,
         `ALTER TABLE positions ADD COLUMN IF NOT EXISTS description TEXT`,
+        `ALTER TABLE positions ADD COLUMN IF NOT EXISTS assignment_document TEXT`,
         `ALTER TABLE positions ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`,
         `ALTER TABLE positions ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`,
       ];
@@ -123,10 +127,10 @@ export async function POST(request: NextRequest) {
 
     // Insert new position
     const result = await query(
-      `INSERT INTO positions (user_id, position_title, start_date, duration, organization, description, updated_at)
-       VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP)
-       RETURNING id, position_title, start_date, duration, organization, description, created_at, updated_at`,
-      [userId, positionTitle || null, startDate || null, duration || null, organization || null, description || null]
+      `INSERT INTO positions (user_id, position_title, start_date, duration, organization, description, assignment_document, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP)
+       RETURNING id, position_title, start_date, duration, organization, description, assignment_document, created_at, updated_at`,
+      [userId, positionTitle || null, startDate || null, duration || null, organization || null, description || null, assignmentDocument || null]
     );
 
     return NextResponse.json(
@@ -149,7 +153,7 @@ export async function POST(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   try {
     const body = await request.json();
-    const { id, positionTitle, startDate, duration, organization, description } = body;
+    const { id, positionTitle, startDate, duration, organization, description, assignmentDocument } = body;
 
     if (!id) {
       return NextResponse.json(
@@ -160,10 +164,10 @@ export async function PATCH(request: NextRequest) {
 
     const result = await query(
       `UPDATE positions
-       SET position_title = $1, start_date = $2, duration = $3, organization = $4, description = $5, updated_at = CURRENT_TIMESTAMP
-       WHERE id = $6
-       RETURNING id, position_title, start_date, duration, organization, description, created_at, updated_at`,
-      [positionTitle || null, startDate || null, duration || null, organization || null, description || null, id]
+       SET position_title = $1, start_date = $2, duration = $3, organization = $4, description = $5, assignment_document = $6, updated_at = CURRENT_TIMESTAMP
+       WHERE id = $7
+       RETURNING id, position_title, start_date, duration, organization, description, assignment_document, created_at, updated_at`,
+      [positionTitle || null, startDate || null, duration || null, organization || null, description || null, assignmentDocument || null, id]
     );
 
     if (result.rows.length === 0) {

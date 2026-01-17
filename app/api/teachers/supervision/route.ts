@@ -23,6 +23,7 @@ export async function GET(request: NextRequest) {
           end_date DATE,
           is_completed BOOLEAN DEFAULT FALSE,
           supervision_type VARCHAR(50),
+          supervision_document TEXT,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
@@ -37,6 +38,7 @@ export async function GET(request: NextRequest) {
         `ALTER TABLE supervision ADD COLUMN IF NOT EXISTS end_date DATE`,
         `ALTER TABLE supervision ADD COLUMN IF NOT EXISTS is_completed BOOLEAN DEFAULT FALSE`,
         `ALTER TABLE supervision ADD COLUMN IF NOT EXISTS supervision_type VARCHAR(50)`,
+        `ALTER TABLE supervision ADD COLUMN IF NOT EXISTS supervision_document TEXT`,
         `ALTER TABLE supervision ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`,
         `ALTER TABLE supervision ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`,
       ];
@@ -55,7 +57,7 @@ export async function GET(request: NextRequest) {
 
     const result = await query(
       `SELECT 
-        id, user_id, student_name, degree_type, thesis_title, start_date, end_date, is_completed, supervision_type, created_at, updated_at
+        id, user_id, student_name, degree_type, thesis_title, start_date, end_date, is_completed, supervision_type, supervision_document, created_at, updated_at
       FROM supervision WHERE user_id = $1 ORDER BY start_date DESC, created_at DESC`,
       [parseInt(userId)]
     );
@@ -73,7 +75,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { userId, studentName, degreeType, thesisTitle, startDate, endDate, isCompleted, supervisionType } = body;
+    const { userId, studentName, degreeType, thesisTitle, startDate, endDate, isCompleted, supervisionType, supervisionDocument } = body;
 
     if (!userId || !studentName || !degreeType || !startDate) {
       return NextResponse.json(
@@ -95,6 +97,7 @@ export async function POST(request: NextRequest) {
           end_date DATE,
           is_completed BOOLEAN DEFAULT FALSE,
           supervision_type VARCHAR(50),
+          supervision_document TEXT,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
@@ -109,6 +112,7 @@ export async function POST(request: NextRequest) {
         `ALTER TABLE supervision ADD COLUMN IF NOT EXISTS end_date DATE`,
         `ALTER TABLE supervision ADD COLUMN IF NOT EXISTS is_completed BOOLEAN DEFAULT FALSE`,
         `ALTER TABLE supervision ADD COLUMN IF NOT EXISTS supervision_type VARCHAR(50)`,
+        `ALTER TABLE supervision ADD COLUMN IF NOT EXISTS supervision_document TEXT`,
         `ALTER TABLE supervision ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`,
         `ALTER TABLE supervision ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`,
       ];
@@ -127,8 +131,8 @@ export async function POST(request: NextRequest) {
 
     const result = await query(
       `INSERT INTO supervision (
-        user_id, student_name, degree_type, thesis_title, start_date, end_date, is_completed, supervision_type
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        user_id, student_name, degree_type, thesis_title, start_date, end_date, is_completed, supervision_type, supervision_document
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       RETURNING *`,
       [
         parseInt(userId.toString()),
@@ -139,6 +143,7 @@ export async function POST(request: NextRequest) {
         endDate || null,
         isCompleted || false,
         supervisionType || null,
+        supervisionDocument || null,
       ]
     );
 
@@ -155,7 +160,7 @@ export async function POST(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   try {
     const body = await request.json();
-    const { id, studentName, degreeType, thesisTitle, startDate, endDate, isCompleted, supervisionType } = body;
+    const { id, studentName, degreeType, thesisTitle, startDate, endDate, isCompleted, supervisionType, supervisionDocument } = body;
 
     if (!id) {
       return NextResponse.json({ error: "id is required" }, { status: 400 });
@@ -170,8 +175,9 @@ export async function PATCH(request: NextRequest) {
         end_date = $5,
         is_completed = COALESCE($6, is_completed),
         supervision_type = $7,
+        supervision_document = $8,
         updated_at = CURRENT_TIMESTAMP
-      WHERE id = $8
+      WHERE id = $9
       RETURNING *`,
       [
         studentName || null,
@@ -181,6 +187,7 @@ export async function PATCH(request: NextRequest) {
         endDate || null,
         isCompleted !== undefined ? isCompleted : null,
         supervisionType || null,
+        supervisionDocument !== undefined ? supervisionDocument : null,
         id,
       ]
     );

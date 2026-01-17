@@ -20,6 +20,7 @@ export async function GET(request: NextRequest) {
           thank_you_direction VARCHAR(500),
           month VARCHAR(50),
           year INTEGER NOT NULL,
+          thank_you_book_document TEXT,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
@@ -31,6 +32,7 @@ export async function GET(request: NextRequest) {
         `ALTER TABLE thank_you_books ADD COLUMN IF NOT EXISTS thank_you_direction VARCHAR(500)`,
         `ALTER TABLE thank_you_books ADD COLUMN IF NOT EXISTS month VARCHAR(50)`,
         `ALTER TABLE thank_you_books ADD COLUMN IF NOT EXISTS year INTEGER`,
+        `ALTER TABLE thank_you_books ADD COLUMN IF NOT EXISTS thank_you_book_document TEXT`,
         `ALTER TABLE thank_you_books ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`,
         `ALTER TABLE thank_you_books ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`,
       ];
@@ -49,7 +51,7 @@ export async function GET(request: NextRequest) {
 
     const result = await query(
       `SELECT 
-        id, user_id, granting_organization, thank_you_direction, month, year, created_at, updated_at
+        id, user_id, granting_organization, thank_you_direction, month, year, thank_you_book_document, created_at, updated_at
       FROM thank_you_books WHERE user_id = $1 ORDER BY year DESC, month DESC, created_at DESC`,
       [parseInt(userId)]
     );
@@ -67,7 +69,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { userId, grantingOrganization, thankYouDirection, month, year } = body;
+    const { userId, grantingOrganization, thankYouDirection, month, year, thankYouBookDocument } = body;
 
     if (!userId || !grantingOrganization || !year) {
       return NextResponse.json(
@@ -86,6 +88,7 @@ export async function POST(request: NextRequest) {
           thank_you_direction VARCHAR(500),
           month VARCHAR(50),
           year INTEGER NOT NULL,
+          thank_you_book_document TEXT,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
@@ -97,6 +100,7 @@ export async function POST(request: NextRequest) {
         `ALTER TABLE thank_you_books ADD COLUMN IF NOT EXISTS thank_you_direction VARCHAR(500)`,
         `ALTER TABLE thank_you_books ADD COLUMN IF NOT EXISTS month VARCHAR(50)`,
         `ALTER TABLE thank_you_books ADD COLUMN IF NOT EXISTS year INTEGER`,
+        `ALTER TABLE thank_you_books ADD COLUMN IF NOT EXISTS thank_you_book_document TEXT`,
         `ALTER TABLE thank_you_books ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`,
         `ALTER TABLE thank_you_books ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`,
       ];
@@ -115,8 +119,8 @@ export async function POST(request: NextRequest) {
 
     const result = await query(
       `INSERT INTO thank_you_books (
-        user_id, granting_organization, thank_you_direction, month, year
-      ) VALUES ($1, $2, $3, $4, $5)
+        user_id, granting_organization, thank_you_direction, month, year, thank_you_book_document
+      ) VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING *`,
       [
         parseInt(userId.toString()),
@@ -124,6 +128,7 @@ export async function POST(request: NextRequest) {
         thankYouDirection || null,
         month || null,
         parseInt(year.toString()),
+        thankYouBookDocument || null,
       ]
     );
 
@@ -140,7 +145,7 @@ export async function POST(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   try {
     const body = await request.json();
-    const { id, grantingOrganization, thankYouDirection, month, year } = body;
+    const { id, grantingOrganization, thankYouDirection, month, year, thankYouBookDocument } = body;
 
     if (!id) {
       return NextResponse.json({ error: "id is required" }, { status: 400 });
@@ -152,14 +157,16 @@ export async function PATCH(request: NextRequest) {
         thank_you_direction = $2,
         month = $3,
         year = COALESCE($4, year),
+        thank_you_book_document = $5,
         updated_at = CURRENT_TIMESTAMP
-      WHERE id = $5
+      WHERE id = $6
       RETURNING *`,
       [
         grantingOrganization || null,
         thankYouDirection || null,
         month || null,
         year ? parseInt(year.toString()) : null,
+        thankYouBookDocument !== undefined ? thankYouBookDocument : null,
         id,
       ]
     );

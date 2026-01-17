@@ -28,6 +28,7 @@ export async function GET(request: NextRequest) {
           certificates_documents TEXT,
           description TEXT,
           is_active BOOLEAN DEFAULT FALSE,
+          volunteer_work_document TEXT,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
@@ -47,6 +48,7 @@ export async function GET(request: NextRequest) {
         `ALTER TABLE volunteer_work ADD COLUMN IF NOT EXISTS certificates_documents TEXT`,
         `ALTER TABLE volunteer_work ADD COLUMN IF NOT EXISTS description TEXT`,
         `ALTER TABLE volunteer_work ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT FALSE`,
+        `ALTER TABLE volunteer_work ADD COLUMN IF NOT EXISTS volunteer_work_document TEXT`,
         `ALTER TABLE volunteer_work ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`,
         `ALTER TABLE volunteer_work ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`,
       ];
@@ -66,7 +68,7 @@ export async function GET(request: NextRequest) {
     const result = await query(
       `SELECT 
         id, user_id, work_title, work_type, role, organizing_organization, start_date, end_date, 
-        duration, location, beneficiaries, certificates_documents, description, is_active, created_at, updated_at
+        duration, location, beneficiaries, certificates_documents, description, is_active, volunteer_work_document, created_at, updated_at
       FROM volunteer_work WHERE user_id = $1 ORDER BY start_date DESC, created_at DESC`,
       [parseInt(userId)]
     );
@@ -86,7 +88,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { 
       userId, workTitle, workType, role, organizingOrganization, startDate, endDate, 
-      duration, location, beneficiaries, certificatesDocuments, description, isActive 
+      duration, location, beneficiaries, certificatesDocuments, description, isActive, volunteerWorkDocument 
     } = body;
 
     if (!userId || !workTitle || !workType || !role || !startDate) {
@@ -114,6 +116,7 @@ export async function POST(request: NextRequest) {
           certificates_documents TEXT,
           description TEXT,
           is_active BOOLEAN DEFAULT FALSE,
+          volunteer_work_document TEXT,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
@@ -133,6 +136,7 @@ export async function POST(request: NextRequest) {
         `ALTER TABLE volunteer_work ADD COLUMN IF NOT EXISTS certificates_documents TEXT`,
         `ALTER TABLE volunteer_work ADD COLUMN IF NOT EXISTS description TEXT`,
         `ALTER TABLE volunteer_work ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT FALSE`,
+        `ALTER TABLE volunteer_work ADD COLUMN IF NOT EXISTS volunteer_work_document TEXT`,
         `ALTER TABLE volunteer_work ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`,
         `ALTER TABLE volunteer_work ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`,
       ];
@@ -152,8 +156,8 @@ export async function POST(request: NextRequest) {
     const result = await query(
       `INSERT INTO volunteer_work (
         user_id, work_title, work_type, role, organizing_organization, start_date, end_date, 
-        duration, location, beneficiaries, certificates_documents, description, is_active
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+        duration, location, beneficiaries, certificates_documents, description, is_active, volunteer_work_document
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
       RETURNING *`,
       [
         parseInt(userId.toString()),
@@ -169,6 +173,7 @@ export async function POST(request: NextRequest) {
         certificatesDocuments || null,
         description || null,
         isActive !== undefined ? isActive : false,
+        volunteerWorkDocument || null,
       ]
     );
 
@@ -187,7 +192,7 @@ export async function PATCH(request: NextRequest) {
     const body = await request.json();
     const { 
       id, workTitle, workType, role, organizingOrganization, startDate, endDate, 
-      duration, location, beneficiaries, certificatesDocuments, description, isActive 
+      duration, location, beneficiaries, certificatesDocuments, description, isActive, volunteerWorkDocument 
     } = body;
 
     if (!id) {
@@ -208,8 +213,9 @@ export async function PATCH(request: NextRequest) {
         certificates_documents = $10,
         description = $11,
         is_active = COALESCE($12, is_active),
+        volunteer_work_document = $13,
         updated_at = CURRENT_TIMESTAMP
-      WHERE id = $13
+      WHERE id = $14
       RETURNING *`,
       [
         workTitle || null,
@@ -224,6 +230,7 @@ export async function PATCH(request: NextRequest) {
         certificatesDocuments || null,
         description || null,
         isActive !== undefined ? isActive : null,
+        volunteerWorkDocument !== undefined ? volunteerWorkDocument : null,
         id,
       ]
     );

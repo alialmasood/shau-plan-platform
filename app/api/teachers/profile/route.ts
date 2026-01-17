@@ -13,12 +13,13 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Add name_ar and name_en columns if they don't exist
+    // Add name_ar, name_en, and profile_picture columns if they don't exist
     try {
       await query(`
         ALTER TABLE users 
         ADD COLUMN IF NOT EXISTS name_ar VARCHAR(255),
-        ADD COLUMN IF NOT EXISTS name_en VARCHAR(255);
+        ADD COLUMN IF NOT EXISTS name_en VARCHAR(255),
+        ADD COLUMN IF NOT EXISTS profile_picture TEXT;
       `);
     } catch (error: any) {
       // Column might already exist, ignore error
@@ -29,7 +30,7 @@ export async function GET(request: NextRequest) {
 
     // Fetch user data
     const result = await query(
-      `SELECT id, username, email, full_name, name_ar, name_en, role, department, phone, academic_title, is_active, created_at, updated_at
+      `SELECT id, username, email, full_name, name_ar, name_en, role, department, phone, academic_title, is_active, profile_picture, created_at, updated_at
        FROM users
        WHERE id = $1`,
       [userId]
@@ -67,7 +68,7 @@ export async function GET(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   try {
     const body = await request.json();
-    const { userId, nameAr, nameEn, department, academicTitle } = body;
+    const { userId, nameAr, nameEn, department, academicTitle, profilePicture } = body;
 
     if (!userId) {
       return NextResponse.json(
@@ -76,12 +77,13 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    // Add name_ar and name_en columns if they don't exist
+    // Add name_ar, name_en, and profile_picture columns if they don't exist
     try {
       await query(`
         ALTER TABLE users 
         ADD COLUMN IF NOT EXISTS name_ar VARCHAR(255),
-        ADD COLUMN IF NOT EXISTS name_en VARCHAR(255);
+        ADD COLUMN IF NOT EXISTS name_en VARCHAR(255),
+        ADD COLUMN IF NOT EXISTS profile_picture TEXT;
       `);
     } catch (error: any) {
       // Column might already exist, ignore error
@@ -92,7 +94,7 @@ export async function PATCH(request: NextRequest) {
 
     // Update user information
     const updateFields: string[] = [];
-    const updateValues: any[] = [];
+    const updateValues: unknown[] = [];
     let paramIndex = 1;
 
     if (nameAr !== undefined) {
@@ -122,6 +124,11 @@ export async function PATCH(request: NextRequest) {
       updateValues.push(academicTitle || null);
     }
 
+    if (profilePicture !== undefined) {
+      updateFields.push(`profile_picture = $${paramIndex++}`);
+      updateValues.push(profilePicture || null);
+    }
+
     if (updateFields.length === 0) {
       return NextResponse.json(
         { message: "لا توجد بيانات للتحديث" },
@@ -136,7 +143,7 @@ export async function PATCH(request: NextRequest) {
       UPDATE users 
       SET ${updateFields.join(", ")}
       WHERE id = $${paramIndex}
-      RETURNING id, username, email, full_name, name_ar, name_en, role, department, phone, academic_title, is_active, created_at, updated_at
+      RETURNING id, username, email, full_name, name_ar, name_en, role, department, phone, academic_title, is_active, profile_picture, created_at, updated_at
     `;
 
     const result = await query(updateQuery, updateValues);

@@ -24,6 +24,7 @@ export async function GET(request: NextRequest) {
           impact_factor VARCHAR(50),
           description TEXT,
           is_active BOOLEAN DEFAULT TRUE,
+          membership_document TEXT,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
@@ -39,6 +40,7 @@ export async function GET(request: NextRequest) {
         `ALTER TABLE journal_memberships ADD COLUMN IF NOT EXISTS impact_factor VARCHAR(50)`,
         `ALTER TABLE journal_memberships ADD COLUMN IF NOT EXISTS description TEXT`,
         `ALTER TABLE journal_memberships ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE`,
+        `ALTER TABLE journal_memberships ADD COLUMN IF NOT EXISTS membership_document TEXT`,
         `ALTER TABLE journal_memberships ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`,
         `ALTER TABLE journal_memberships ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`,
       ];
@@ -57,7 +59,7 @@ export async function GET(request: NextRequest) {
 
     const result = await query(
       `SELECT 
-        id, user_id, journal_name, role, journal_type, start_date, end_date, impact_factor, description, is_active, created_at, updated_at
+        id, user_id, journal_name, role, journal_type, start_date, end_date, impact_factor, description, is_active, membership_document, created_at, updated_at
       FROM journal_memberships WHERE user_id = $1 ORDER BY start_date DESC, created_at DESC`,
       [parseInt(userId)]
     );
@@ -75,7 +77,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { userId, journalName, role, journalType, startDate, endDate, impactFactor, description, isActive } = body;
+    const { userId, journalName, role, journalType, startDate, endDate, impactFactor, description, isActive, membershipDocument } = body;
 
     if (!userId || !journalName || !role || !journalType || !startDate) {
       return NextResponse.json(
@@ -98,6 +100,7 @@ export async function POST(request: NextRequest) {
           impact_factor VARCHAR(50),
           description TEXT,
           is_active BOOLEAN DEFAULT TRUE,
+          membership_document TEXT,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
@@ -113,6 +116,7 @@ export async function POST(request: NextRequest) {
         `ALTER TABLE journal_memberships ADD COLUMN IF NOT EXISTS impact_factor VARCHAR(50)`,
         `ALTER TABLE journal_memberships ADD COLUMN IF NOT EXISTS description TEXT`,
         `ALTER TABLE journal_memberships ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE`,
+        `ALTER TABLE journal_memberships ADD COLUMN IF NOT EXISTS membership_document TEXT`,
         `ALTER TABLE journal_memberships ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`,
         `ALTER TABLE journal_memberships ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`,
       ];
@@ -131,8 +135,8 @@ export async function POST(request: NextRequest) {
 
     const result = await query(
       `INSERT INTO journal_memberships (
-        user_id, journal_name, role, journal_type, start_date, end_date, impact_factor, description, is_active
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        user_id, journal_name, role, journal_type, start_date, end_date, impact_factor, description, is_active, membership_document
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
       RETURNING *`,
       [
         parseInt(userId.toString()),
@@ -144,6 +148,7 @@ export async function POST(request: NextRequest) {
         impactFactor || null,
         description || null,
         isActive !== undefined ? isActive : true,
+        membershipDocument || null,
       ]
     );
 
@@ -160,7 +165,7 @@ export async function POST(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   try {
     const body = await request.json();
-    const { id, journalName, role, journalType, startDate, endDate, impactFactor, description, isActive } = body;
+    const { id, journalName, role, journalType, startDate, endDate, impactFactor, description, isActive, membershipDocument } = body;
 
     if (!id) {
       return NextResponse.json({ error: "id is required" }, { status: 400 });
@@ -176,8 +181,9 @@ export async function PATCH(request: NextRequest) {
         impact_factor = $6,
         description = $7,
         is_active = COALESCE($8, is_active),
+        membership_document = $9,
         updated_at = CURRENT_TIMESTAMP
-      WHERE id = $9
+      WHERE id = $10
       RETURNING *`,
       [
         journalName || null,
@@ -188,6 +194,7 @@ export async function PATCH(request: NextRequest) {
         impactFactor || null,
         description || null,
         isActive !== undefined ? isActive : null,
+        membershipDocument !== undefined ? membershipDocument : null,
         id,
       ]
     );
