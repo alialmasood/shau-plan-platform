@@ -144,7 +144,27 @@ export default function TeachersLayout({
     // Check if user is logged in
     const userData = localStorage.getItem("user");
     if (userData) {
-      setUser(JSON.parse(userData));
+      const parsedUser = JSON.parse(userData);
+      setUser(parsedUser);
+      
+      // Fetch latest user data from database to ensure profile picture is up to date
+      const fetchLatestUserData = async () => {
+        try {
+          const response = await fetch(`/api/teachers/profile?userId=${parsedUser.id}`);
+          if (response.ok) {
+            const latestUserData = await response.json();
+            // Update localStorage and state with latest data (especially profile_picture)
+            const updatedUser = { ...parsedUser, ...latestUserData };
+            localStorage.setItem("user", JSON.stringify(updatedUser));
+            setUser(updatedUser);
+          }
+        } catch (error) {
+          console.error("Error fetching latest user data:", error);
+          // Continue with localStorage data if fetch fails
+        }
+      };
+      
+      fetchLatestUserData();
       setIsLoading(false);
     } else {
       // Redirect to login if not logged in (except for login/register pages)
@@ -1042,24 +1062,6 @@ export default function TeachersLayout({
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                 </svg>
                 <span className="font-medium text-sm">نظام التواصل</span>
-              </a>
-
-              <a
-                href="/teachers/users-management"
-                onClick={(e) => { e.preventDefault(); setActiveMenuItem("users-management"); router.push("/teachers/users-management"); }}
-                className={`flex items-center gap-3 px-4 py-1.5 text-white rounded-lg transition-all duration-300 ease-in-out group relative ${
-                  activeMenuItem === "users-management" 
-                    ? "bg-white/20 shadow-sm" 
-                    : "hover:bg-white/10"
-                }`}
-              >
-                {activeMenuItem === "users-management" && (
-                  <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-1 h-6 bg-white rounded-r-full"></div>
-                )}
-                <svg className="w-4 h-4 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                </svg>
-                <span className="font-medium text-sm">إدارة المستخدمين</span>
               </a>
             </nav>
 

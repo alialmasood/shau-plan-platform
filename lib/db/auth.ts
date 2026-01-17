@@ -67,7 +67,7 @@ export async function authenticateUser(
 ): Promise<User | null> {
   // Try to find user by email or username
   const selectQuery = `
-    SELECT id, username, email, password_hash, full_name, role, department, phone, academic_title, is_active, created_at, updated_at, last_login
+    SELECT id, username, email, password_hash, full_name, role, department, phone, academic_title, is_active, created_at, updated_at, last_login, profile_picture
     FROM users
     WHERE (email = $1 OR username = $1) AND is_active = true;
   `;
