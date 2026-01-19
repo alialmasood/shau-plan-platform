@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db/query";
+import { calculateScientificPointsDataForUser } from "@/lib/services/scientificPoints";
 
 // GET: Get user ranking based on total points
 export async function GET(request: NextRequest) {
@@ -42,49 +43,33 @@ export async function GET(request: NextRequest) {
     }
     const usersWithPoints: UserWithPoints[] = [];
 
-    // Calculate points for each user using the same logic as points API
-    // We'll use a simplified approach: fetch points via internal API call
-    // For better performance, we could cache this or calculate in batch
+    // Calculate points for each user using the exact same DB-backed logic as /api/teachers/points
+    // (بدون نداء fetch داخلي) لضمان إظهار "عدد النقاط" بشكل حقيقي وثابت.
     const pointsPromises = allUsers.map(async (currentUser) => {
       try {
-        // Call points calculation internally
-        const pointsResponse = await fetch(`${request.nextUrl.origin}/api/teachers/points?userId=${currentUser.id}`, {
-          headers: {
-            'Cache-Control': 'no-cache'
-          }
-        });
-        
-        if (pointsResponse.ok) {
-          const pointsData = await pointsResponse.json();
-          return {
-            id: currentUser.id,
-            full_name: currentUser.full_name || currentUser.name_ar || currentUser.name_en || currentUser.username || `User ${currentUser.id}`,
-            name_ar: currentUser.name_ar,
-            name_en: currentUser.name_en,
-            department: currentUser.department || "",
-            academic_title: currentUser.academic_title || "",
-            totalPoints: pointsData.totalPoints || 0,
-            pointsBreakdown: pointsData.pointsBreakdown || {}
-          };
-        } else {
-          return {
-            id: currentUser.id,
-            full_name: currentUser.full_name || currentUser.name_ar || currentUser.name_en || currentUser.username || `User ${currentUser.id}`,
-            name_ar: currentUser.name_ar,
-            name_en: currentUser.name_en,
-            department: currentUser.department || "",
-            academic_title: currentUser.academic_title || "",
-            totalPoints: 0,
-            pointsBreakdown: {}
-          };
-        }
+        const pointsData = await calculateScientificPointsDataForUser(currentUser.id);
+        return {
+          id: currentUser.id,
+          full_name: currentUser.full_name || currentUser.name_ar || currentUser.name_en || `User ${currentUser.id}`,
+          name_ar: currentUser.name_ar,
+          name_en: currentUser.name_en,
+          department: currentUser.department || "",
+          academic_title: currentUser.academic_title || "",
+          totalPoints: pointsData?.totalPoints || 0,
+          // ranking route expects "pointsBreakdown" shape for similarity calculation
+          pointsBreakdown: (pointsData as any)?.breakdown || {},
+        };
       } catch (error) {
         console.error(`Error calculating points for user ${currentUser.id}:`, error);
         return {
           id: currentUser.id,
-          full_name: currentUser.full_name || currentUser.username || `User ${currentUser.id}`,
+          full_name: currentUser.full_name || currentUser.name_ar || currentUser.name_en || `User ${currentUser.id}`,
+          name_ar: currentUser.name_ar,
+          name_en: currentUser.name_en,
           department: currentUser.department || "",
-          totalPoints: 0
+          academic_title: currentUser.academic_title || "",
+          totalPoints: 0,
+          pointsBreakdown: {}
         };
       }
     });
