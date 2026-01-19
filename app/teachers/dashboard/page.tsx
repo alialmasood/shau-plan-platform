@@ -37,6 +37,76 @@ function getMonthName(monthValue: string): string {
   return monthNames[monthValue] || "جميع الأشهر";
 }
 
+// تحويل تاريخ/سنة/شهر إلى "عام دراسي" بصيغة YYYY-YYYY (من أغسطس إلى يوليو)
+function getAcademicYearFromDate(dateStr?: string | null): string | null {
+  if (!dateStr) return null;
+  const d = new Date(dateStr);
+  if (Number.isNaN(d.getTime())) return null;
+  const y = d.getFullYear();
+  const m = d.getMonth() + 1; // 1-12
+  // Aug-Dec => y-(y+1) ، Jan-Jul => (y-1)-y
+  return m >= 8 ? `${y}-${y + 1}` : `${y - 1}-${y}`;
+}
+
+function toIntYear(v: unknown): number | null {
+  const n = typeof v === "number" ? v : parseInt(String(v ?? ""), 10);
+  return Number.isFinite(n) ? n : null;
+}
+
+function monthToNumber(month: unknown): number | null {
+  if (month === null || month === undefined) return null;
+  const s = String(month).trim().toLowerCase();
+  if (!s) return null;
+  // رقم مباشر
+  const direct = parseInt(s, 10);
+  if (Number.isFinite(direct) && direct >= 1 && direct <= 12) return direct;
+
+  const map: Record<string, number> = {
+    "يناير": 1,
+    "فبراير": 2,
+    "مارس": 3,
+    "أبريل": 4,
+    "ابريل": 4,
+    "مايو": 5,
+    "يونيو": 6,
+    "يوليو": 7,
+    "أغسطس": 8,
+    "اغسطس": 8,
+    "سبتمبر": 9,
+    "أكتوبر": 10,
+    "اكتوبر": 10,
+    "نوفمبر": 11,
+    "ديسمبر": 12,
+    "january": 1,
+    "february": 2,
+    "march": 3,
+    "april": 4,
+    "may": 5,
+    "june": 6,
+    "july": 7,
+    "august": 8,
+    "september": 9,
+    "october": 10,
+    "november": 11,
+    "december": 12,
+  };
+  return map[s] ?? null;
+}
+
+function getAcademicYearFromYearMonth(
+  year: number | string | null | undefined,
+  month: string | null | undefined
+): string | null {
+  const y = toIntYear(year);
+  if (!y) return null;
+  const m = monthToNumber(month);
+  if (!m) {
+    // إن لم تتوفر قيمة شهر، نعتبر السنة هي بداية العام الدراسي (أشمل وأقرب لفهم المستخدم)
+    return `${y}-${y + 1}`;
+  }
+  return m >= 8 ? `${y}-${y + 1}` : `${y - 1}-${y}`;
+}
+
 interface Position {
   id: number;
   position_title: string;
@@ -44,6 +114,7 @@ interface Position {
   duration: string | null;
   organization: string | null;
   description: string | null;
+  created_at?: string;
 }
 
 interface Research {
@@ -244,6 +315,73 @@ export default function TeachersDashboardPage() {
   const [scientificEvaluations, setScientificEvaluations] = useState<ScientificEvaluation[]>([]);
   const [journalMemberships, setJournalMemberships] = useState<JournalMembership[]>([]);
   const [volunteerWork, setVolunteerWork] = useState<VolunteerWork[]>([]);
+
+  // السنوات الدراسية المتاحة فعلياً (فقط السنوات التي يوجد بها أي نشاط/فعالية)
+  const availableAcademicYears = useMemo(() => {
+    const years = new Set<string>();
+
+    const add = (y: string | null) => {
+      if (y && /^\d{4}-\d{4}$/.test(y)) years.add(y);
+    };
+
+    // research: الأفضل الاعتماد على created_at إن وجد، وإلا year (+ publication_month إن وجد)
+    researchList.forEach((r) => {
+      add(getAcademicYearFromDate(r.created_at));
+      if (!r.created_at) {
+        add(getAcademicYearFromYearMonth(r.year, r.publication_month ?? null));
+      }
+    });
+
+    // date-based tables (مع fallback لـ created_at إن وجد)
+    positions.forEach((p) => add(getAcademicYearFromDate(p.start_date ?? p.created_at)));
+    publications.forEach((p) => add(getAcademicYearFromDate(p.publication_date ?? p.created_at)));
+    courses.forEach((c) => add(getAcademicYearFromDate(c.date ?? c.created_at)));
+    seminars.forEach((s) => add(getAcademicYearFromDate(s.date ?? s.created_at)));
+    workshops.forEach((w) => add(getAcademicYearFromDate(w.date ?? w.created_at)));
+    conferences.forEach((c) => add(getAcademicYearFromDate(c.date ?? c.created_at)));
+    committees.forEach((c) => add(getAcademicYearFromDate(c.assignment_date ?? c.created_at)));
+    assignments.forEach((a) => add(getAcademicYearFromDate(a.assignment_date ?? a.created_at)));
+    supervision.forEach((s) => add(getAcademicYearFromDate(s.start_date ?? s.created_at)));
+    scientificEvaluations.forEach((s) => add(getAcademicYearFromDate(s.evaluation_date ?? s.created_at)));
+    journalMemberships.forEach((j) => add(getAcademicYearFromDate(j.start_date ?? j.created_at)));
+    volunteerWork.forEach((v) => add(getAcademicYearFromDate(v.start_date ?? v.created_at)));
+
+    // month/year based tables
+    thankYouBooks.forEach((t) => add(getAcademicYearFromYearMonth(t.year, t.month)));
+    participationCertificates.forEach((p) => add(getAcademicYearFromYearMonth(p.year, p.month)));
+
+    const sorted = Array.from(years).sort((a, b) => {
+      const ay = parseInt(a.split("-")[0], 10);
+      const by = parseInt(b.split("-")[0], 10);
+      return by - ay;
+    });
+
+    return sorted;
+  }, [
+    positions,
+    researchList,
+    publications,
+    courses,
+    seminars,
+    workshops,
+    conferences,
+    committees,
+    thankYouBooks,
+    assignments,
+    participationCertificates,
+    supervision,
+    scientificEvaluations,
+    journalMemberships,
+    volunteerWork,
+  ]);
+
+  // إذا السنة الحالية غير موجودة ضمن السنوات التي تحتوي بيانات، نحول تلقائياً لأحدث سنة متاحة
+  useEffect(() => {
+    const options = availableAcademicYears.length > 0 ? availableAcademicYears : [getAcademicYear()];
+    if (!options.includes(selectedYear)) {
+      setSelectedYear(options[0]);
+    }
+  }, [availableAcademicYears, selectedYear]);
 
   // Fetch all data
   useEffect(() => {
@@ -696,15 +834,11 @@ export default function TeachersDashboardPage() {
                 className="px-4 py-2 pr-8 border border-gray-300 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300 max-[639px]:w-full max-[639px]:h-11"
                 style={{ color: '#1F2937', backgroundColor: '#FAFBFC' }}
               >
-                {Array.from({ length: 10 }, (_, i) => {
-                  const year = 2024 + i;
-                  const nextYear = year + 1;
-                  return (
-                    <option key={year} value={`${year}-${nextYear}`}>
-                      {year}-{nextYear}
-                    </option>
-                  );
-                })}
+                {(availableAcademicYears.length > 0 ? availableAcademicYears : [getAcademicYear()]).map((y) => (
+                  <option key={y} value={y}>
+                    {y}
+                  </option>
+                ))}
               </select>
             </div>
 
