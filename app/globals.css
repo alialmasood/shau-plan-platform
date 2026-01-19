@@ -52,4 +52,15 @@ body {
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.5);
   }
+
+  /* Mobile-only: hide horizontal scrollbars for stats carousels (keep scrolling) */
+  @media (max-width: 639px) {
+    .m-scroll {
+      scrollbar-width: none; /* Firefox */
+      -ms-overflow-style: none; /* IE/Edge legacy */
+    }
+    .m-scroll::-webkit-scrollbar {
+      display: none; /* Chrome/Safari */
+    }
+  }
 }

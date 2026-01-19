@@ -3,7 +3,9 @@
 import { useEffect, useState, createContext, useContext } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Image from "next/image";
+import { createPortal } from "react-dom";
 import { getAcademicTitleLabel } from "@/lib/utils/academic";
+import MobileRankBar from "./_components/MobileRankBar";
 
 interface User {
   id: number;
@@ -69,6 +71,9 @@ export default function TeachersLayout({
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  // Mobile-only drawer state (STRICT: < 640px only via max-[639px] UI)
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
+  const [mobileActivitiesOpen, setMobileActivitiesOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeMenuItem, setActiveMenuItem] = useState("home");
   const [notificationCount, setNotificationCount] = useState(3);
@@ -81,11 +86,16 @@ export default function TeachersLayout({
   const [onlineUsersCount, setOnlineUsersCount] = useState<number>(0);
   const [onlineUsersList, setOnlineUsersList] = useState<Array<{ id: number; name: string }>>([]);
   const [onlineUsersMenuOpen, setOnlineUsersMenuOpen] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+  const [isMobileViewport, setIsMobileViewport] = useState(false);
 
   // Determine active menu item based on pathname and close dropdown when pathname changes
   useEffect(() => {
     // Close activities dropdown when pathname changes
     setActivitiesDropdownOpen(false);
+    // Close mobile drawer on navigation (mobile-only UI)
+    setMobileDrawerOpen(false);
+    setMobileActivitiesOpen(false);
     
     if (pathname === "/teachers/dashboard") {
       setActiveMenuItem("home");
@@ -293,6 +303,23 @@ export default function TeachersLayout({
     };
   }, [onlineUsersMenuOpen]);
 
+  // Track viewport for mobile-only portal UI
+  useEffect(() => {
+    setIsClient(true);
+    if (typeof window === "undefined") return;
+    const mql = window.matchMedia("(max-width: 639px)");
+    const onChange = () => setIsMobileViewport(Boolean(mql.matches));
+    onChange();
+    try {
+      mql.addEventListener("change", onChange);
+      return () => mql.removeEventListener("change", onChange);
+    } catch {
+      // Safari legacy
+      mql.addListener(onChange);
+      return () => mql.removeListener(onChange);
+    }
+  }, []);
+
   const handleLogout = () => {
     localStorage.removeItem("user");
     router.push("/teachers/login");
@@ -433,9 +460,85 @@ export default function TeachersLayout({
     >
       <div className="flex h-screen flex-col bg-[#FAFBFC] overflow-hidden">
         {/* Header */}
-        <header className="bg-white shadow-sm flex-shrink-0 border-b border-gray-100">
+        <header className="bg-white shadow-sm flex-shrink-0 border-b border-gray-100 max-[639px]:sticky max-[639px]:top-0 max-[639px]:z-50 max-[639px]:bg-white/90 max-[639px]:backdrop-blur-md max-[639px]:supports-[backdrop-filter]:bg-white/70">
           <div className="w-full">
-            <div className="flex justify-between items-center py-3 pr-4 sm:pr-6 lg:pr-8">
+            {/* Mobile app header (STRICT: < 640px only) */}
+            <div className="hidden max-[639px]:block" dir="rtl">
+              <div className="flex items-center justify-between px-4 py-2">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 border border-gray-200 flex items-center justify-center flex-shrink-0">
+                    {user.profile_picture ? (
+                      <Image
+                        src={user.profile_picture}
+                        alt="الصورة الشخصية"
+                        width={40}
+                        height={40}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600 text-white font-bold text-sm">
+                        {user.full_name?.split(" / ")[0]?.charAt(0) || user.username?.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="min-w-0 text-right">
+                    <div className="text-sm font-extrabold truncate" style={{ color: "#1F2937" }}>
+                      {user.full_name?.split(" / ")[0] || user.username}
+                    </div>
+                    <div className="text-xs truncate" style={{ color: "#6B7280" }}>
+                      {getAcademicTitleLabel(user.academic_title)}
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setMobileDrawerOpen(true)}
+                  className="p-2 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 transition-colors"
+                  aria-label="فتح القائمة"
+                >
+                  <svg className="w-6 h-6" style={{ color: "#1F2937" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="px-4 pb-2">
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="ابحث..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full h-9 px-3 pr-9 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+                    style={{
+                      color: "#1F2937",
+                      backgroundColor: "#F3F4F6",
+                    }}
+                  />
+                  <svg
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 pointer-events-none"
+                    style={{ color: "#6B7280" }}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+              </div>
+
+              {/* Mobile Rank Bar (College rank / Dept rank / Points) */}
+              <MobileRankBar
+                collegeRank={collegeRank}
+                departmentRank={departmentRank}
+                points={totalPoints}
+              />
+            </div>
+
+            {/* Desktop/Tablet header (unchanged; hidden only on mobile) */}
+            <div className="flex justify-between items-center py-3 pr-4 sm:pr-6 lg:pr-8 max-[639px]:hidden">
               {/* Sidebar Toggle Button */}
               <button
                 onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -607,7 +710,7 @@ export default function TeachersLayout({
           <aside
             className={`shadow-xl flex-shrink-0 flex flex-col transition-all duration-300 ease-in-out ${
               sidebarOpen ? "w-64" : "w-0 overflow-hidden"
-            }`}
+            } max-[639px]:hidden`}
             style={{ backgroundColor: '#6366F1', zIndex: 1000, position: 'relative' }}
           >
             {/* Sidebar Navigation */}
@@ -1155,10 +1258,426 @@ export default function TeachersLayout({
             </div>
           </aside>
 
+          {/* Mobile drawer / off-canvas menu (STRICT: < 640px only) */}
+          {mobileDrawerOpen ? (
+            <div className="fixed inset-0 z-[60] hidden max-[639px]:block" dir="rtl">
+              <div
+                className="absolute inset-0 bg-black/40 z-[30]"
+                onClick={() => setMobileDrawerOpen(false)}
+              />
+              <div className="absolute inset-y-0 right-0 w-[85vw] max-w-[360px] bg-gradient-to-b from-[#5B5FE9] via-[#6366F1] to-[#4F46E5] shadow-2xl flex flex-col z-[40]">
+                {/* Header */}
+                <div className="px-4 pt-5 pb-4 border-b border-white/15">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="text-white font-extrabold text-[16px] leading-6">
+                        المنصة البحثية
+                      </div>
+                      <div className="mt-1 text-white/80 text-[12px] leading-4 truncate">
+                        {user.full_name?.split(" / ")[0] || user.username}{" "}
+                        <span className="text-white/60">•</span>{" "}
+                        {getAcademicTitleLabel(user.academic_title)}
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setMobileDrawerOpen(false)}
+                      className="h-10 w-10 rounded-2xl border border-white/15 bg-white/10 hover:bg-white/15 active:bg-white/20 text-white flex items-center justify-center transition-colors"
+                      aria-label="إغلاق"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Scrollable Menu */}
+                <nav className="flex-1 overflow-y-auto m-scroll px-3 py-3 space-y-1">
+                  <button
+                    type="button"
+                    onClick={() => { setActiveMenuItem("home"); setMobileDrawerOpen(false); router.push("/teachers/dashboard"); }}
+                    className={[
+                      "w-full h-12 px-4 rounded-2xl text-white flex flex-row-reverse items-center gap-3 transition-colors duration-200 relative",
+                      activeMenuItem === "home"
+                        ? "bg-white/14"
+                        : "hover:bg-white/10 active:bg-white/15",
+                    ].join(" ")}
+                  >
+                    {activeMenuItem === "home" ? (
+                      <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-white/80 rounded-l-full" />
+                    ) : null}
+                    <svg className="w-[20px] h-[20px] text-white/95" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l9-8 9 8" />
+                    </svg>
+                    <span className="text-[15px] font-extrabold leading-5">الصفحة الرئيسية</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => { setActiveMenuItem("researcher-links"); setMobileDrawerOpen(false); router.push("/teachers/researcher-links"); }}
+                    className={[
+                      "w-full h-12 px-4 rounded-2xl text-white flex flex-row-reverse items-center gap-3 transition-colors duration-200 relative",
+                      activeMenuItem === "researcher-links"
+                        ? "bg-white/14"
+                        : "hover:bg-white/10 active:bg-white/15",
+                    ].join(" ")}
+                  >
+                    {activeMenuItem === "researcher-links" ? (
+                      <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-white/80 rounded-l-full" />
+                    ) : null}
+                    <svg className="w-[20px] h-[20px] text-white/95" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                    </svg>
+                    <span className="text-[15px] font-extrabold leading-5">روابط الباحث</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => { setActiveMenuItem("profile"); setMobileDrawerOpen(false); router.push("/teachers/profile"); }}
+                    className={[
+                      "w-full h-12 px-4 rounded-2xl text-white flex flex-row-reverse items-center gap-3 transition-colors duration-200 relative",
+                      activeMenuItem === "profile"
+                        ? "bg-white/14"
+                        : "hover:bg-white/10 active:bg-white/15",
+                    ].join(" ")}
+                  >
+                    {activeMenuItem === "profile" ? (
+                      <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-white/80 rounded-l-full" />
+                    ) : null}
+                    <svg className="w-[20px] h-[20px] text-white/95" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    <span className="text-[15px] font-extrabold leading-5">المعلومات الشخصية والأكاديمية</span>
+                  </button>
+
+                  <div className="my-2 h-px bg-white/10" />
+
+                  {/* Activities accordion */}
+                  <button
+                    type="button"
+                    onClick={() => setMobileActivitiesOpen((v) => !v)}
+                    className={[
+                      "w-full h-12 px-4 rounded-2xl text-white flex flex-row-reverse items-center justify-between gap-3 transition-colors duration-200 relative",
+                      mobileActivitiesOpen || ["positions", "research", "publications", "courses", "seminars", "training-workshops", "conferences", "committees", "thank-you-books", "assignments", "participation-certificates", "supervision", "scientific-evaluation", "journals-management", "volunteer-work"].includes(activeMenuItem)
+                        ? "bg-white/10"
+                        : "hover:bg-white/10 active:bg-white/15",
+                    ].join(" ")}
+                  >
+                    <div className="flex flex-row-reverse items-center gap-3 min-w-0">
+                      <svg className="w-[20px] h-[20px] text-white/95" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                      </svg>
+                      <span className="text-[15px] font-extrabold leading-5 truncate">
+                        نشاطاتك العلمية والأكاديمية
+                      </span>
+                    </div>
+                    <svg
+                      className={`w-5 h-5 text-white/90 transition-transform duration-200 ${mobileActivitiesOpen ? "rotate-180" : ""}`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+
+                  {/* Smooth expand/collapse container */}
+                  <div
+                    className={[
+                      "overflow-hidden transition-[max-height,opacity] duration-200 ease-out",
+                      mobileActivitiesOpen ? "max-h-[680px] opacity-100" : "max-h-0 opacity-0",
+                    ].join(" ")}
+                  >
+                    <div className="mt-1 pr-2 space-y-1">
+                      {[
+                        { key: "positions", label: "المناصب", href: "/teachers/positions" },
+                        { key: "research", label: "البحوث", href: "/teachers/research" },
+                        { key: "publications", label: "المؤلفات", href: "/teachers/publications" },
+                        { key: "courses", label: "الدورات", href: "/teachers/courses" },
+                        { key: "seminars", label: "الندوات", href: "/teachers/seminars" },
+                        { key: "training-workshops", label: "ورش العمل", href: "/teachers/workshops" },
+                        { key: "conferences", label: "المؤتمرات", href: "/teachers/conferences" },
+                        { key: "committees", label: "اللجان", href: "/teachers/committees" },
+                        { key: "thank-you-books", label: "كتب الشكر", href: "/teachers/thank-you-books" },
+                        { key: "assignments", label: "التكليفات", href: "/teachers/assignments" },
+                        { key: "participation-certificates", label: "شهادات المشاركة", href: "/teachers/participation-certificates" },
+                        { key: "supervision", label: "الإشراف على الطلبة", href: "/teachers/supervision" },
+                        { key: "scientific-evaluation", label: "التقويم العلمي", href: "/teachers/scientific-evaluation" },
+                        { key: "journals-management", label: "إدارة المجلات", href: "/teachers/journals-management" },
+                        { key: "volunteer-work", label: "الأعمال الطوعية", href: "/teachers/volunteer-work" },
+                      ].map((it) => (
+                        <button
+                          key={it.key}
+                          type="button"
+                          onClick={() => { setActiveMenuItem(it.key); setMobileDrawerOpen(false); router.push(it.href); }}
+                          className={[
+                            "w-full h-10 px-4 pr-10 rounded-xl text-white/90 hover:bg-white/10 active:bg-white/15 transition-colors duration-200 flex items-center justify-between relative",
+                            activeMenuItem === it.key ? "bg-white/12 text-white" : "",
+                          ].join(" ")}
+                        >
+                          {activeMenuItem === it.key ? (
+                            <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-white/80 rounded-l-full" />
+                          ) : null}
+                          <span className="text-[14px] font-semibold">{it.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="my-2 h-px bg-white/10" />
+
+                  <button
+                    type="button"
+                    onClick={() => { setActiveMenuItem("evaluation"); setMobileDrawerOpen(false); router.push("/teachers/evaluation"); }}
+                    className={[
+                      "w-full h-12 px-4 rounded-2xl text-white flex flex-row-reverse items-center gap-3 transition-colors duration-200 relative",
+                      activeMenuItem === "evaluation"
+                        ? "bg-white/14"
+                        : "hover:bg-white/10 active:bg-white/15",
+                    ].join(" ")}
+                  >
+                    {activeMenuItem === "evaluation" ? (
+                      <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-white/80 rounded-l-full" />
+                    ) : null}
+                    <svg className="w-[20px] h-[20px] text-white/95" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6a2 2 0 012-2h2a2 2 0 012 2v13" />
+                    </svg>
+                    <span className="text-[15px] font-extrabold leading-5">نقاط وتقييم الأداء</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => { setActiveMenuItem("analytics"); setMobileDrawerOpen(false); router.push("/teachers/analytics"); }}
+                    className={[
+                      "w-full h-12 px-4 rounded-2xl text-white flex flex-row-reverse items-center gap-3 transition-colors duration-200 relative",
+                      activeMenuItem === "analytics"
+                        ? "bg-white/14"
+                        : "hover:bg-white/10 active:bg-white/15",
+                    ].join(" ")}
+                  >
+                    {activeMenuItem === "analytics" ? (
+                      <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-white/80 rounded-l-full" />
+                    ) : null}
+                    <svg className="w-[20px] h-[20px] text-white/95" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 19h16M6 16V8m6 8V4m6 12v-6" />
+                    </svg>
+                    <span className="text-[15px] font-extrabold leading-5">الإحصائيات والتحليلات</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => { setActiveMenuItem("comparison"); setMobileDrawerOpen(false); router.push("/teachers/comparison"); }}
+                    className={[
+                      "w-full h-12 px-4 rounded-2xl text-white flex flex-row-reverse items-center gap-3 transition-colors duration-200 relative",
+                      activeMenuItem === "comparison"
+                        ? "bg-white/14"
+                        : "hover:bg-white/10 active:bg-white/15",
+                    ].join(" ")}
+                  >
+                    {activeMenuItem === "comparison" ? (
+                      <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-white/80 rounded-l-full" />
+                    ) : null}
+                    <svg className="w-[20px] h-[20px] text-white/95" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 3H5a2 2 0 00-2 2v14a2 2 0 002 2h5m4-18h5a2 2 0 012 2v14a2 2 0 01-2 2h-5M10 7h4m-4 4h4m-4 4h4" />
+                    </svg>
+                    <span className="text-[15px] font-extrabold leading-5">المقارنة</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => { setActiveMenuItem("cv"); setMobileDrawerOpen(false); router.push("/teachers/cv"); }}
+                    className={[
+                      "w-full h-12 px-4 rounded-2xl text-white flex flex-row-reverse items-center gap-3 transition-colors duration-200 relative",
+                      activeMenuItem === "cv"
+                        ? "bg-white/14"
+                        : "hover:bg-white/10 active:bg-white/15",
+                    ].join(" ")}
+                  >
+                    {activeMenuItem === "cv" ? (
+                      <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-white/80 rounded-l-full" />
+                    ) : null}
+                    <svg className="w-[20px] h-[20px] text-white/95" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span className="text-[15px] font-extrabold leading-5">السيرة الذاتية</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => { setActiveMenuItem("collaboration"); setMobileDrawerOpen(false); router.push("/teachers/collaboration"); }}
+                    className={[
+                      "w-full h-12 px-4 rounded-2xl text-white flex flex-row-reverse items-center gap-3 transition-colors duration-200 relative",
+                      activeMenuItem === "collaboration"
+                        ? "bg-white/14"
+                        : "hover:bg-white/10 active:bg-white/15",
+                    ].join(" ")}
+                  >
+                    {activeMenuItem === "collaboration" ? (
+                      <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-white/80 rounded-l-full" />
+                    ) : null}
+                    <svg className="w-[20px] h-[20px] text-white/95" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <span className="text-[15px] font-extrabold leading-5">التعاون</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => { setActiveMenuItem("communication"); setMobileDrawerOpen(false); router.push("/teachers/communication"); }}
+                    className={[
+                      "w-full h-12 px-4 rounded-2xl text-white flex flex-row-reverse items-center gap-3 transition-colors duration-200 relative",
+                      activeMenuItem === "communication"
+                        ? "bg-white/14"
+                        : "hover:bg-white/10 active:bg-white/15",
+                    ].join(" ")}
+                  >
+                    {activeMenuItem === "communication" ? (
+                      <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-white/80 rounded-l-full" />
+                    ) : null}
+                    <svg className="w-[20px] h-[20px] text-white/95" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h6m-6 8h8a2 2 0 002-2V6a2 2 0 00-2-2H7a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <span className="text-[15px] font-extrabold leading-5">التواصل</span>
+                  </button>
+                </nav>
+
+                {/* Bottom action bar (fixed inside drawer) */}
+                <div className="flex-shrink-0 h-[68px] bg-black/10 border-t border-white/15 px-3 sticky bottom-0 z-50 pointer-events-auto">
+                  <div className="h-full grid grid-cols-4 gap-2 items-center">
+                    <button
+                      type="button"
+                      className="h-11 rounded-2xl bg-white/10 hover:bg-white/15 active:bg-white/20 text-white flex flex-col items-center justify-center gap-0.5"
+                      aria-label="الرسائل"
+                      onClick={() => {}}
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      </svg>
+                      <span className="text-[10px] text-white/85 font-bold leading-3">رسائل</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      className="relative h-11 rounded-2xl bg-white/10 hover:bg-white/15 active:bg-white/20 text-white flex flex-col items-center justify-center gap-0.5"
+                      aria-label="الإشعارات"
+                      onClick={() => {}}
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                      </svg>
+                      {notificationCount > 0 ? (
+                        <span className="absolute -top-1 -right-1 min-w-[16px] h-[16px] px-1 bg-red-500 text-white text-[10px] font-extrabold rounded-full flex items-center justify-center border border-white/20">
+                          {notificationCount > 9 ? "9+" : notificationCount}
+                        </span>
+                      ) : null}
+                      <span className="text-[10px] text-white/85 font-bold leading-3">تنبيهات</span>
+                    </button>
+
+                    <div className="relative online-users-container">
+                      <button
+                        type="button"
+                        className="relative h-11 w-full rounded-2xl bg-white/10 hover:bg-white/15 active:bg-white/20 text-white flex flex-col items-center justify-center gap-0.5"
+                        aria-label="المتصلون"
+                        onPointerDown={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setOnlineUsersMenuOpen((v) => !v);
+                        }}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setOnlineUsersMenuOpen((v) => !v);
+                        }}
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                        {onlineUsersCount > 0 ? (
+                          <span className="absolute -top-1 -right-1 min-w-[16px] h-[16px] px-1 bg-green-500 text-white text-[10px] font-extrabold rounded-full flex items-center justify-center border border-white/20">
+                            {onlineUsersCount > 99 ? "99+" : onlineUsersCount}
+                          </span>
+                        ) : null}
+                        <span className="text-[10px] text-white/85 font-bold leading-3">متصلون</span>
+                      </button>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => { setMobileDrawerOpen(false); handleLogout(); }}
+                      className="h-11 rounded-2xl bg-white/10 hover:bg-white/15 active:bg-white/20 text-white flex flex-col items-center justify-center gap-0.5"
+                      aria-label="تسجيل الخروج"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                      </svg>
+                      <span className="text-[10px] text-white/85 font-bold leading-3">خروج</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          ) : null}
+
+          {/* Mobile-only: Online Users list as portal sheet (above drawer) */}
+          {isClient && isMobileViewport && onlineUsersMenuOpen
+            ? createPortal(
+                <div className="fixed inset-0 z-[9999] hidden max-[639px]:block" dir="rtl">
+                  <div
+                    className="absolute inset-0 bg-black/40"
+                    onClick={() => setOnlineUsersMenuOpen(false)}
+                  />
+                  <div className="absolute inset-x-0 bottom-0 mx-auto w-full max-w-[420px] bg-white rounded-t-3xl border-t border-slate-200 shadow-2xl online-users-container">
+                    <div className="p-4 flex items-center justify-between gap-3 border-b border-slate-200">
+                      <div className="min-w-0">
+                        <div className="text-[15px] font-extrabold text-slate-900">
+                          المتصلون حالياً ({onlineUsersCount})
+                        </div>
+                        <div className="text-[12px] text-slate-500 mt-0.5">
+                          قائمة المستخدمين المتصلين الآن
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setOnlineUsersMenuOpen(false)}
+                        className="h-10 w-10 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 flex items-center justify-center"
+                        aria-label="إغلاق"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+
+                    <div className="max-h-[70vh] overflow-y-auto m-scroll">
+                      {onlineUsersList.length > 0 ? (
+                        <div className="py-2">
+                          {onlineUsersList.map((ou) => (
+                            <div key={ou.id} className="px-4 py-3 flex items-center gap-3 hover:bg-slate-50">
+                              <span className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0" />
+                              <span className="text-[14px] font-semibold text-slate-900 truncate">
+                                {ou.name}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="px-4 py-8 text-center text-[13px] text-slate-500">
+                          لا يوجد متصلون حالياً
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>,
+                document.body
+              )
+            : null}
+
           {/* Main Content */}
           <main className="flex-1 flex flex-col overflow-hidden" style={{ backgroundColor: '#FAFBFC' }}>
             {/* Stats Bar / News Bar */}
-            <div className="bg-white border-b border-gray-100 flex-shrink-0">
+            <div className="bg-white border-b border-gray-100 flex-shrink-0 max-[639px]:hidden">
               <div className="px-4 sm:px-6 lg:px-8 py-3">
                 <div className="flex items-center justify-between gap-4">
                   {/* News Ticker */}
@@ -1213,8 +1732,8 @@ export default function TeachersLayout({
             </div>
 
             {/* Page Content Area */}
-            <div className="flex-1 overflow-y-auto px-4 py-6">
-              <div className="max-w-full mx-auto px-2">
+            <div className="flex-1 overflow-y-auto px-4 py-6 max-[639px]:px-3 max-[639px]:py-3 max-[639px]:overflow-x-hidden">
+              <div className="max-w-full mx-auto px-2 max-[639px]:max-w-[420px] max-[639px]:mx-auto max-[639px]:px-0">
                 {children}
               </div>
             </div>

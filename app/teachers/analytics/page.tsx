@@ -31,6 +31,8 @@ export default function AnalyticsPage() {
   const { user } = useLayout();
   const [selectedYearRange, setSelectedYearRange] = useState<number>(3); // Last 3 years
   const [isLoading, setIsLoading] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
+  const [showAllBestPeriods, setShowAllBestPeriods] = useState(false);
   
   // Data states
   const [research, setResearch] = useState<any[]>([]);
@@ -95,6 +97,16 @@ export default function AnalyticsPage() {
 
     fetchAllData();
   }, [user]);
+
+  // Mobile-only rendering tweaks (no impact on desktop/tablet)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia("(max-width: 639px)");
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
 
   // Helper to get year from date or year field
   const getYear = (item: any): number => {
@@ -220,8 +232,7 @@ export default function AnalyticsPage() {
           count,
         };
       })
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 5); // Top 5 periods
+      .sort((a, b) => b.count - a.count);
 
     return periods;
   }, [research, conferences, seminars, courses, workshops, publications, positions, committees, assignments, supervision, scientificEvaluations, journalMemberships, volunteerWork, selectedYearRange]);
@@ -531,15 +542,15 @@ export default function AnalyticsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-[639px]:space-y-4 max-[639px]:px-4 max-[639px]:max-w-[420px] max-[639px]:mx-auto max-[639px]:overflow-x-hidden">
       {/* Header */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
-        <div className="flex items-center justify-between mb-4">
+      <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm max-[639px]:rounded-[22px] max-[639px]:p-4">
+        <div className="flex items-center justify-between mb-4 max-[639px]:mb-2">
           <div>
             <h1 className="text-2xl font-bold mb-2" style={{ color: '#1F2937' }}>التحليلات الزمنية والإنتاجية</h1>
             <div className="h-1 w-20 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full"></div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 max-[639px]:hidden">
             <label className="text-sm font-medium text-gray-600">الفترة الزمنية:</label>
             <select
               value={selectedYearRange}
@@ -554,10 +565,121 @@ export default function AnalyticsPage() {
             </select>
           </div>
         </div>
+
+        {/* Mobile-only: Filters Card */}
+        <div className="hidden max-[639px]:block">
+          <div className="bg-slate-50 border border-slate-200/70 rounded-[22px] p-3 shadow-sm">
+            <div className="flex items-center gap-2 text-[12px] font-bold text-slate-600 mb-2" dir="rtl">
+              <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L15 12.414V19a1 1 0 01-1.447.894l-4-2A1 1 0 019 17V12.414L3.293 6.707A1 1 0 013 6V4z" />
+              </svg>
+              <span>الفترة الزمنية</span>
+            </div>
+            <select
+              value={selectedYearRange}
+              onChange={(e) => setSelectedYearRange(parseInt(e.target.value))}
+              className="w-full h-11 px-3 border border-slate-200 rounded-2xl text-[14px] font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              style={{ color: "#1F2937", backgroundColor: "#FFFFFF" }}
+            >
+              <option value={2}>آخر سنتين</option>
+              <option value={3}>آخر 3 سنوات</option>
+              <option value={5}>آخر 5 سنوات</option>
+              <option value={10}>آخر 10 سنوات</option>
+            </select>
+          </div>
+        </div>
       </div>
 
       {/* Growth Rate Card */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* Mobile-only: stacked summary cards (Best periods then Growth) */}
+      <div className="hidden max-[639px]:block space-y-4">
+        {/* Best Productive Periods (Mobile) */}
+        <div className="bg-white rounded-[22px] border border-slate-200/70 p-4 shadow-sm">
+          <div className="flex items-center justify-between mb-3" dir="rtl">
+            <h3 className="text-[15px] font-extrabold text-slate-900">أفضل فترات الإنتاجية</h3>
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center">
+              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+              </svg>
+            </div>
+          </div>
+
+          {bestPeriods.length > 0 ? (
+            <div className="space-y-2">
+              {(showAllBestPeriods ? bestPeriods : bestPeriods.slice(0, 5)).map((period, index) => {
+                const rankLabels = [
+                  "أعلى فترة إنتاجية",
+                  "ثاني أعلى فترة إنتاجية",
+                  "ثالث أعلى فترة إنتاجية",
+                  "رابع أعلى فترة إنتاجية",
+                  "خامس أعلى فترة إنتاجية",
+                ];
+                return (
+                  <div
+                    key={`${period.year}-${period.month}-${index}`}
+                    className="border border-slate-200/70 bg-white rounded-2xl px-3 py-2.5"
+                  >
+                    <div className="flex items-center justify-between gap-3" dir="ltr">
+                      <div className={`w-7 h-7 rounded-full flex items-center justify-center font-extrabold text-white text-[12px] shrink-0 ${
+                        index === 0 ? 'bg-gradient-to-br from-yellow-400 to-orange-500' :
+                        index === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-500' :
+                        index === 2 ? 'bg-gradient-to-br from-amber-600 to-amber-700' :
+                        'bg-gradient-to-br from-blue-400 to-indigo-500'
+                      }`}>
+                        {index + 1}
+                      </div>
+
+                      <div className="min-w-0 flex-1" dir="rtl">
+                        <div className="text-[14px] font-extrabold text-slate-900 truncate">{period.period}</div>
+                        <div className="text-[12px] text-slate-500 truncate">{rankLabels[index] || `المرتبة ${index + 1}`}</div>
+                      </div>
+
+                      <div className="text-[13px] font-extrabold text-indigo-600 whitespace-nowrap shrink-0">
+                        {period.count} نشاط
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+
+              {bestPeriods.length > 5 && (
+                <button
+                  type="button"
+                  onClick={() => setShowAllBestPeriods((v) => !v)}
+                  className="w-full h-11 rounded-2xl border border-slate-200 bg-slate-50 text-slate-700 text-[14px] font-bold"
+                >
+                  {showAllBestPeriods ? "إخفاء" : "عرض المزيد"}
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className="text-center py-6 text-slate-500 text-[13px]">لا توجد بيانات كافية</div>
+          )}
+        </div>
+
+        {/* Growth Rate (Mobile) */}
+        <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-[22px] p-4 border border-green-200/70 shadow-sm">
+          <div className="flex items-center justify-between mb-3" dir="rtl">
+            <h3 className="text-[15px] font-extrabold text-slate-900">معدل النمو</h3>
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center">
+              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+              </svg>
+            </div>
+          </div>
+
+          <div className="text-center">
+            <div className={`text-5xl leading-none font-extrabold mb-2 ${growthRate >= 0 ? "text-green-600" : "text-red-600"}`}>
+              {growthRate >= 0 ? "+" : ""}
+              {growthRate}%
+            </div>
+            <div className="text-[12px] text-slate-600">مقارنة مع السنة السابقة</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Desktop/Tablet: keep existing layout */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-[639px]:hidden">
         <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border-2 border-green-200 shadow-md hover:shadow-lg transition-shadow">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-bold" style={{ color: '#1F2937' }}>معدل النمو</h3>
@@ -601,7 +723,7 @@ export default function AnalyticsPage() {
           </div>
           {bestPeriods.length > 0 ? (
             <div className="space-y-3">
-              {bestPeriods.map((period, index) => {
+              {bestPeriods.slice(0, 5).map((period, index) => {
                 const rankLabels = [
                   "أعلى فترة إنتاجية",
                   "ثاني أعلى فترة إنتاجية",
@@ -638,16 +760,16 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Productivity Trend Chart */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
-        <h2 className="text-xl font-bold mb-4" style={{ color: '#1F2937' }}>اتجاه الإنتاجية</h2>
-        <div className="mb-4">
+      <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm max-[639px]:rounded-[22px] max-[639px]:p-4">
+        <h2 className="text-xl font-bold mb-4 max-[639px]:text-[16px] max-[639px]:mb-2" style={{ color: '#1F2937' }}>اتجاه الإنتاجية</h2>
+        <div className="mb-4 max-[639px]:mb-2">
           <p className="text-sm text-gray-600">
             توزيع الأنشطة العلمية والأكاديمية عبر الفترات الزمنية
           </p>
         </div>
         {productivityTrend.length > 0 ? (
           <div className="mt-6">
-            <ResponsiveContainer width="100%" height={400}>
+            <ResponsiveContainer width="100%" height={isMobile ? 260 : 400}>
               <AreaChart data={productivityTrend} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorActivities" x1="0" y1="0" x2="0" y2="1">
@@ -655,13 +777,18 @@ export default function AnalyticsPage() {
                     <stop offset="95%" stopColor="#6366F1" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                {isMobile ? (
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" strokeOpacity={0.25} vertical={false} />
+                ) : (
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                )}
                 <XAxis 
                   dataKey="period" 
                   tick={{ fill: '#6B7280', fontSize: 12 }}
-                  angle={-45}
+                  angle={isMobile ? -30 : -45}
                   textAnchor="end"
-                  height={100}
+                  height={isMobile ? 70 : 100}
+                  interval={isMobile ? "preserveStartEnd" : 0}
                 />
                 <YAxis tick={{ fill: '#6B7280', fontSize: 12 }} />
                 <Tooltip 
@@ -686,18 +813,22 @@ export default function AnalyticsPage() {
             </ResponsiveContainer>
           </div>
         ) : (
-          <div className="text-center py-12 text-gray-500">لا توجد بيانات لعرضها</div>
+          <div className="text-center py-6 text-gray-500 max-[639px]:text-[13px]">لا توجد بيانات لعرضها</div>
         )}
       </div>
 
       {/* Yearly Comparison Chart */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
-        <h2 className="text-xl font-bold mb-4" style={{ color: '#1F2937' }}>مقارنة الإنتاجية السنوية</h2>
+      <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm max-[639px]:rounded-[22px] max-[639px]:p-4">
+        <h2 className="text-xl font-bold mb-4 max-[639px]:text-[16px] max-[639px]:mb-2" style={{ color: '#1F2937' }}>مقارنة الإنتاجية السنوية</h2>
         {activitiesByYear.length > 0 ? (
           <div className="mt-6">
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={isMobile ? 220 : 300}>
               <BarChart data={activitiesByYear} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                {isMobile ? (
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" strokeOpacity={0.25} vertical={false} />
+                ) : (
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                )}
                 <XAxis 
                   dataKey="year" 
                   tick={{ fill: '#6B7280', fontSize: 12 }}
@@ -722,46 +853,46 @@ export default function AnalyticsPage() {
             </ResponsiveContainer>
           </div>
         ) : (
-          <div className="text-center py-12 text-gray-500">لا توجد بيانات لعرضها</div>
+          <div className="text-center py-6 text-gray-500 max-[639px]:text-[13px]">لا توجد بيانات لعرضها</div>
         )}
       </div>
 
       {/* Research Analytics Section */}
-      <div className="space-y-6">
-        <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
-          <h2 className="text-2xl font-bold mb-2" style={{ color: '#1F2937' }}>تحليل البحوث العلمية</h2>
-          <div className="h-1 w-20 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full mb-6"></div>
+      <div className="space-y-6 max-[639px]:space-y-4">
+        <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm max-[639px]:rounded-[22px] max-[639px]:p-4">
+          <h2 className="text-2xl font-bold mb-2 max-[639px]:text-[18px]" style={{ color: '#1F2937' }}>تحليل البحوث العلمية</h2>
+          <div className="h-1 w-20 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full mb-6 max-[639px]:mb-4"></div>
 
           {/* KPIs Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-            <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-5 border-2 border-indigo-200 shadow-md">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8 max-[639px]:grid-cols-2 max-[639px]:gap-3 max-[639px]:mb-5">
+            <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-5 border-2 border-indigo-200 shadow-md max-[639px]:rounded-[20px] max-[639px]:p-3 max-[639px]:min-h-[92px]">
               <div className="text-sm text-gray-600 mb-2">إجمالي البحوث</div>
-              <div className="text-3xl font-bold text-indigo-600">{kpis.totalResearch}</div>
+              <div className="text-3xl font-bold text-indigo-600 max-[639px]:text-[28px]">{kpis.totalResearch}</div>
             </div>
-            <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-5 border-2 border-green-200 shadow-md">
+            <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-5 border-2 border-green-200 shadow-md max-[639px]:rounded-[20px] max-[639px]:p-3 max-[639px]:min-h-[92px]">
               <div className="text-sm text-gray-600 mb-2">بحوث منشورة</div>
-              <div className="text-3xl font-bold text-green-600">{kpis.publishedResearch}</div>
+              <div className="text-3xl font-bold text-green-600 max-[639px]:text-[28px]">{kpis.publishedResearch}</div>
               <div className="text-xs text-gray-500 mt-1">{kpis.publishedPercentage}%</div>
             </div>
-            <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl p-5 border-2 border-blue-200 shadow-md">
+            <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl p-5 border-2 border-blue-200 shadow-md max-[639px]:rounded-[20px] max-[639px]:p-3 max-[639px]:min-h-[92px]">
               <div className="text-sm text-gray-600 mb-2">بحوث Scopus</div>
-              <div className="text-3xl font-bold text-blue-600">{kpis.scopusResearch}</div>
+              <div className="text-3xl font-bold text-blue-600 max-[639px]:text-[28px]">{kpis.scopusResearch}</div>
               <div className="text-xs text-gray-500 mt-1">{kpis.scopusPercentage}%</div>
             </div>
-            <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-5 border-2 border-amber-200 shadow-md">
+            <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-5 border-2 border-amber-200 shadow-md max-[639px]:rounded-[20px] max-[639px]:p-3 max-[639px]:min-h-[92px]">
               <div className="text-sm text-gray-600 mb-2">بحوث Q1</div>
-              <div className="text-3xl font-bold text-amber-600">{kpis.q1Research}</div>
+              <div className="text-3xl font-bold text-amber-600 max-[639px]:text-[28px]">{kpis.q1Research}</div>
               <div className="text-xs text-gray-500 mt-1">{kpis.q1Percentage}%</div>
             </div>
           </div>
 
           {/* Charts Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-[639px]:gap-4">
             {/* Research Type Distribution */}
-            <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
-              <h3 className="text-lg font-bold mb-4" style={{ color: '#1F2937' }}>توزيع البحوث حسب النوع</h3>
+            <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm max-[639px]:rounded-[22px] max-[639px]:p-4">
+              <h3 className="text-lg font-bold mb-4 max-[639px]:text-[15px] max-[639px]:mb-2" style={{ color: '#1F2937' }}>توزيع البحوث حسب النوع</h3>
               {researchTypeDistribution.length > 0 && researchTypeDistribution.some(item => item.value > 0) ? (
-                <ResponsiveContainer width="100%" height={300}>
+                <ResponsiveContainer width="100%" height={isMobile ? 220 : 300}>
                   <PieChart>
                     <Pie
                       data={researchTypeDistribution.filter(item => item.value > 0)}
@@ -788,15 +919,15 @@ export default function AnalyticsPage() {
                   </PieChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="text-center py-12 text-gray-500">لا توجد بيانات لعرضها</div>
+                <div className="text-center py-6 text-gray-500 max-[639px]:text-[13px]">لا توجد بيانات لعرضها</div>
               )}
             </div>
 
             {/* Global vs Local Research */}
-            <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
-              <h3 className="text-lg font-bold mb-4" style={{ color: '#1F2937' }}>نسبة البحوث العالمية vs المحلية</h3>
+            <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm max-[639px]:rounded-[22px] max-[639px]:p-4">
+              <h3 className="text-lg font-bold mb-4 max-[639px]:text-[15px] max-[639px]:mb-2" style={{ color: '#1F2937' }}>نسبة البحوث العالمية vs المحلية</h3>
               {globalVsLocalResearch.some(item => item.value > 0) ? (
-                <ResponsiveContainer width="100%" height={300}>
+                <ResponsiveContainer width="100%" height={isMobile ? 220 : 300}>
                   <PieChart>
                     <Pie
                       data={globalVsLocalResearch.filter(item => item.value > 0)}
@@ -823,21 +954,26 @@ export default function AnalyticsPage() {
                   </PieChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="text-center py-12 text-gray-500">لا توجد بيانات لعرضها</div>
+                <div className="text-center py-6 text-gray-500 max-[639px]:text-[13px]">لا توجد بيانات لعرضها</div>
               )}
             </div>
 
             {/* Research Quality Analysis */}
-            <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
-              <h3 className="text-lg font-bold mb-4" style={{ color: '#1F2937' }}>تحليل جودة البحوث (Quartile)</h3>
+            <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm max-[639px]:rounded-[22px] max-[639px]:p-4">
+              <h3 className="text-lg font-bold mb-4 max-[639px]:text-[15px] max-[639px]:mb-2" style={{ color: '#1F2937' }}>تحليل جودة البحوث (Quartile)</h3>
               {researchQualityAnalysis.length > 0 ? (
                 <>
-                  <ResponsiveContainer width="100%" height={300}>
+                  <ResponsiveContainer width="100%" height={isMobile ? 220 : 300}>
                     <BarChart data={researchQualityAnalysis} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                      {isMobile ? (
+                        <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" strokeOpacity={0.25} vertical={false} />
+                      ) : (
+                        <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                      )}
                       <XAxis 
                         dataKey="name" 
                         tick={{ fill: '#6B7280', fontSize: 12 }}
+                        interval={isMobile ? "preserveStartEnd" : 0}
                       />
                       <YAxis tick={{ fill: '#6B7280', fontSize: 12 }} />
                       <Tooltip 
@@ -857,9 +993,9 @@ export default function AnalyticsPage() {
                       />
                     </BarChart>
                   </ResponsiveContainer>
-                  <div className="mt-4 grid grid-cols-2 md:grid-cols-5 gap-3">
+                  <div className="mt-4 grid grid-cols-2 md:grid-cols-5 gap-3 max-[639px]:gap-2">
                     {researchQualityAnalysis.map((item, index) => (
-                      <div key={index} className="text-center p-3 bg-gray-50 rounded-lg">
+                      <div key={index} className="text-center p-3 bg-gray-50 rounded-lg max-[639px]:p-2.5">
                         <div className="text-lg font-bold" style={{ color: '#1F2937' }}>{item.value}</div>
                         <div className="text-xs text-gray-600 mt-1">{item.name}</div>
                       </div>
@@ -867,17 +1003,21 @@ export default function AnalyticsPage() {
                   </div>
                 </>
               ) : (
-                <div className="text-center py-12 text-gray-500">لا توجد بيانات لعرضها</div>
+                <div className="text-center py-6 text-gray-500 max-[639px]:text-[13px]">لا توجد بيانات لعرضها</div>
               )}
             </div>
 
             {/* Research Quality Trend */}
-            <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
-              <h3 className="text-lg font-bold mb-4" style={{ color: '#1F2937' }}>اتجاه جودة البحوث عبر الزمن</h3>
+            <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm max-[639px]:rounded-[22px] max-[639px]:p-4">
+              <h3 className="text-lg font-bold mb-4 max-[639px]:text-[15px] max-[639px]:mb-2" style={{ color: '#1F2937' }}>اتجاه جودة البحوث عبر الزمن</h3>
               {researchQualityTrend.length > 0 && researchQualityTrend.some(item => item.Q1 + item.Q2 + item.Q3 + item.Q4 + item["غير مصنف"] > 0) ? (
-                <ResponsiveContainer width="100%" height={300}>
+                <ResponsiveContainer width="100%" height={isMobile ? 220 : 300}>
                   <LineChart data={researchQualityTrend} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                    {isMobile ? (
+                      <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" strokeOpacity={0.25} vertical={false} />
+                    ) : (
+                      <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                    )}
                     <XAxis 
                       dataKey="year" 
                       tick={{ fill: '#6B7280', fontSize: 12 }}
@@ -901,7 +1041,7 @@ export default function AnalyticsPage() {
                   </LineChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="text-center py-12 text-gray-500">لا توجد بيانات لعرضها</div>
+                <div className="text-center py-6 text-gray-500 max-[639px]:text-[13px]">لا توجد بيانات لعرضها</div>
               )}
             </div>
           </div>

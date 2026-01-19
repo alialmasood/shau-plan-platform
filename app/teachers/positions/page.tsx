@@ -24,6 +24,7 @@ export default function PositionsPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [editingPosition, setEditingPosition] = useState<Position | null>(null);
   const [positionToDelete, setPositionToDelete] = useState<Position | null>(null);
+  const [mobileActionsKey, setMobileActionsKey] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"timeline" | "grid">("timeline");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<"date-desc" | "date-asc" | "title" | "organization">("date-desc");
@@ -570,26 +571,229 @@ export default function PositionsPage() {
     </div>
   );
 
+  const MobilePositionCard = ({ position }: { position: Position }) => {
+    const key = String(position.id ?? `${position.position_title}-${position.start_date}-${position.organization}`);
+    const doc = position.assignment_document || "";
+    const isImage = doc.startsWith("data:image/");
+    const hasDoc = Boolean(doc);
+    const safeTitle = position.position_title || "منصب";
+
+    return (
+      <div className="bg-white border border-slate-200/70 rounded-[22px] shadow-sm p-4 overflow-hidden">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-start gap-2">
+              <h3 className="text-[16px] leading-6 font-extrabold text-slate-900 break-words">
+                {safeTitle}
+              </h3>
+            </div>
+
+            {position.organization && (
+              <div className="mt-1.5 flex items-center min-w-0">
+                <span className="inline-flex items-center gap-1.5 px-[10px] py-[6px] rounded-full bg-slate-50 border border-slate-200/70 text-slate-700 text-[12px] leading-none font-bold max-w-full min-w-0">
+                  <svg className="w-4 h-4 text-slate-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 21V5a2 2 0 012-2h4a2 2 0 012 2v16M4 21h16M6 21V9a2 2 0 012-2h0M16 21V9a2 2 0 00-2-2h0" />
+                  </svg>
+                  <span className="truncate" title={position.organization}>
+                    {position.organization}
+                  </span>
+                </span>
+              </div>
+            )}
+
+            {position.start_date && (
+              <div className="mt-2 inline-flex items-center gap-2">
+                <span className="text-[11px] font-bold text-slate-500">التاريخ</span>
+                <span className="text-[11px] font-extrabold text-indigo-700 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-full">
+                  {formatDate(position.start_date)}
+                </span>
+              </div>
+            )}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setMobileActionsKey(key)}
+            className="h-11 w-11 rounded-2xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 flex items-center justify-center"
+            aria-label="إجراءات"
+            title="إجراءات"
+          >
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zm8 0a2 2 0 11-4 0 2 2 0 014 0zm6 0a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+          </button>
+        </div>
+
+        <div className="mt-3 space-y-2">
+          {position.duration && (
+            <div className="flex items-start gap-3">
+              <span className="w-[92px] text-right text-[12px] leading-5 font-bold text-slate-500 flex-shrink-0">
+                المدة
+              </span>
+              <span className="flex-1 text-[13px] leading-5 font-semibold text-slate-800 break-words text-left">
+                {position.duration}
+              </span>
+            </div>
+          )}
+
+          {position.organization && (
+            <div className="flex items-start gap-3">
+              <span className="w-[92px] text-right text-[12px] leading-5 font-bold text-slate-500 flex-shrink-0">
+                الجهة
+              </span>
+              <span className="flex-1 text-[13px] leading-5 font-semibold text-slate-800 break-words text-left">
+                {position.organization}
+              </span>
+            </div>
+          )}
+
+          {position.description && (
+            <div className="flex items-start gap-3">
+              <span className="w-[92px] text-right text-[12px] leading-5 font-bold text-slate-500 flex-shrink-0">
+                الوصف
+              </span>
+              <span className="flex-1 text-[13px] leading-5 font-semibold text-slate-800 break-words text-left">
+                {position.description}
+              </span>
+            </div>
+          )}
+
+          {hasDoc && (
+            <div className="pt-2 mt-2 border-t border-slate-200/70">
+              <div className="text-[12px] font-bold text-slate-500 mb-2">الكتاب/الأمر</div>
+
+              <div className="flex items-center gap-3">
+                {isImage ? (
+                  <img
+                    src={doc}
+                    alt="معاينة"
+                    className="w-14 h-14 rounded-xl border border-slate-200 object-cover flex-shrink-0"
+                  />
+                ) : (
+                  <div className="w-14 h-14 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-center flex-shrink-0">
+                    <svg className="w-7 h-7 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                )}
+
+                <div className="flex-1 min-w-0">
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newWindow = window.open();
+                        if (!newWindow) return;
+                        if (isImage) {
+                          newWindow.document.write(`<img src="${doc}" style="max-width: 100%; height: auto;" />`);
+                        } else {
+                          newWindow.document.write(
+                            `<iframe src="${doc}" style="width: 100%; height: 100vh; border: none;"></iframe>`
+                          );
+                        }
+                      }}
+                      className="h-11 rounded-2xl border border-slate-200 bg-white text-slate-800 hover:bg-slate-50 text-sm font-bold"
+                    >
+                      عرض
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const link = document.createElement("a");
+                        link.href = doc;
+                        link.download = isImage
+                          ? `assignment_${position.id || "document"}.jpg`
+                          : `assignment_${position.id || "document"}.pdf`;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                      }}
+                      className="h-11 rounded-2xl border border-slate-200 bg-white text-slate-800 hover:bg-slate-50 text-sm font-bold"
+                    >
+                      تحميل
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {mobileActionsKey === key && (
+          <div
+            className="fixed inset-0 z-50 bg-black/40"
+            onClick={() => setMobileActionsKey(null)}
+            role="presentation"
+          >
+            <div
+              className="fixed inset-x-0 bottom-0 bg-white rounded-t-3xl p-4 border-t border-slate-200"
+              onClick={(e) => e.stopPropagation()}
+              role="dialog"
+              aria-modal="true"
+            >
+              <div className="flex items-center justify-between mb-3">
+                <div className="text-base font-extrabold text-slate-900">إجراءات</div>
+                <button
+                  type="button"
+                  onClick={() => setMobileActionsKey(null)}
+                  className="h-11 w-11 rounded-2xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 flex items-center justify-center"
+                  aria-label="إغلاق"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileActionsKey(null);
+                    handleEditPosition(position);
+                  }}
+                  className="h-12 rounded-2xl bg-indigo-600 text-white font-extrabold hover:bg-indigo-700"
+                >
+                  تعديل
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileActionsKey(null);
+                    setPositionToDelete(position);
+                  }}
+                  className="h-12 rounded-2xl bg-red-600 text-white font-extrabold hover:bg-red-700"
+                >
+                  حذف
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-[639px]:space-y-4 max-[639px]:overflow-x-hidden">
       {/* Statistics Card */}
-      <div className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 rounded-lg border border-indigo-200 p-5 shadow-sm">
+      <div className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 rounded-lg border border-indigo-200 p-5 shadow-sm max-[639px]:rounded-3xl max-[639px]:px-4 max-[639px]:py-3 max-[639px]:shadow-sm">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg">
+            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg max-[639px]:w-12 max-[639px]:h-12">
               <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
             </div>
             <div>
               <p className="text-sm font-medium text-gray-600 mb-1">عدد المناصب الإجمالي</p>
-              <p className="text-3xl font-bold" style={{ color: '#6366F1' }}>
+              <p className="text-3xl font-bold max-[639px]:text-2xl" style={{ color: '#6366F1' }}>
                 {positions.length}
               </p>
             </div>
           </div>
           <div className="text-left">
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-gray-500 max-[639px]:text-[11px] max-[639px]:text-slate-500">
               {positions.length === 0 
                 ? "لا توجد مناصب مضافة" 
                 : positions.length === 1 
@@ -600,14 +804,15 @@ export default function PositionsPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-4">
+      <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm max-[639px]:rounded-3xl max-[639px]:p-4 max-[639px]:shadow-sm max-[639px]:overflow-x-hidden">
+        <div className="mb-6 max-[639px]:mb-4">
+          <div className="flex items-center justify-between mb-4 max-[639px]:flex-col max-[639px]:items-stretch max-[639px]:gap-3">
             <div>
-              <h1 className="text-2xl font-bold mb-2" style={{ color: '#1F2937' }}>المناصب</h1>
-              <div className="h-1 w-20 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full"></div>
+              <h1 className="text-2xl font-bold mb-2 max-[639px]:mb-1 max-[639px]:text-[20px]" style={{ color: '#1F2937' }}>المناصب</h1>
+              <div className="h-1 w-20 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full max-[639px]:h-[3px] max-[639px]:w-16"></div>
             </div>
-            <div className="flex items-center gap-3">
+            {/* Desktop/Tablet Actions */}
+            <div className="flex items-center gap-3 max-[639px]:hidden">
               {/* View Mode Toggle */}
               <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
                 <button
@@ -663,10 +868,72 @@ export default function PositionsPage() {
                 <span>إضافة منصب</span>
               </button>
             </div>
+
+            {/* Mobile Actions (Grid) */}
+            <div className="hidden max-[639px]:grid grid-cols-2 gap-2.5 w-full">
+              <button
+                onClick={() => setViewMode("timeline")}
+                className={`h-11 rounded-2xl transition-all duration-200 flex items-center justify-center gap-2 font-bold ${
+                  viewMode === "timeline"
+                    ? "bg-indigo-600 text-white shadow-sm"
+                    : "bg-white text-slate-800 border border-slate-200 hover:bg-slate-50"
+                }`}
+                title="عرض الخط الزمني"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span className="text-sm">خط زمني</span>
+              </button>
+
+              <button
+                onClick={() => setViewMode("grid")}
+                className={`h-11 rounded-2xl transition-all duration-200 flex items-center justify-center gap-2 font-bold ${
+                  viewMode === "grid"
+                    ? "bg-indigo-600 text-white shadow-sm"
+                    : "bg-white text-slate-800 border border-slate-200 hover:bg-slate-50"
+                }`}
+                title="عرض الشبكة"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                </svg>
+                <span className="text-sm">شبكة</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setEditingPosition(null);
+                  setFormData({
+                    position_title: "",
+                    start_date: "",
+                    duration: "",
+                    organization: "",
+                    description: "",
+                    assignment_document: "",
+                  });
+                  setSelectedFile(null);
+                  setFilePreview("");
+                  setShowForm(true);
+                }}
+                className="col-span-2 h-[52px] rounded-2xl bg-indigo-600 text-white hover:bg-indigo-700 transition-colors duration-200 flex items-center justify-center gap-2 font-extrabold"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                <span>إضافة منصب</span>
+              </button>
+            </div>
           </div>
 
           {/* Search, Filter, Sort, Export Bar */}
-          <div className="flex flex-col md:flex-row gap-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
+          <div className="flex flex-col md:flex-row gap-3 p-4 bg-gray-50 rounded-lg border border-gray-200 max-[639px]:bg-white max-[639px]:rounded-3xl max-[639px]:p-3 max-[639px]:shadow-sm max-[639px]:gap-2.5 max-[639px]:border-slate-200/70">
+            <div className="hidden max-[639px]:flex items-center gap-2 text-slate-700">
+              <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L15 12.414V19a1 1 0 01-1.447.894l-4-2A1 1 0 019 17v-4.586L3.293 6.707A1 1 0 013 6V4z" />
+              </svg>
+              <span className="text-[12px] font-extrabold text-slate-700">بحث / فلترة</span>
+            </div>
             {/* Search */}
             <div className="flex-1">
               <div className="relative">
@@ -678,7 +945,7 @@ export default function PositionsPage() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="ابحث عن منصب، جهة، أو وصف..."
-                  className="w-full pr-10 pl-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300"
+                  className="w-full pr-10 pl-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300 max-[639px]:h-11 max-[639px]:py-0 max-[639px]:rounded-2xl"
                   style={{ color: '#1F2937', backgroundColor: '#FFFFFF' }}
                 />
               </div>
@@ -689,7 +956,7 @@ export default function PositionsPage() {
               <select
                 value={filterByOrganization}
                 onChange={(e) => setFilterByOrganization(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300 max-[639px]:h-11 max-[639px]:py-0 max-[639px]:rounded-2xl"
                 style={{ color: '#1F2937', backgroundColor: '#FFFFFF' }}
               >
                 <option value="all">جميع الجهات</option>
@@ -706,7 +973,7 @@ export default function PositionsPage() {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as any)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300 max-[639px]:h-11 max-[639px]:py-0 max-[639px]:rounded-2xl"
                 style={{ color: '#1F2937', backgroundColor: '#FFFFFF' }}
               >
                 <option value="date-desc">التاريخ (الأحدث أولاً)</option>
@@ -723,7 +990,7 @@ export default function PositionsPage() {
                   e.stopPropagation();
                   setShowExportDropdown(!showExportDropdown);
                 }}
-                className="w-full md:w-auto px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors duration-300 flex items-center gap-2"
+                className="w-full md:w-auto px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors duration-300 flex items-center gap-2 max-[639px]:h-[52px] max-[639px]:py-0 max-[639px]:rounded-2xl max-[639px]:justify-center max-[639px]:flex-row-reverse"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -778,42 +1045,59 @@ export default function PositionsPage() {
             <p className="text-gray-500 text-lg">لا توجد مناصب مضافة</p>
             <p className="text-gray-400 text-sm mt-2">اضغط على زر "إضافة منصب" لإضافة منصبك الأول</p>
           </div>
-        ) : viewMode === "timeline" ? (
-          <div className="relative pr-8">
-            {/* Vertical Timeline Line */}
-            <div className="absolute right-4 top-0 bottom-0 w-0.5 bg-gradient-to-b from-indigo-400 via-purple-400 to-pink-400"></div>
-            
-            {/* Timeline Items */}
-            <div className="space-y-4">
-              {filteredAndSortedPositions.map((position) => (
-                  <div key={position.id} className="relative flex items-start gap-6">
-                    {/* Timeline Dot */}
-                    <div className="relative z-10 flex-shrink-0">
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 border-4 border-white shadow-lg flex items-center justify-center">
-                        <div className="w-2 h-2 rounded-full bg-white"></div>
-                      </div>
-                      {/* Date Badge */}
-                      {position.start_date && (
-                        <div className="absolute -top-2 right-12 bg-indigo-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md whitespace-nowrap">
-                          {formatDate(position.start_date)}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Position Card */}
-                    <div className="flex-1">
-                      <PositionCard position={position} />
-                    </div>
-                  </div>
-                ))}
-            </div>
-          </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredAndSortedPositions.map((position) => (
-              <PositionCard key={position.id} position={position} />
-            ))}
-          </div>
+          <>
+            {/* Mobile list (no timeline visuals) */}
+            <div className="hidden max-[639px]:block space-y-3">
+              {filteredAndSortedPositions.map((position) => (
+                <MobilePositionCard
+                  key={String(position.id ?? `${position.position_title}-${position.start_date}-${position.organization}`)}
+                  position={position}
+                />
+              ))}
+            </div>
+
+            {/* Desktop/Tablet original views */}
+            <div className="max-[639px]:hidden">
+              {viewMode === "timeline" ? (
+                <div className="relative pr-8">
+                  {/* Vertical Timeline Line */}
+                  <div className="absolute right-4 top-0 bottom-0 w-0.5 bg-gradient-to-b from-indigo-400 via-purple-400 to-pink-400"></div>
+
+                  {/* Timeline Items */}
+                  <div className="space-y-4">
+                    {filteredAndSortedPositions.map((position) => (
+                      <div key={position.id} className="relative flex items-start gap-6">
+                        {/* Timeline Dot */}
+                        <div className="relative z-10 flex-shrink-0">
+                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 border-4 border-white shadow-lg flex items-center justify-center">
+                            <div className="w-2 h-2 rounded-full bg-white"></div>
+                          </div>
+                          {/* Date Badge */}
+                          {position.start_date && (
+                            <div className="absolute -top-2 right-12 bg-indigo-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md whitespace-nowrap">
+                              {formatDate(position.start_date)}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Position Card */}
+                        <div className="flex-1">
+                          <PositionCard position={position} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {filteredAndSortedPositions.map((position) => (
+                    <PositionCard key={position.id} position={position} />
+                  ))}
+                </div>
+              )}
+            </div>
+          </>
         )}
       </div>
 

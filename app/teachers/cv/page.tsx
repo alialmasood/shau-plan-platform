@@ -167,15 +167,15 @@ export default function CVPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-[639px]:space-y-4 max-[639px]:px-4 max-[639px]:max-w-[420px] max-[639px]:mx-auto max-[639px]:overflow-x-hidden">
       {/* Action Buttons */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm print:hidden">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold" style={{ color: '#1F2937' }}>السيرة الذاتية الشاملة</h1>
-          <div className="flex items-center gap-3">
+      <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm print:hidden max-[639px]:rounded-[22px] max-[639px]:p-4">
+        <div className="flex items-center justify-between max-[639px]:flex-col max-[639px]:items-stretch max-[639px]:gap-3">
+          <h1 className="text-2xl font-bold max-[639px]:text-[18px]" style={{ color: '#1F2937' }}>السيرة الذاتية الشاملة</h1>
+          <div className="flex items-center gap-3 max-[639px]:grid max-[639px]:grid-cols-2 max-[639px]:gap-2">
             <button
               onClick={handlePrint}
-              className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-300 flex items-center gap-2"
+              className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-300 flex items-center gap-2 max-[639px]:w-full max-[639px]:h-11 max-[639px]:px-3 max-[639px]:py-0 max-[639px]:rounded-2xl max-[639px]:justify-center max-[639px]:text-[13px]"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
@@ -184,7 +184,7 @@ export default function CVPage() {
             </button>
             <button
               onClick={handleShare}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-300 flex items-center gap-2"
+              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-300 flex items-center gap-2 max-[639px]:w-full max-[639px]:h-11 max-[639px]:px-3 max-[639px]:py-0 max-[639px]:rounded-2xl max-[639px]:justify-center max-[639px]:text-[13px]"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
@@ -193,7 +193,7 @@ export default function CVPage() {
             </button>
             <button
               onClick={handleExportPDF}
-              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-300 flex items-center gap-2"
+              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-300 flex items-center gap-2 max-[639px]:w-full max-[639px]:h-11 max-[639px]:px-3 max-[639px]:py-0 max-[639px]:rounded-2xl max-[639px]:justify-center max-[639px]:text-[13px] max-[639px]:col-span-2"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -205,9 +205,9 @@ export default function CVPage() {
       </div>
 
       {/* CV Content */}
-      <div id="cv-content" className="bg-white rounded-lg border border-gray-200 p-8 shadow-sm print:shadow-none print:border-0">
+      <div id="cv-content" className="bg-white rounded-lg border border-gray-200 p-8 shadow-sm print:shadow-none print:border-0 max-[639px]:p-4 max-[639px]:rounded-[22px] max-[639px]:border-slate-200/70 max-[639px]:overflow-x-hidden">
         {/* Header with Photo */}
-        <div className="flex items-start gap-6 mb-8 pb-6 border-b-2 border-indigo-600">
+        <div className="flex items-start gap-6 mb-8 pb-6 border-b-2 border-indigo-600 max-[639px]:gap-3 max-[639px]:mb-4 max-[639px]:pb-4 max-[639px]:border-b max-[639px]:border-indigo-200">
           {profileData?.profile_picture && (
             <div className="flex-shrink-0">
               <img
@@ -215,55 +215,54 @@ export default function CVPage() {
                 alt="صورة شخصية"
                 width={150}
                 height={150}
-                className="rounded-lg object-cover border-4 border-indigo-200"
-                style={{ width: '150px', height: '150px' }}
+                className="rounded-lg object-cover border-4 border-indigo-200 w-[150px] h-[150px] max-[639px]:w-12 max-[639px]:h-12 max-[639px]:rounded-full max-[639px]:border-2"
               />
             </div>
           )}
           <div className="flex-1">
-            <h1 className="text-4xl font-bold mb-2" style={{ color: '#1F2937' }}>
+            <h1 className="text-4xl font-bold mb-2 max-[639px]:text-[20px] max-[639px]:leading-7 max-[639px]:mb-1 break-words" style={{ color: '#1F2937' }}>
               {profileData?.name_ar || profileData?.full_name || user?.username || "غير محدد"}
             </h1>
             {profileData?.academic_title && (
-              <h2 className="text-2xl text-indigo-600 mb-2 font-semibold">
+              <h2 className="text-2xl text-indigo-600 mb-2 font-semibold max-[639px]:text-[14px] max-[639px]:mb-1">
                 {getAcademicTitleLabel(profileData.academic_title)}
               </h2>
             )}
             {profileData?.department && (
-              <p className="text-lg text-gray-600 mb-3">
+              <p className="text-lg text-gray-600 mb-3 max-[639px]:text-[13px] max-[639px]:mb-2 break-words">
                 {getDepartmentLabel(profileData.department)}
               </p>
             )}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-600">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-600 max-[639px]:gap-3 max-[639px]:text-[13px]">
               {profileData?.email && (
-                <div className="flex items-center gap-2">
+                <div className="flex items-start gap-2 min-w-0">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
-                  <span>{profileData.email}</span>
+                  <span className="min-w-0 break-all">{profileData.email}</span>
                 </div>
               )}
               {profileData?.phone && (
-                <div className="flex items-center gap-2">
+                <div className="flex items-start gap-2 min-w-0">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                   </svg>
-                  <span>{profileData.phone}</span>
+                  <span className="min-w-0 break-words">{profileData.phone}</span>
                 </div>
               )}
               {cvData?.address && (
-                <div className="flex items-center gap-2">
+                <div className="flex items-start gap-2 min-w-0">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
-                  <span>{cvData.address}</span>
+                  <span className="min-w-0 break-words">{cvData.address}</span>
                 </div>
               )}
               {cvData?.nationality && (
-                <div className="flex items-center gap-2">
-                  <span className="font-medium">الجنسية:</span>
-                  <span>{cvData.nationality}</span>
+                <div className="flex items-center gap-2 max-[639px]:flex-col max-[639px]:items-start max-[639px]:gap-0.5">
+                  <span className="font-medium text-gray-700 max-[639px]:text-[12px]">الجنسية</span>
+                  <span className="break-words">{cvData.nationality}</span>
                 </div>
               )}
             </div>
@@ -272,23 +271,23 @@ export default function CVPage() {
 
         {/* Personal Information Section */}
         {(cvData?.gender || cvData?.maritalStatus || cvData?.birthDate || cvData?.languages || cvData?.skills || cvData?.previousExperience) && (
-          <section className="mb-8">
-            <h2 className="text-2xl font-bold mb-4 pb-2 border-b-2 border-indigo-300" style={{ color: '#1F2937' }}>
+          <section className="mb-8 max-[639px]:mb-4 max-[639px]:bg-white max-[639px]:rounded-[22px] max-[639px]:border max-[639px]:border-slate-200/70 max-[639px]:shadow-sm max-[639px]:p-4">
+            <h2 className="text-2xl font-bold mb-4 pb-2 border-b-2 border-indigo-300 max-[639px]:text-[16px] max-[639px]:mb-3 max-[639px]:pb-0 max-[639px]:border-b-0" style={{ color: '#1F2937' }}>
               المعلومات الشخصية
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-[639px]:gap-3">
               {cvData?.gender && (
-                <div className="pl-4 border-r-4 border-indigo-200 pr-4">
-                  <div className="font-medium text-gray-700 mb-1">الجنس</div>
-                  <div className="text-gray-600">
+                <div className="pl-4 border-r-4 border-indigo-200 pr-4 max-[639px]:border-r-0 max-[639px]:px-0">
+                  <div className="font-medium text-gray-700 mb-1 max-[639px]:text-[12px]">الجنس</div>
+                  <div className="text-gray-600 break-words">
                     {cvData.gender === "male" ? "ذكر" : cvData.gender === "female" ? "أنثى" : cvData.gender}
                   </div>
                 </div>
               )}
               {cvData?.maritalStatus && (
-                <div className="pl-4 border-r-4 border-indigo-200 pr-4">
-                  <div className="font-medium text-gray-700 mb-1">الحالة الزوجية</div>
-                  <div className="text-gray-600">
+                <div className="pl-4 border-r-4 border-indigo-200 pr-4 max-[639px]:border-r-0 max-[639px]:px-0">
+                  <div className="font-medium text-gray-700 mb-1 max-[639px]:text-[12px]">الحالة الزوجية</div>
+                  <div className="text-gray-600 break-words">
                     {cvData.maritalStatus === "single" ? "أعزب" : 
                      cvData.maritalStatus === "married" ? "متزوج" : 
                      cvData.maritalStatus === "divorced" ? "مطلق" : 
@@ -298,28 +297,28 @@ export default function CVPage() {
                 </div>
               )}
               {cvData?.birthDate && (
-                <div className="pl-4 border-r-4 border-indigo-200 pr-4">
-                  <div className="font-medium text-gray-700 mb-1">تاريخ الميلاد</div>
-                  <div className="text-gray-600">{formatDate(cvData.birthDate)}</div>
+                <div className="pl-4 border-r-4 border-indigo-200 pr-4 max-[639px]:border-r-0 max-[639px]:px-0">
+                  <div className="font-medium text-gray-700 mb-1 max-[639px]:text-[12px]">تاريخ الميلاد</div>
+                  <div className="text-gray-600 break-words">{formatDate(cvData.birthDate)}</div>
                 </div>
               )}
             </div>
             {cvData?.languages && (
-              <div className="mt-4 pl-4 border-r-4 border-indigo-200 pr-4">
-                <div className="font-medium text-gray-700 mb-2">اللغات</div>
-                <div className="text-gray-600">{cvData.languages}</div>
+              <div className="mt-4 pl-4 border-r-4 border-indigo-200 pr-4 max-[639px]:border-r-0 max-[639px]:px-0">
+                <div className="font-medium text-gray-700 mb-2 max-[639px]:text-[12px] max-[639px]:mb-1">اللغات</div>
+                <div className="text-gray-600 break-words">{cvData.languages}</div>
               </div>
             )}
             {cvData?.skills && (
-              <div className="mt-4 pl-4 border-r-4 border-indigo-200 pr-4">
-                <div className="font-medium text-gray-700 mb-2">المهارات</div>
-                <div className="text-gray-600 whitespace-pre-line">{cvData.skills}</div>
+              <div className="mt-4 pl-4 border-r-4 border-indigo-200 pr-4 max-[639px]:border-r-0 max-[639px]:px-0">
+                <div className="font-medium text-gray-700 mb-2 max-[639px]:text-[12px] max-[639px]:mb-1">المهارات</div>
+                <div className="text-gray-600 whitespace-pre-line break-words">{cvData.skills}</div>
               </div>
             )}
             {cvData?.previousExperience && (
-              <div className="mt-4 pl-4 border-r-4 border-indigo-200 pr-4">
-                <div className="font-medium text-gray-700 mb-2">الخبرات السابقة</div>
-                <div className="text-gray-600 whitespace-pre-line">{cvData.previousExperience}</div>
+              <div className="mt-4 pl-4 border-r-4 border-indigo-200 pr-4 max-[639px]:border-r-0 max-[639px]:px-0">
+                <div className="font-medium text-gray-700 mb-2 max-[639px]:text-[12px] max-[639px]:mb-1">الخبرات السابقة</div>
+                <div className="text-gray-600 whitespace-pre-line break-words">{cvData.previousExperience}</div>
               </div>
             )}
           </section>
@@ -327,22 +326,22 @@ export default function CVPage() {
 
         {/* Academic Qualifications */}
         {qualifications.length > 0 && (
-          <section className="mb-8">
-            <h2 className="text-2xl font-bold mb-4 pb-2 border-b-2 border-indigo-300" style={{ color: '#1F2937' }}>
+          <section className="mb-8 max-[639px]:mb-4 max-[639px]:bg-white max-[639px]:rounded-[22px] max-[639px]:border max-[639px]:border-slate-200/70 max-[639px]:shadow-sm max-[639px]:p-4">
+            <h2 className="text-2xl font-bold mb-4 pb-2 border-b-2 border-indigo-300 max-[639px]:text-[16px] max-[639px]:mb-3 max-[639px]:pb-0 max-[639px]:border-b-0" style={{ color: '#1F2937' }}>
               المؤهلات الأكاديمية
             </h2>
-            <div className="space-y-4">
+            <div className="space-y-4 max-[639px]:space-y-0 max-[639px]:divide-y max-[639px]:divide-slate-200/70">
               {qualifications.map((qual: any, index: number) => (
-                <div key={index} className="pl-4 border-r-4 border-indigo-200 pr-4">
-                  <div className="font-semibold text-lg mb-1" style={{ color: '#1F2937' }}>
+                <div key={index} className="pl-4 border-r-4 border-indigo-200 pr-4 max-[639px]:border-r-0 max-[639px]:px-0 max-[639px]:py-3">
+                  <div className="font-semibold text-lg mb-1 max-[639px]:text-[15px]" style={{ color: '#1F2937' }}>
                     {qual.degree || ""}
                   </div>
-                  <div className="text-gray-600">
+                  <div className="text-gray-600 break-words max-[639px]:text-[13px]">
                     {qual.majorSpecific && <span>{qual.majorSpecific}</span>}
                     {qual.majorGeneral && qual.majorSpecific && <span> - </span>}
                     {qual.majorGeneral && <span>{qual.majorGeneral}</span>}
                   </div>
-                  <div className="text-sm text-gray-500">
+                  <div className="text-sm text-gray-500 break-words max-[639px]:text-[12px]">
                     {qual.university && <span>{qual.university}</span>}
                     {qual.country && qual.university && <span> - </span>}
                     {qual.country && <span>{qual.country}</span>}
@@ -695,39 +694,39 @@ export default function CVPage() {
 
         {/* Researcher Links */}
         {researcherLinks && (
-          <section className="mb-8">
-            <h2 className="text-2xl font-bold mb-4 pb-2 border-b-2 border-indigo-300" style={{ color: '#1F2937' }}>
+          <section className="mb-8 max-[639px]:mb-4 max-[639px]:bg-white max-[639px]:rounded-[22px] max-[639px]:border max-[639px]:border-slate-200/70 max-[639px]:shadow-sm max-[639px]:p-4">
+            <h2 className="text-2xl font-bold mb-4 pb-2 border-b-2 border-indigo-300 max-[639px]:text-[16px] max-[639px]:mb-3 max-[639px]:pb-0 max-[639px]:border-b-0" style={{ color: '#1F2937' }}>
               روابط الباحث
             </h2>
-            <div className="space-y-2">
+            <div className="space-y-2 max-[639px]:space-y-0 max-[639px]:divide-y max-[639px]:divide-slate-200/70">
               {researcherLinks.google_scholar && (
-                <div className="flex items-center gap-2">
-                  <span className="font-medium">Google Scholar:</span>
-                  <a href={researcherLinks.google_scholar} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline">
+                <div className="flex items-center gap-2 max-[639px]:flex-col max-[639px]:items-start max-[639px]:gap-1 max-[639px]:py-3">
+                  <span className="font-medium text-gray-700 max-[639px]:text-[12px]">Google Scholar</span>
+                  <a href={researcherLinks.google_scholar} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline break-all max-w-full">
                     {researcherLinks.google_scholar}
                   </a>
                 </div>
               )}
               {researcherLinks.scopus && (
-                <div className="flex items-center gap-2">
-                  <span className="font-medium">Scopus:</span>
-                  <a href={researcherLinks.scopus} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline">
+                <div className="flex items-center gap-2 max-[639px]:flex-col max-[639px]:items-start max-[639px]:gap-1 max-[639px]:py-3">
+                  <span className="font-medium text-gray-700 max-[639px]:text-[12px]">Scopus</span>
+                  <a href={researcherLinks.scopus} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline break-all max-w-full">
                     {researcherLinks.scopus}
                   </a>
                 </div>
               )}
               {researcherLinks.research_gate && (
-                <div className="flex items-center gap-2">
-                  <span className="font-medium">Research Gate:</span>
-                  <a href={researcherLinks.research_gate} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline">
+                <div className="flex items-center gap-2 max-[639px]:flex-col max-[639px]:items-start max-[639px]:gap-1 max-[639px]:py-3">
+                  <span className="font-medium text-gray-700 max-[639px]:text-[12px]">Research Gate</span>
+                  <a href={researcherLinks.research_gate} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline break-all max-w-full">
                     {researcherLinks.research_gate}
                   </a>
                 </div>
               )}
               {researcherLinks.orcid && (
-                <div className="flex items-center gap-2">
-                  <span className="font-medium">ORCID:</span>
-                  <a href={researcherLinks.orcid} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline">
+                <div className="flex items-center gap-2 max-[639px]:flex-col max-[639px]:items-start max-[639px]:gap-1 max-[639px]:py-3">
+                  <span className="font-medium text-gray-700 max-[639px]:text-[12px]">ORCID</span>
+                  <a href={researcherLinks.orcid} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline break-all max-w-full">
                     {researcherLinks.orcid}
                   </a>
                 </div>

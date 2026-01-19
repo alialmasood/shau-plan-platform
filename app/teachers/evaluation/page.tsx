@@ -227,6 +227,19 @@ export default function EvaluationPage() {
     }));
   };
 
+  const expandAllSections = () => {
+    if (!pointsData) return;
+    const next: { [key: string]: boolean } = {};
+    Object.entries(pointsData.breakdown).forEach(([key, items]) => {
+      if (Array.isArray(items) && items.length > 0) next[key] = true;
+    });
+    setExpandedSections(next);
+  };
+
+  const collapseAllSections = () => {
+    setExpandedSections({});
+  };
+
   // Fetch points for selected period
   useEffect(() => {
     const fetchPeriodPoints = async () => {
@@ -449,12 +462,12 @@ export default function EvaluationPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-[639px]:space-y-3 max-[639px]:overflow-x-hidden">
       {/* Period-based Evaluation Section */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold" style={{ color: '#1F2937' }}>التقييم حسب الفترة</h2>
-          <div className="flex items-center gap-3">
+      <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm max-[639px]:rounded-3xl max-[639px]:p-4 max-[639px]:shadow-sm">
+        <div className="flex items-center justify-between mb-6 max-[639px]:mb-4 max-[639px]:flex-col max-[639px]:items-stretch max-[639px]:gap-3">
+          <h2 className="text-2xl font-bold max-[639px]:text-[20px]" style={{ color: '#1F2937' }}>التقييم حسب الفترة</h2>
+          <div className="flex items-center gap-3 max-[639px]:hidden">
             {/* Year Selector */}
             <div className="relative">
               <select
@@ -501,17 +514,76 @@ export default function EvaluationPage() {
           </div>
         </div>
 
+        {/* Mobile Filters Card (Year / Month) */}
+        <div className="hidden max-[639px]:block mb-3 bg-white rounded-3xl border border-slate-200/70 p-3 shadow-sm">
+          <div className="flex items-center gap-2 text-slate-700 mb-2">
+            <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L15 12.414V19a1 1 0 01-1.447.894l-4-2A1 1 0 019 17v-4.586L3.293 6.707A1 1 0 013 6V4z" />
+            </svg>
+            <span className="text-[12px] font-extrabold">فلاتر الفترة</span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2.5">
+            <select
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(e.target.value)}
+              className="w-full h-11 px-3 border border-gray-300 rounded-2xl text-[14px] font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              style={{ color: '#1F2937', backgroundColor: '#FAFBFC' }}
+            >
+              {Array.from({ length: 10 }, (_, i) => {
+                const year = 2024 + i;
+                const nextYear = year + 1;
+                return (
+                  <option key={year} value={`${year}-${nextYear}`}>
+                    {year}-{nextYear}
+                  </option>
+                );
+              })}
+            </select>
+
+            <select
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(e.target.value)}
+              className="w-full h-11 px-3 border border-gray-300 rounded-2xl text-[14px] font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              style={{ color: '#1F2937', backgroundColor: '#FAFBFC' }}
+            >
+              <option value="all">جميع الأشهر</option>
+              <option value="1">يناير</option>
+              <option value="2">فبراير</option>
+              <option value="3">مارس</option>
+              <option value="4">أبريل</option>
+              <option value="5">مايو</option>
+              <option value="6">يونيو</option>
+              <option value="7">يوليو</option>
+              <option value="8">أغسطس</option>
+              <option value="9">سبتمبر</option>
+              <option value="10">أكتوبر</option>
+              <option value="11">نوفمبر</option>
+              <option value="12">ديسمبر</option>
+            </select>
+          </div>
+        </div>
+
         {isLoadingPeriod ? (
           <div className="text-center py-8">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
             <p className="mt-2 text-gray-600">جاري حساب التقييم...</p>
           </div>
         ) : evaluationScores ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="relative">
+            <div
+              className="grid grid-cols-1 md:grid-cols-3 gap-6 max-[639px]:flex max-[639px]:flex-nowrap max-[639px]:overflow-x-auto max-[639px]:snap-x max-[639px]:snap-mandatory max-[639px]:gap-3 max-[639px]:pb-1 m-scroll"
+              style={{
+                scrollbarWidth: "none",
+                msOverflowStyle: "none",
+              }}
+            >
             {/* مقارنة مع أهداف الخطة العلمية */}
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border-2 border-blue-200 shadow-md hover:shadow-lg transition-shadow">
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border-2 border-blue-200 shadow-md hover:shadow-lg transition-shadow max-[639px]:min-w-[280px] max-[639px]:w-[280px] max-[639px]:shrink-0 max-[639px]:h-[250px] max-[639px]:snap-start max-[639px]:rounded-3xl max-[639px]:p-4 max-[639px]:border max-[639px]:shadow-sm">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold" style={{ color: '#1F2937' }}>مقارنة مع أهداف الخطة العلمية</h3>
+                <h3 className="text-lg font-bold max-[639px]:text-[15px] max-[639px]:leading-5 max-[639px]:min-h-[40px]" style={{ color: '#1F2937' }}>
+                  مقارنة مع أهداف الخطة العلمية
+                </h3>
                 <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center">
                   <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -527,9 +599,9 @@ export default function EvaluationPage() {
                   <span className="text-sm text-gray-600">الهدف المستهدف:</span>
                   <span className="text-lg font-medium" style={{ color: '#1F2937' }}>{evaluationScores.planTarget} نقطة</span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-3 mt-4">
+                <div className="w-full bg-gray-200 rounded-full h-3 mt-4 max-[639px]:h-2">
                   <div 
-                    className="bg-gradient-to-r from-blue-500 to-indigo-600 h-3 rounded-full transition-all duration-500"
+                    className="bg-gradient-to-r from-blue-500 to-indigo-600 h-3 rounded-full transition-all duration-500 max-[639px]:h-2"
                     style={{ width: `${Math.min(evaluationScores.planAchievement, 100)}%` }}
                   ></div>
                 </div>
@@ -546,9 +618,11 @@ export default function EvaluationPage() {
             </div>
 
             {/* مقارنة مع المعايير الدولية */}
-            <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-6 border-2 border-purple-200 shadow-md hover:shadow-lg transition-shadow">
+            <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-6 border-2 border-purple-200 shadow-md hover:shadow-lg transition-shadow max-[639px]:min-w-[280px] max-[639px]:w-[280px] max-[639px]:shrink-0 max-[639px]:h-[250px] max-[639px]:snap-start max-[639px]:rounded-3xl max-[639px]:p-4 max-[639px]:border max-[639px]:shadow-sm">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold" style={{ color: '#1F2937' }}>مقارنة مع المعايير الدولية</h3>
+                <h3 className="text-lg font-bold max-[639px]:text-[15px] max-[639px]:leading-5 max-[639px]:min-h-[40px]" style={{ color: '#1F2937' }}>
+                  مقارنة مع المعايير الدولية
+                </h3>
                 <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-400 to-pink-600 flex items-center justify-center">
                   <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -564,9 +638,9 @@ export default function EvaluationPage() {
                   <span className="text-sm text-gray-600">المعيار الدولي:</span>
                   <span className="text-lg font-medium" style={{ color: '#1F2937' }}>{evaluationScores.internationalTarget} نقطة</span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-3 mt-4">
+                <div className="w-full bg-gray-200 rounded-full h-3 mt-4 max-[639px]:h-2">
                   <div 
-                    className="bg-gradient-to-r from-purple-500 to-pink-600 h-3 rounded-full transition-all duration-500"
+                    className="bg-gradient-to-r from-purple-500 to-pink-600 h-3 rounded-full transition-all duration-500 max-[639px]:h-2"
                     style={{ width: `${Math.min(evaluationScores.internationalAchievement, 100)}%` }}
                   ></div>
                 </div>
@@ -583,9 +657,11 @@ export default function EvaluationPage() {
             </div>
 
             {/* تقييم شامل */}
-            <div className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 rounded-xl p-6 border-2 border-indigo-200 shadow-md hover:shadow-lg transition-shadow">
+            <div className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 rounded-xl p-6 border-2 border-indigo-200 shadow-md hover:shadow-lg transition-shadow max-[639px]:min-w-[280px] max-[639px]:w-[280px] max-[639px]:shrink-0 max-[639px]:h-[250px] max-[639px]:snap-start max-[639px]:rounded-3xl max-[639px]:p-4 max-[639px]:border max-[639px]:shadow-sm">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold" style={{ color: '#1F2937' }}>تقييم شامل</h3>
+                <h3 className="text-lg font-bold max-[639px]:text-[15px] max-[639px]:leading-5 max-[639px]:min-h-[40px]" style={{ color: '#1F2937' }}>
+                  تقييم شامل
+                </h3>
                 <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-400 to-pink-600 flex items-center justify-center">
                   <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
@@ -603,9 +679,9 @@ export default function EvaluationPage() {
                     {getMonthName(selectedMonth)} {selectedYear}
                   </span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-3 mt-4">
+                <div className="w-full bg-gray-200 rounded-full h-3 mt-4 max-[639px]:h-2">
                   <div 
-                    className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 h-3 rounded-full transition-all duration-500"
+                    className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 h-3 rounded-full transition-all duration-500 max-[639px]:h-2"
                     style={{ width: `${Math.min(evaluationScores.comprehensiveScore, 100)}%` }}
                   ></div>
                 </div>
@@ -620,6 +696,12 @@ export default function EvaluationPage() {
                 </div>
               </div>
             </div>
+
+            </div>
+
+            {/* Mobile-only edge fade (hint swipe) */}
+            <div className="hidden max-[639px]:block pointer-events-none absolute inset-y-0 left-0 w-6 bg-gradient-to-r from-white/70 to-transparent" />
+            <div className="hidden max-[639px]:block pointer-events-none absolute inset-y-0 right-0 w-6 bg-gradient-to-l from-white/70 to-transparent" />
           </div>
         ) : (
           <div className="text-center py-8 text-gray-500">
@@ -637,9 +719,9 @@ export default function EvaluationPage() {
           </div>
         </div>
       ) : rankingData ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-[639px]:gap-3">
           {/* College Rank */}
-          <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl p-6 border-2 border-emerald-200 shadow-md hover:shadow-lg transition-shadow">
+          <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl p-6 border-2 border-emerald-200 shadow-md hover:shadow-lg transition-shadow max-[639px]:rounded-3xl max-[639px]:p-4 max-[639px]:border max-[639px]:shadow-sm">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-bold" style={{ color: '#1F2937' }}>ترتيب التدريسي بين زملائه في الكلية</h3>
               <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center">
@@ -650,15 +732,15 @@ export default function EvaluationPage() {
             </div>
             <div className="space-y-4">
               <div className="text-center">
-                <div className="text-6xl font-bold text-emerald-600 mb-2">{rankingData.collegeRank}</div>
-                <div className="text-lg text-gray-600">من {rankingData.totalUsersInCollege} تدريسي</div>
+                <div className="text-6xl font-bold text-emerald-600 mb-2 max-[639px]:text-6xl max-[639px]:leading-none max-[639px]:mb-1">{rankingData.collegeRank}</div>
+                <div className="text-lg text-gray-600 max-[639px]:text-[13px]">من {rankingData.totalUsersInCollege} تدريسي</div>
               </div>
               <div className="pt-4 border-t border-emerald-200">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm text-gray-600">نقاطك الإجمالية:</span>
                   <span className="text-xl font-bold text-emerald-600">{rankingData.userPoints}</span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2 mt-3">
+                <div className="w-full bg-gray-200 rounded-full h-2 mt-3 max-[639px]:h-2">
                   <div 
                     className="bg-gradient-to-r from-emerald-500 to-teal-600 h-2 rounded-full transition-all duration-500"
                     style={{ width: `${((rankingData.totalUsersInCollege - rankingData.collegeRank + 1) / rankingData.totalUsersInCollege) * 100}%` }}
@@ -672,7 +754,7 @@ export default function EvaluationPage() {
           </div>
 
           {/* Department Rank */}
-          <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-6 border-2 border-amber-200 shadow-md hover:shadow-lg transition-shadow">
+          <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-6 border-2 border-amber-200 shadow-md hover:shadow-lg transition-shadow max-[639px]:rounded-3xl max-[639px]:p-4 max-[639px]:border max-[639px]:shadow-sm">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-bold" style={{ color: '#1F2937' }}>ترتيب التدريسي بين زملائه في القسم</h3>
               <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-400 to-orange-600 flex items-center justify-center">
@@ -683,15 +765,15 @@ export default function EvaluationPage() {
             </div>
             <div className="space-y-4">
               <div className="text-center">
-                <div className="text-6xl font-bold text-amber-600 mb-2">{rankingData.departmentRank}</div>
-                <div className="text-lg text-gray-600">من {rankingData.totalUsersInDepartment} تدريسي في القسم</div>
+                <div className="text-6xl font-bold text-amber-600 mb-2 max-[639px]:text-6xl max-[639px]:leading-none max-[639px]:mb-1">{rankingData.departmentRank}</div>
+                <div className="text-lg text-gray-600 max-[639px]:text-[13px]">من {rankingData.totalUsersInDepartment} تدريسي في القسم</div>
               </div>
               <div className="pt-4 border-t border-amber-200">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm text-gray-600">نقاطك الإجمالية:</span>
                   <span className="text-xl font-bold text-amber-600">{rankingData.userPoints}</span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2 mt-3">
+                <div className="w-full bg-gray-200 rounded-full h-2 mt-3 max-[639px]:h-2">
                   <div 
                     className="bg-gradient-to-r from-amber-500 to-orange-600 h-2 rounded-full transition-all duration-500"
                     style={{ width: `${rankingData.totalUsersInDepartment > 0 ? ((rankingData.totalUsersInDepartment - rankingData.departmentRank + 1) / rankingData.totalUsersInDepartment) * 100 : 0}%` }}
@@ -707,16 +789,16 @@ export default function EvaluationPage() {
       ) : null}
 
       {/* Total Points Card */}
-      <div className="bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-lg border border-indigo-400 p-8 shadow-lg">
+      <div className="bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-lg border border-indigo-400 p-8 shadow-lg max-[639px]:rounded-3xl max-[639px]:p-4 max-[639px]:shadow-md">
         <div className="text-center">
-          <h2 className="text-3xl font-bold text-white mb-2">إجمالي النقاط العلمية</h2>
-          <div className="text-7xl font-bold text-white mb-4">{pointsData.totalPoints}</div>
-          <p className="text-white/90 text-lg">نقطة علمية</p>
+          <h2 className="text-3xl font-bold text-white mb-2 max-[639px]:text-[20px] max-[639px]:mb-1">إجمالي النقاط العلمية</h2>
+          <div className="text-7xl font-bold text-white mb-4 max-[639px]:text-5xl max-[639px]:mb-2">{pointsData.totalPoints}</div>
+          <p className="text-white/90 text-lg max-[639px]:text-[13px]">نقطة علمية</p>
         </div>
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 max-[639px]:grid-cols-2 max-[639px]:gap-3">
         {Object.entries(pointsData.summary).map(([key, points]) => {
           const activity = activityLabels[key];
           if (!activity || points === 0) return null;
@@ -741,21 +823,24 @@ export default function EvaluationPage() {
           return (
             <div
               key={key}
-              className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+              className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer max-[639px]:rounded-3xl max-[639px]:p-3 max-[639px]:shadow-sm"
               onClick={() => toggleSection(key)}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${colorClasses[activity.color]} flex items-center justify-center text-2xl`}>
+                  <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${colorClasses[activity.color]} flex items-center justify-center text-2xl max-[639px]:w-10 max-[639px]:h-10 max-[639px]:text-[18px]`}>
                     {activity.icon}
                   </div>
                   <div>
-                    <div className="text-sm font-medium text-gray-600">{activity.label}</div>
-                    <div className="text-2xl font-bold" style={{ color: '#1F2937' }}>{points}</div>
+                    <div className="text-sm font-medium text-gray-600 max-[639px]:text-[12px]">{activity.label}</div>
+                    <div className="text-2xl font-bold max-[639px]:text-[18px]" style={{ color: '#1F2937' }}>{points}</div>
                   </div>
                 </div>
+                <span className="hidden max-[639px]:inline text-[11px] text-slate-500 font-extrabold">
+                  تفاصيل
+                </span>
                 <svg
-                  className={`w-5 h-5 text-gray-400 transition-transform ${expandedSections[key] ? "transform rotate-180" : ""}`}
+                  className={`w-5 h-5 text-gray-400 transition-transform ${expandedSections[key] ? "transform rotate-180" : ""} max-[639px]:hidden`}
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -769,8 +854,26 @@ export default function EvaluationPage() {
       </div>
 
       {/* Detailed Breakdown */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
-        <h3 className="text-xl font-bold mb-4" style={{ color: '#1F2937' }}>تفاصيل النقاط</h3>
+      <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm max-[639px]:rounded-3xl max-[639px]:p-4 max-[639px]:shadow-sm">
+        <div className="flex items-center justify-between gap-3 mb-4">
+          <h3 className="text-xl font-bold max-[639px]:text-[18px]" style={{ color: '#1F2937' }}>تفاصيل النقاط</h3>
+          <div className="hidden max-[639px]:flex items-center gap-2">
+            <button
+              type="button"
+              onClick={expandAllSections}
+              className="h-10 px-3 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-800 text-[12px] font-extrabold"
+            >
+              فتح الكل
+            </button>
+            <button
+              type="button"
+              onClick={collapseAllSections}
+              className="h-10 px-3 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-800 text-[12px] font-extrabold"
+            >
+              إغلاق الكل
+            </button>
+          </div>
+        </div>
         <div className="space-y-4">
           {Object.entries(pointsData.breakdown).map(([key, items]) => {
             const activity = activityLabels[key];
@@ -779,18 +882,18 @@ export default function EvaluationPage() {
             const isExpanded = expandedSections[key];
 
             return (
-              <div key={key} className="border border-gray-200 rounded-lg overflow-hidden">
+              <div key={key} className="border border-gray-200 rounded-lg overflow-hidden max-[639px]:rounded-3xl">
                 <button
                   onClick={() => toggleSection(key)}
-                  className="w-full px-4 py-3 bg-gray-50 hover:bg-gray-100 flex items-center justify-between transition-colors"
+                  className="w-full px-4 py-3 bg-gray-50 hover:bg-gray-100 flex items-center justify-between transition-colors max-[639px]:py-2.5"
                 >
                   <div className="flex items-center gap-3">
-                    <span className="text-xl">{activity.icon}</span>
-                    <span className="font-bold" style={{ color: '#1F2937' }}>{activity.label}</span>
-                    <span className="text-sm text-gray-600">({items.length} نشاط)</span>
+                    <span className="text-xl max-[639px]:text-[18px]">{activity.icon}</span>
+                    <span className="font-bold max-[639px]:text-[14px]" style={{ color: '#1F2937' }}>{activity.label}</span>
+                    <span className="text-sm text-gray-600 max-[639px]:text-[12px]">({items.length} نشاط)</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="font-bold text-indigo-600">
+                    <span className="font-bold text-indigo-600 max-[639px]:text-[13px]">
                       {items.reduce((sum: number, item: { points: number }) => sum + item.points, 0)} نقطة
                     </span>
                     <svg
@@ -804,9 +907,52 @@ export default function EvaluationPage() {
                   </div>
                 </button>
 
-                {isExpanded && (
-                  <div className="p-4 bg-white border-t border-gray-200">
-                    <div className="overflow-x-auto">
+                <div
+                  className={[
+                    "overflow-hidden transition-[max-height,opacity] duration-200 ease-out",
+                    isExpanded ? "max-h-[1800px] opacity-100" : "max-h-0 opacity-0",
+                  ].join(" ")}
+                >
+                  <div className="p-4 bg-white border-t border-gray-200 max-[639px]:p-3">
+                    {/* Mobile compact list */}
+                    <div className="hidden max-[639px]:block space-y-2">
+                      {items.map((item: { title: string; year: number | string; points: number; details: any }, index: number) => {
+                        const detailsText = formatDetails(item.details);
+                        return (
+                          <div key={index} className="rounded-2xl border border-slate-200/70 bg-slate-50 p-3">
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="min-w-0 flex-1">
+                                <div className="text-[14px] font-extrabold text-slate-900 break-words">
+                                  {item.title}
+                                </div>
+                                <div className="mt-1 text-[12px] text-slate-500">
+                                  السنة: <span className="font-bold">{item.year}</span>
+                                </div>
+                              </div>
+                              <span className="flex-shrink-0 min-w-[86px] text-center px-2.5 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-[12px] font-extrabold">
+                                {item.points} نقطة
+                              </span>
+                            </div>
+
+                            {detailsText !== "-" ? (
+                              <div className="mt-2 flex flex-wrap gap-1.5">
+                                {detailsText.split(" • ").map((detail, idx) => (
+                                  <span
+                                    key={idx}
+                                    className="px-2 py-1 bg-white/70 text-slate-700 rounded-xl text-[11px] font-semibold border border-slate-200"
+                                  >
+                                    {detail}
+                                  </span>
+                                ))}
+                              </div>
+                            ) : null}
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Desktop/Tablet table (unchanged) */}
+                    <div className="max-[639px]:hidden overflow-x-auto">
                       <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
                           <tr>
@@ -841,7 +987,7 @@ export default function EvaluationPage() {
                       </table>
                     </div>
                   </div>
-                )}
+                </div>
               </div>
             );
           })}

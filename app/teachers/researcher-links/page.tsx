@@ -164,18 +164,6 @@ export default function ResearcherLinksPage() {
     }
   };
 
-  // Export to JSON
-  const handleExportJSON = () => {
-    const dataStr = JSON.stringify(links, null, 2);
-    const dataBlob = new Blob([dataStr], { type: "application/json" });
-    const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `researcher-links-${user?.id || "user"}.json`;
-    link.click();
-    URL.revokeObjectURL(url);
-  };
-
   // Export to CSV
   const handleExportCSV = () => {
     const csvRows = [
@@ -241,11 +229,11 @@ export default function ResearcherLinksPage() {
   const linksCount = Object.values(links).filter((link) => link && link.trim() !== "").length;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-[639px]:space-y-4 max-[639px]:overflow-x-hidden">
       {/* Statistics Cards */}
       {hasLinks && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-lg border border-indigo-200 p-6 shadow-sm">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-[639px]:gap-3">
+          <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-lg border border-indigo-200 p-6 shadow-sm max-[639px]:rounded-[20px] max-[639px]:p-4 max-[639px]:min-h-[108px]">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium mb-1" style={{ color: '#6B7280' }}>
@@ -255,7 +243,7 @@ export default function ResearcherLinksPage() {
                   {linksCount}
                 </p>
               </div>
-              <div className="w-14 h-14 rounded-full bg-indigo-500 flex items-center justify-center">
+              <div className="w-14 h-14 rounded-full bg-indigo-500 flex items-center justify-center max-[639px]:w-12 max-[639px]:h-12">
                 <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                 </svg>
@@ -263,7 +251,7 @@ export default function ResearcherLinksPage() {
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-lg border border-emerald-200 p-6 shadow-sm">
+          <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-lg border border-emerald-200 p-6 shadow-sm max-[639px]:rounded-[20px] max-[639px]:p-4 max-[639px]:min-h-[108px]">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium mb-1" style={{ color: '#6B7280' }}>
@@ -273,7 +261,7 @@ export default function ResearcherLinksPage() {
                   {linkLabels.length}
                 </p>
               </div>
-              <div className="w-14 h-14 rounded-full bg-emerald-500 flex items-center justify-center">
+              <div className="w-14 h-14 rounded-full bg-emerald-500 flex items-center justify-center max-[639px]:w-12 max-[639px]:h-12">
                 <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
@@ -284,21 +272,22 @@ export default function ResearcherLinksPage() {
       )}
 
       {/* Button */}
-      <div className="flex items-center justify-end">
+      <div className="flex items-center justify-end max-[639px]:justify-stretch">
         <button
           onClick={() => setShowForm(true)}
-          className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-300 flex items-center gap-2"
+          className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-300 flex items-center gap-2 max-[639px]:w-full max-[639px]:h-14 max-[639px]:rounded-2xl max-[639px]:justify-center"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
           </svg>
           <span className="font-medium">إدارة روابط الباحث</span>
+          <span className="hidden max-[639px]:inline font-extrabold">+</span>
         </button>
       </div>
 
       {/* Form Modal */}
       {showForm && (
-        <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+        <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm max-[639px]:rounded-3xl max-[639px]:p-4">
           <div className="mb-6">
             <h2 className="text-xl font-bold mb-2" style={{ color: '#1F2937' }}>
               أدخل الروابط الرسمية لحساباتك البحثية
@@ -453,13 +442,13 @@ export default function ResearcherLinksPage() {
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-3 mt-6">
+          <div className="flex items-center justify-end gap-3 mt-6 max-[639px]:flex-col max-[639px]:items-stretch">
             <button
               onClick={() => {
                 setShowForm(false);
                 setFormData({});
               }}
-              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-300"
+              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-300 max-[639px]:w-full max-[639px]:h-12 max-[639px]:rounded-2xl"
               style={{ color: '#374151' }}
             >
               إلغاء
@@ -467,7 +456,7 @@ export default function ResearcherLinksPage() {
             <button
               onClick={handleSave}
               disabled={isLoading}
-              className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 max-[639px]:w-full max-[639px]:h-12 max-[639px]:rounded-2xl max-[639px]:justify-center"
             >
               {isLoading ? (
                 <>
@@ -492,14 +481,14 @@ export default function ResearcherLinksPage() {
 
       {/* Links Display Card */}
       {hasLinks && !showForm && (
-        <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold" style={{ color: '#1F2937' }}>روابط الباحث</h2>
-            <div className="flex items-center gap-3">
+        <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm max-[639px]:rounded-3xl max-[639px]:p-4">
+          <div className="flex items-center justify-between mb-6 max-[639px]:flex-col max-[639px]:items-stretch max-[639px]:gap-3">
+            <h2 className="text-xl font-bold max-[639px]:text-[16px]" style={{ color: '#1F2937' }}>روابط الباحث</h2>
+            <div className="flex items-center gap-3 max-[639px]:grid max-[639px]:grid-cols-2 max-[639px]:gap-2 max-[639px]:w-full">
               {/* Copy All Links Button */}
               <button
                 onClick={handleCopyAllLinks}
-                className="px-4 py-2 text-emerald-600 border border-emerald-600 rounded-lg hover:bg-emerald-50 transition-colors duration-300 flex items-center gap-2"
+                className="px-4 py-2 text-emerald-600 border border-emerald-600 rounded-lg hover:bg-emerald-50 transition-colors duration-300 flex items-center gap-2 max-[639px]:w-full max-[639px]:h-11 max-[639px]:justify-center max-[639px]:rounded-2xl max-[639px]:text-[14px] max-[639px]:border-emerald-400/70"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -508,13 +497,13 @@ export default function ResearcherLinksPage() {
               </button>
 
               {/* Export Dropdown */}
-              <div className="relative">
+              <div className="relative max-[639px]:w-full">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     setShowExportDropdown(!showExportDropdown);
                   }}
-                  className="px-4 py-2 text-purple-600 border border-purple-600 rounded-lg hover:bg-purple-50 transition-colors duration-300 flex items-center gap-2"
+                  className="px-4 py-2 text-purple-600 border border-purple-600 rounded-lg hover:bg-purple-50 transition-colors duration-300 flex items-center gap-2 max-[639px]:w-full max-[639px]:h-11 max-[639px]:justify-center max-[639px]:rounded-2xl max-[639px]:text-[14px] max-[639px]:border-purple-400/70"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -522,7 +511,7 @@ export default function ResearcherLinksPage() {
                   <span className="font-medium">تصدير</span>
                 </button>
                 {showExportDropdown && (
-                  <div className="absolute left-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                  <div className="absolute left-0 mt-2 w-48 max-[639px]:w-full bg-white border border-gray-200 rounded-lg shadow-lg z-10">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -556,7 +545,7 @@ export default function ResearcherLinksPage() {
               {/* Edit Button */}
               <button
                 onClick={handleEdit}
-                className="px-4 py-2 text-indigo-600 border border-indigo-600 rounded-lg hover:bg-indigo-50 transition-colors duration-300 flex items-center gap-2"
+                className="px-4 py-2 text-indigo-600 border border-indigo-600 rounded-lg hover:bg-indigo-50 transition-colors duration-300 flex items-center gap-2 max-[639px]:w-full max-[639px]:h-11 max-[639px]:justify-center max-[639px]:rounded-2xl max-[639px]:text-[14px] max-[639px]:col-span-2 max-[639px]:border-indigo-400/70"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -568,44 +557,96 @@ export default function ResearcherLinksPage() {
 
           {/* Scientific Links Row */}
           <div className="mb-6">
-            <div className="flex flex-wrap gap-4">
+            <div className="flex flex-wrap gap-4 max-[639px]:flex-col max-[639px]:gap-3">
               {scientificLinks.map((item) => {
                 const linkValue = links[item.key] as string | undefined;
                 const clicks = links[`${item.key}_clicks` as keyof ResearcherLinks] as number | undefined || 0;
                 if (!linkValue || linkValue.trim() === "") return null;
 
                 return (
-                  <div key={item.key} className="group relative bg-white border-2 border-gray-200 rounded-xl p-5 hover:border-indigo-400 hover:shadow-lg transition-all duration-300 flex flex-col items-center text-center flex-1 min-w-[200px]">
+                  <div
+                    key={item.key}
+                    className="group relative bg-white border-2 border-gray-200 rounded-xl p-5 hover:border-indigo-400 hover:shadow-lg transition-all duration-300 flex flex-col items-center text-center flex-1 min-w-[200px] max-[639px]:w-full max-[639px]:min-w-0 max-[639px]:rounded-3xl max-[639px]:p-3 max-[639px]:items-stretch max-[639px]:text-right max-[639px]:active:bg-slate-50"
+                  >
                     <a
                       href={linkValue}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex flex-col items-center w-full"
+                      className="w-full"
                     >
-                      <div className="w-16 h-16 rounded-full bg-gradient-to-br from-indigo-100 to-indigo-200 flex items-center justify-center mb-4 group-hover:from-indigo-200 group-hover:to-indigo-300 transition-all duration-300">
-                        <span className="text-3xl">{item.icon}</span>
-                      </div>
-                      <h3 className="font-bold text-lg mb-2 group-hover:text-indigo-600 transition-colors duration-300" style={{ color: '#1F2937' }}>
-                        {item.label}
-                      </h3>
-                      <p className="text-xs text-gray-500 line-clamp-2 break-all mb-2">
-                        {linkValue}
-                      </p>
-                      {/* Clicks Count */}
-                      {clicks > 0 && (
-                        <div className="flex items-center gap-1 text-xs text-gray-400 mb-2">
-                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
-                          </svg>
-                          <span>{clicks} نقرات</span>
+                      <div className="flex flex-col items-center text-center max-[639px]:flex-row-reverse max-[639px]:items-center max-[639px]:gap-3 max-[639px]:text-right">
+                        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-indigo-100 to-indigo-200 flex items-center justify-center mb-4 group-hover:from-indigo-200 group-hover:to-indigo-300 transition-all duration-300 max-[639px]:w-11 max-[639px]:h-11 max-[639px]:mb-0 flex-shrink-0">
+                          <span className="text-3xl max-[639px]:text-2xl">{item.icon}</span>
                         </div>
-                      )}
+
+                        <div className="min-w-0 flex-1 w-full">
+                          <h3 className="font-bold text-lg mb-2 group-hover:text-indigo-600 transition-colors duration-300 max-[639px]:text-[15px] max-[639px]:mb-1" style={{ color: '#1F2937' }}>
+                            {item.label}
+                          </h3>
+                          <p
+                            className="text-xs text-gray-500 line-clamp-2 break-all mb-2 max-[639px]:text-[12px] max-[639px]:leading-5 max-[639px]:truncate max-[639px]:whitespace-nowrap max-[639px]:overflow-hidden max-[639px]:text-ellipsis max-[639px]:w-full max-[639px]:mb-1.5"
+                            title={linkValue}
+                          >
+                            {linkValue}
+                          </p>
+                          {clicks > 0 && (
+                            <div className="flex items-center gap-1 text-xs text-gray-400 mb-2 max-[639px]:mb-0 max-[639px]:justify-start">
+                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
+                              </svg>
+                              <span>{clicks} نقرات</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </a>
+
+                    {/* Mobile actions row (prevents overlap) */}
+                    <div className="hidden max-[639px]:flex items-center gap-2 mt-3">
+                      <button
+                        type="button"
+                        onClick={() => setShowQRCode(showQRCode === linkValue ? null : linkValue)}
+                        className="h-11 w-11 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 flex items-center justify-center"
+                        aria-label="عرض QR Code"
+                      >
+                        <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                        </svg>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          try {
+                            await navigator.clipboard.writeText(linkValue);
+                            setCopiedLink(linkValue);
+                            setTimeout(() => setCopiedLink(null), 2000);
+                          } catch (error) {
+                            console.error("Error copying link:", error);
+                          }
+                        }}
+                        className="h-11 flex-1 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 px-3 flex items-center justify-center gap-2"
+                        aria-label="نسخ الرابط"
+                      >
+                        {copiedLink === linkValue ? (
+                          <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                        ) : (
+                          <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                          </svg>
+                        )}
+                        <span className="text-[13px] font-extrabold text-slate-700">
+                          {copiedLink === linkValue ? "تم النسخ" : "نسخ"}
+                        </span>
+                      </button>
+                    </div>
                     
                     {/* QR Code Button */}
                     <button
                       onClick={() => setShowQRCode(showQRCode === linkValue ? null : linkValue)}
-                      className="absolute bottom-3 left-3 w-8 h-8 rounded-full bg-purple-600 hover:bg-purple-700 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                      className="absolute bottom-3 left-3 w-8 h-8 rounded-full bg-purple-600 hover:bg-purple-700 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 max-[639px]:hidden"
                       title="عرض QR Code"
                     >
                       <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -620,16 +661,16 @@ export default function ResearcherLinksPage() {
                         e.stopPropagation();
                         try {
                           await navigator.clipboard.writeText(linkValue);
-                          setCopied(true);
-                          setTimeout(() => setCopied(false), 2000);
+                          setCopiedLink(linkValue);
+                          setTimeout(() => setCopiedLink(null), 2000);
                         } catch (error) {
                           console.error("Error copying link:", error);
                         }
                       }}
-                      className="absolute bottom-3 left-14 w-8 h-8 rounded-full bg-blue-600 hover:bg-blue-700 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                      className="absolute bottom-3 left-14 w-8 h-8 rounded-full bg-blue-600 hover:bg-blue-700 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 max-[639px]:hidden"
                       title="نسخ الرابط"
                     >
-                      {copied ? (
+                      {copiedLink === linkValue ? (
                         <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         </svg>
@@ -641,7 +682,7 @@ export default function ResearcherLinksPage() {
                     </button>
 
                     {/* External Link Icon */}
-                    <div className="absolute top-3 left-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <div className="absolute top-3 left-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 max-[639px]:hidden">
                       <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center">
                         <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
@@ -685,44 +726,96 @@ export default function ResearcherLinksPage() {
             return linkValue && typeof linkValue === 'string' && linkValue.trim() !== "";
           }) && (
             <div>
-              <div className="flex flex-wrap gap-4">
+              <div className="flex flex-wrap gap-4 max-[639px]:flex-col max-[639px]:gap-3">
                 {additionalLinks.map((item) => {
                   const linkValue = links[item.key] as string | undefined;
                   const clicks = links[`${item.key}_clicks` as keyof ResearcherLinks] as number | undefined || 0;
                   if (!linkValue || linkValue.trim() === "") return null;
 
                   return (
-                    <div key={item.key} className="group relative bg-white border-2 border-gray-200 rounded-xl p-5 hover:border-indigo-400 hover:shadow-lg transition-all duration-300 flex flex-col items-center text-center flex-1 min-w-[200px]">
+                    <div
+                      key={item.key}
+                      className="group relative bg-white border-2 border-gray-200 rounded-xl p-5 hover:border-indigo-400 hover:shadow-lg transition-all duration-300 flex flex-col items-center text-center flex-1 min-w-[200px] max-[639px]:w-full max-[639px]:min-w-0 max-[639px]:rounded-3xl max-[639px]:p-3 max-[639px]:items-stretch max-[639px]:text-right max-[639px]:active:bg-slate-50"
+                    >
                       <a
                         href={linkValue}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex flex-col items-center w-full"
+                        className="w-full"
                       >
-                        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-indigo-100 to-indigo-200 flex items-center justify-center mb-4 group-hover:from-indigo-200 group-hover:to-indigo-300 transition-all duration-300">
-                          <span className="text-3xl">{item.icon}</span>
-                        </div>
-                        <h3 className="font-bold text-lg mb-2 group-hover:text-indigo-600 transition-colors duration-300" style={{ color: '#1F2937' }}>
-                          {item.label}
-                        </h3>
-                        <p className="text-xs text-gray-500 line-clamp-2 break-all mb-2">
-                          {linkValue}
-                        </p>
-                        {/* Clicks Count */}
-                        {clicks > 0 && (
-                          <div className="flex items-center gap-1 text-xs text-gray-400 mb-2">
-                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
-                            </svg>
-                            <span>{clicks} نقرات</span>
+                        <div className="flex flex-col items-center text-center max-[639px]:flex-row-reverse max-[639px]:items-center max-[639px]:gap-3 max-[639px]:text-right">
+                          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-indigo-100 to-indigo-200 flex items-center justify-center mb-4 group-hover:from-indigo-200 group-hover:to-indigo-300 transition-all duration-300 max-[639px]:w-11 max-[639px]:h-11 max-[639px]:mb-0 flex-shrink-0">
+                            <span className="text-3xl max-[639px]:text-2xl">{item.icon}</span>
                           </div>
-                        )}
+
+                          <div className="min-w-0 flex-1 w-full">
+                            <h3 className="font-bold text-lg mb-2 group-hover:text-indigo-600 transition-colors duration-300 max-[639px]:text-[15px] max-[639px]:mb-1" style={{ color: '#1F2937' }}>
+                              {item.label}
+                            </h3>
+                            <p
+                              className="text-xs text-gray-500 line-clamp-2 break-all mb-2 max-[639px]:text-[12px] max-[639px]:leading-5 max-[639px]:truncate max-[639px]:whitespace-nowrap max-[639px]:overflow-hidden max-[639px]:text-ellipsis max-[639px]:w-full max-[639px]:mb-1.5"
+                              title={linkValue}
+                            >
+                              {linkValue}
+                            </p>
+                            {clicks > 0 && (
+                              <div className="flex items-center gap-1 text-xs text-gray-400 mb-2 max-[639px]:mb-0 max-[639px]:justify-start">
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
+                                </svg>
+                                <span>{clicks} نقرات</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
                       </a>
+
+                      {/* Mobile actions row (prevents overlap) */}
+                      <div className="hidden max-[639px]:flex items-center gap-2 mt-3">
+                        <button
+                          type="button"
+                          onClick={() => setShowQRCode(showQRCode === linkValue ? null : linkValue)}
+                          className="h-11 w-11 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 flex items-center justify-center"
+                          aria-label="عرض QR Code"
+                        >
+                          <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                          </svg>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            try {
+                              await navigator.clipboard.writeText(linkValue);
+                              setCopiedLink(linkValue);
+                              setTimeout(() => setCopiedLink(null), 2000);
+                            } catch (error) {
+                              console.error("Error copying link:", error);
+                            }
+                          }}
+                          className="h-11 flex-1 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 px-3 flex items-center justify-center gap-2"
+                          aria-label="نسخ الرابط"
+                        >
+                          {copiedLink === linkValue ? (
+                            <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                          ) : (
+                            <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                          )}
+                          <span className="text-[13px] font-extrabold text-slate-700">
+                            {copiedLink === linkValue ? "تم النسخ" : "نسخ"}
+                          </span>
+                        </button>
+                      </div>
                       
                       {/* QR Code Button */}
                       <button
                         onClick={() => setShowQRCode(showQRCode === linkValue ? null : linkValue)}
-                        className="absolute bottom-3 left-3 w-8 h-8 rounded-full bg-purple-600 hover:bg-purple-700 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                        className="absolute bottom-3 left-3 w-8 h-8 rounded-full bg-purple-600 hover:bg-purple-700 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 max-[639px]:hidden"
                         title="عرض QR Code"
                       >
                         <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -743,7 +836,7 @@ export default function ResearcherLinksPage() {
                             console.error("Error copying link:", error);
                           }
                         }}
-                        className="absolute bottom-3 left-14 w-8 h-8 rounded-full bg-blue-600 hover:bg-blue-700 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                        className="absolute bottom-3 left-14 w-8 h-8 rounded-full bg-blue-600 hover:bg-blue-700 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 max-[639px]:hidden"
                         title="نسخ الرابط"
                       >
                         {copiedLink === linkValue ? (
@@ -758,7 +851,7 @@ export default function ResearcherLinksPage() {
                       </button>
 
                       {/* External Link Icon */}
-                      <div className="absolute top-3 left-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <div className="absolute top-3 left-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 max-[639px]:hidden">
                         <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center">
                           <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />

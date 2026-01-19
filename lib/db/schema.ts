@@ -1,4 +1,5 @@
 import { query } from './query';
+import { DEPARTMENT_MAP } from '../utils/academic';
 
 // Check if table exists and has correct structure
 async function checkTableStructure() {
@@ -119,12 +120,73 @@ export async function createSessionsTable() {
   }
 }
 
+// Create departments table (single source for department list)
+export async function createDepartmentsTable() {
+  const createTableQuery = `
+    CREATE TABLE IF NOT EXISTS departments (
+      id SERIAL PRIMARY KEY,
+      code VARCHAR(120) UNIQUE NOT NULL,
+      name_ar VARCHAR(255) NOT NULL,
+      is_active BOOLEAN DEFAULT true,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+  `;
+
+  const createIndexCodeQuery = `
+    CREATE INDEX IF NOT EXISTS idx_departments_code ON departments(code);
+  `;
+  const createIndexActiveQuery = `
+    CREATE INDEX IF NOT EXISTS idx_departments_active ON departments(is_active);
+  `;
+
+  try {
+    await query(createTableQuery);
+    await query(createIndexCodeQuery);
+    await query(createIndexActiveQuery);
+    console.log('Departments table created successfully');
+  } catch (error) {
+    console.error('Error creating departments table:', error);
+    throw error;
+  }
+}
+
+export async function seedDepartmentsIfEmpty() {
+  const countRes = await query(`SELECT COUNT(*)::int AS count FROM departments;`);
+  const count = countRes.rows?.[0]?.count ?? 0;
+  if (count > 0) return;
+
+  const entries = Object.entries(DEPARTMENT_MAP);
+  if (entries.length === 0) return;
+
+  const valuesSql = entries
+    .map((_, i) => `($${i * 2 + 1}, $${i * 2 + 2})`)
+    .join(", ");
+  const params = entries.flatMap(([code, name]) => [code, name]);
+
+  await query(
+    `
+      INSERT INTO departments (code, name_ar)
+      VALUES ${valuesSql}
+      ON CONFLICT (code) DO NOTHING;
+    `,
+    params
+  );
+  console.log('Departments seeded successfully');
+}
+
+export async function ensureDepartmentsReady() {
+  await createDepartmentsTable();
+  await seedDepartmentsIfEmpty();
+}
+
 // Initialize all tables
 export async function initializeDatabase() {
   try {
     console.log('Initializing database schema...');
     await createUsersTable();
     await createSessionsTable();
+    await ensureDepartmentsReady();
     console.log('Database schema initialized successfully');
   } catch (error) {
     console.error('Error initializing database:', error);

@@ -56,6 +56,8 @@ export default function ProfilePage() {
   const [activeSection, setActiveSection] = useState<'personal' | 'cv' | 'academic'>('personal');
   const [isLoading, setIsLoading] = useState(false);
   const [profileData, setProfileData] = useState<any>(null);
+  // Mobile-only: actions menu for scientific CV cards
+  const [mobileQualActionsId, setMobileQualActionsId] = useState<number | null>(null);
 
   const [personalInfo, setPersonalInfo] = useState<PersonalInfo>({
     nameAr: "",
@@ -417,11 +419,11 @@ export default function ProfilePage() {
   const completionPercentage = calculateCompletionPercentage();
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-[639px]:space-y-4 max-[639px]:overflow-x-hidden">
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 max-[639px]:gap-3">
         {/* Completion Percentage Card */}
-        <div className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 rounded-lg border border-indigo-200 p-4 shadow-sm">
+        <div className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 rounded-lg border border-indigo-200 p-4 shadow-sm max-[639px]:rounded-3xl max-[639px]:p-4">
           <div className="flex items-center justify-between mb-1.5">
             <h3 className="text-base font-semibold" style={{ color: '#1F2937' }}>
               نسبة اكتمال الملف الشخصي
@@ -448,7 +450,7 @@ export default function ProfilePage() {
         </div>
 
         {/* CV Summary Card */}
-        <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-lg border border-blue-200 p-4 shadow-sm">
+        <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-lg border border-blue-200 p-4 shadow-sm max-[639px]:rounded-3xl max-[639px]:p-4">
           <h3 className="text-base font-semibold mb-3" style={{ color: '#1F2937' }}>
             ملخص السيرة الذاتية
           </h3>
@@ -481,11 +483,11 @@ export default function ProfilePage() {
         </div>
 
         {/* Academic Qualifications Statistics Card */}
-        <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg border border-purple-200 p-4 shadow-sm">
+        <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg border border-purple-200 p-4 shadow-sm max-[639px]:rounded-3xl max-[639px]:p-4">
           <h3 className="text-base font-semibold mb-3" style={{ color: '#1F2937' }}>
             إحصائيات الشهادات
           </h3>
-          <div className="grid grid-cols-5 gap-2">
+          <div className="grid grid-cols-5 gap-2 max-[639px]:grid-cols-3">
             <div className="text-center bg-white rounded-lg px-2 py-2 shadow-sm border border-purple-100">
               <p className="text-lg font-bold" style={{ color: '#A855F7' }}>
                 {qualifications.filter(q => q.degree === 'دبلوم').length}
@@ -521,12 +523,12 @@ export default function ProfilePage() {
       </div>
 
       {/* Section Tabs */}
-      <div className="flex gap-4 border-b border-gray-200">
+      <div className="flex gap-4 border-b border-gray-200 max-[639px]:gap-2 max-[639px]:overflow-x-auto max-[639px]:border max-[639px]:border-gray-200 max-[639px]:rounded-2xl max-[639px]:p-1 max-[639px]:bg-white max-[639px]:m-scroll">
         <button
           onClick={() => setActiveSection('personal')}
-          className={`px-6 py-3 font-medium transition-colors duration-300 border-b-2 ${
+          className={`px-6 py-3 font-medium transition-colors duration-300 border-b-2 max-[639px]:px-4 max-[639px]:py-2 max-[639px]:rounded-xl max-[639px]:border-b-0 max-[639px]:whitespace-nowrap ${
             activeSection === 'personal'
-              ? 'border-indigo-600 text-indigo-600'
+              ? 'border-indigo-600 text-indigo-600 max-[639px]:bg-indigo-50'
               : 'border-transparent text-gray-600 hover:text-indigo-600'
           }`}
         >
@@ -534,9 +536,9 @@ export default function ProfilePage() {
         </button>
         <button
           onClick={() => setActiveSection('cv')}
-          className={`px-6 py-3 font-medium transition-colors duration-300 border-b-2 ${
+          className={`px-6 py-3 font-medium transition-colors duration-300 border-b-2 max-[639px]:px-4 max-[639px]:py-2 max-[639px]:rounded-xl max-[639px]:border-b-0 max-[639px]:whitespace-nowrap ${
             activeSection === 'cv'
-              ? 'border-indigo-600 text-indigo-600'
+              ? 'border-indigo-600 text-indigo-600 max-[639px]:bg-indigo-50'
               : 'border-transparent text-gray-600 hover:text-indigo-600'
           }`}
         >
@@ -544,9 +546,9 @@ export default function ProfilePage() {
         </button>
         <button
           onClick={() => setActiveSection('academic')}
-          className={`px-6 py-3 font-medium transition-colors duration-300 border-b-2 ${
+          className={`px-6 py-3 font-medium transition-colors duration-300 border-b-2 max-[639px]:px-4 max-[639px]:py-2 max-[639px]:rounded-xl max-[639px]:border-b-0 max-[639px]:whitespace-nowrap ${
             activeSection === 'academic'
-              ? 'border-indigo-600 text-indigo-600'
+              ? 'border-indigo-600 text-indigo-600 max-[639px]:bg-indigo-50'
               : 'border-transparent text-gray-600 hover:text-indigo-600'
           }`}
         >
@@ -556,10 +558,10 @@ export default function ProfilePage() {
 
       {/* Personal Information Section */}
       {activeSection === 'personal' && (
-        <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
-          <div className="flex items-center justify-between mb-6">
+        <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm max-[639px]:rounded-3xl max-[639px]:p-4">
+          <div className="flex items-center justify-between mb-6 max-[639px]:flex-col max-[639px]:items-stretch max-[639px]:gap-3">
             <div>
-              <h2 className="text-2xl font-bold mb-2" style={{ color: '#1F2937' }}>
+              <h2 className="text-2xl font-bold mb-2 max-[639px]:text-lg" style={{ color: '#1F2937' }}>
                 المعلومات الشخصية والأكاديمية
               </h2>
               <div className="h-1 w-20 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full"></div>
@@ -567,7 +569,7 @@ export default function ProfilePage() {
             {!isEditing && (
               <button
                 onClick={() => setIsEditing(true)}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-300 flex items-center gap-2"
+                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-300 flex items-center gap-2 max-[639px]:w-full max-[639px]:h-12 max-[639px]:rounded-2xl max-[639px]:justify-center"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -577,7 +579,7 @@ export default function ProfilePage() {
             )}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-[639px]:gap-3">
             <div>
               <label className="block text-sm font-medium mb-2" style={{ color: '#374151' }}>
                 الاسم باللغة العربية
@@ -587,11 +589,11 @@ export default function ProfilePage() {
                   type="text"
                   value={personalInfo.nameAr}
                   onChange={(e) => setPersonalInfo({ ...personalInfo, nameAr: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300 max-[639px]:h-12 max-[639px]:py-0 max-[639px]:text-[15px]"
                   style={{ color: '#1F2937', backgroundColor: '#FAFBFC' }}
                 />
               ) : (
-                <div className="px-4 py-2 bg-gray-50 rounded-lg border border-gray-200" style={{ color: '#1F2937' }}>
+                <div className="px-4 py-2 bg-gray-50 rounded-lg border border-gray-200 max-[639px]:min-h-12 max-[639px]:py-0 max-[639px]:flex max-[639px]:items-center max-[639px]:text-[15px]" style={{ color: '#1F2937' }}>
                   {personalInfo.nameAr || "غير محدد"}
                 </div>
               )}
@@ -606,11 +608,11 @@ export default function ProfilePage() {
                   type="text"
                   value={personalInfo.nameEn}
                   onChange={(e) => setPersonalInfo({ ...personalInfo, nameEn: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300 max-[639px]:h-12 max-[639px]:py-0 max-[639px]:text-[15px]"
                   style={{ color: '#1F2937', backgroundColor: '#FAFBFC' }}
                 />
               ) : (
-                <div className="px-4 py-2 bg-gray-50 rounded-lg border border-gray-200" style={{ color: '#1F2937' }}>
+                <div className="px-4 py-2 bg-gray-50 rounded-lg border border-gray-200 max-[639px]:min-h-12 max-[639px]:py-0 max-[639px]:flex max-[639px]:items-center max-[639px]:text-[15px]" style={{ color: '#1F2937' }}>
                   {personalInfo.nameEn || "غير محدد"}
                 </div>
               )}
@@ -625,11 +627,11 @@ export default function ProfilePage() {
                   type="email"
                   value={personalInfo.email}
                   onChange={(e) => setPersonalInfo({ ...personalInfo, email: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300 max-[639px]:h-12 max-[639px]:py-0 max-[639px]:text-[15px]"
                   style={{ color: '#1F2937', backgroundColor: '#FAFBFC' }}
                 />
               ) : (
-                <div className="px-4 py-2 bg-gray-50 rounded-lg border border-gray-200" style={{ color: '#1F2937' }}>
+                <div className="px-4 py-2 bg-gray-50 rounded-lg border border-gray-200 max-[639px]:min-h-12 max-[639px]:py-0 max-[639px]:flex max-[639px]:items-center max-[639px]:text-[15px]" style={{ color: '#1F2937' }}>
                   {personalInfo.email || "غير محدد"}
                 </div>
               )}
@@ -644,11 +646,11 @@ export default function ProfilePage() {
                   type="tel"
                   value={personalInfo.phone}
                   onChange={(e) => setPersonalInfo({ ...personalInfo, phone: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300 max-[639px]:h-12 max-[639px]:py-0 max-[639px]:text-[15px]"
                   style={{ color: '#1F2937', backgroundColor: '#FAFBFC' }}
                 />
               ) : (
-                <div className="px-4 py-2 bg-gray-50 rounded-lg border border-gray-200" style={{ color: '#1F2937' }}>
+                <div className="px-4 py-2 bg-gray-50 rounded-lg border border-gray-200 max-[639px]:min-h-12 max-[639px]:py-0 max-[639px]:flex max-[639px]:items-center max-[639px]:text-[15px]" style={{ color: '#1F2937' }}>
                   {personalInfo.phone || "غير محدد"}
                 </div>
               )}
@@ -662,7 +664,7 @@ export default function ProfilePage() {
                 <select
                   value={personalInfo.department}
                   onChange={(e) => setPersonalInfo({ ...personalInfo, department: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300 max-[639px]:h-12 max-[639px]:py-0 max-[639px]:text-[15px]"
                   style={{ color: '#1F2937', backgroundColor: '#FAFBFC' }}
                 >
                   <option value="">اختر القسم</option>
@@ -673,7 +675,7 @@ export default function ProfilePage() {
                   ))}
                 </select>
               ) : (
-                <div className="px-4 py-2 bg-gray-50 rounded-lg border border-gray-200" style={{ color: '#1F2937' }}>
+                <div className="px-4 py-2 bg-gray-50 rounded-lg border border-gray-200 max-[639px]:min-h-12 max-[639px]:py-2 max-[639px]:text-[15px] max-[639px]:whitespace-normal max-[639px]:break-words max-[639px]:leading-5" style={{ color: '#1F2937' }}>
                   {getDepartmentLabel(personalInfo.department)}
                 </div>
               )}
@@ -687,7 +689,7 @@ export default function ProfilePage() {
                 <select
                   value={personalInfo.academicTitle}
                   onChange={(e) => setPersonalInfo({ ...personalInfo, academicTitle: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300 max-[639px]:h-12 max-[639px]:py-0 max-[639px]:text-[15px]"
                   style={{ color: '#1F2937', backgroundColor: '#FAFBFC' }}
                 >
                   <option value="">اختر اللقب العلمي</option>
@@ -698,7 +700,7 @@ export default function ProfilePage() {
                   <option value="professor">أستاذ</option>
                 </select>
               ) : (
-                <div className="px-4 py-2 bg-gray-50 rounded-lg border border-gray-200" style={{ color: '#1F2937' }}>
+                <div className="px-4 py-2 bg-gray-50 rounded-lg border border-gray-200 max-[639px]:min-h-12 max-[639px]:py-0 max-[639px]:flex max-[639px]:items-center max-[639px]:text-[15px]" style={{ color: '#1F2937' }}>
                   {getAcademicTitleLabel(personalInfo.academicTitle)}
                 </div>
               )}
@@ -706,16 +708,16 @@ export default function ProfilePage() {
           </div>
 
           {isEditing && (
-            <div className="flex items-center justify-end gap-4 mt-6 pt-6 border-t border-gray-200">
+            <div className="flex items-center justify-end gap-4 mt-6 pt-6 border-t border-gray-200 max-[639px]:flex-col max-[639px]:items-stretch">
               <button
                 onClick={() => setIsEditing(false)}
-                className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors duration-300"
+                className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors duration-300 max-[639px]:h-12 max-[639px]:rounded-2xl"
               >
                 إلغاء
               </button>
               <button
                 onClick={handleSavePersonalInfo}
-                className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-300"
+                className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-300 max-[639px]:h-12 max-[639px]:rounded-2xl"
               >
                 حفظ التغييرات
               </button>
@@ -726,10 +728,10 @@ export default function ProfilePage() {
 
       {/* CV Information Section */}
       {activeSection === 'cv' && (
-        <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
-          <div className="flex items-center justify-between mb-6">
+        <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm max-[639px]:rounded-3xl max-[639px]:p-4">
+          <div className="flex items-center justify-between mb-6 max-[639px]:flex-col max-[639px]:items-stretch max-[639px]:gap-3">
             <div>
-              <h2 className="text-2xl font-bold mb-2" style={{ color: '#1F2937' }}>
+              <h2 className="text-2xl font-bold mb-2 max-[639px]:text-lg" style={{ color: '#1F2937' }}>
                 السيرة الذاتية
               </h2>
               <div className="h-1 w-20 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full"></div>
@@ -737,7 +739,7 @@ export default function ProfilePage() {
             {!isEditing && (
               <button
                 onClick={() => setIsEditing(true)}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-300 flex items-center gap-2"
+                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-300 flex items-center gap-2 max-[639px]:w-full max-[639px]:h-12 max-[639px]:rounded-2xl max-[639px]:justify-center"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -747,7 +749,7 @@ export default function ProfilePage() {
             )}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 max-[639px]:gap-3">
             <div>
               <label className="block text-sm font-medium mb-2" style={{ color: '#374151' }}>
                 الجنس
@@ -756,7 +758,7 @@ export default function ProfilePage() {
                 <select
                   value={cvInfo.gender}
                   onChange={(e) => setCVInfo({ ...cvInfo, gender: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300 max-[639px]:h-12 max-[639px]:py-0 max-[639px]:text-[15px]"
                   style={{ color: '#1F2937', backgroundColor: '#FAFBFC' }}
                 >
                   <option value="">اختر الجنس</option>
@@ -764,7 +766,7 @@ export default function ProfilePage() {
                   <option value="female">أنثى</option>
                 </select>
               ) : (
-                <div className="px-4 py-2 bg-gray-50 rounded-lg border border-gray-200" style={{ color: '#1F2937' }}>
+                <div className="px-4 py-2 bg-gray-50 rounded-lg border border-gray-200 max-[639px]:min-h-12 max-[639px]:py-0 max-[639px]:flex max-[639px]:items-center max-[639px]:text-[15px]" style={{ color: '#1F2937' }}>
                   {cvInfo.gender === "male" ? "ذكر" : cvInfo.gender === "female" ? "أنثى" : "غير محدد"}
                 </div>
               )}
@@ -778,7 +780,7 @@ export default function ProfilePage() {
                 <select
                   value={cvInfo.nationality}
                   onChange={(e) => setCVInfo({ ...cvInfo, nationality: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300 max-[639px]:h-12 max-[639px]:py-0 max-[639px]:text-[15px]"
                   style={{ color: '#1F2937', backgroundColor: '#FAFBFC' }}
                 >
                   <option value="">اختر القومية</option>
@@ -786,7 +788,7 @@ export default function ProfilePage() {
                   <option value="kurdish">كردية</option>
                 </select>
               ) : (
-                <div className="px-4 py-2 bg-gray-50 rounded-lg border border-gray-200" style={{ color: '#1F2937' }}>
+                <div className="px-4 py-2 bg-gray-50 rounded-lg border border-gray-200 max-[639px]:min-h-12 max-[639px]:py-0 max-[639px]:flex max-[639px]:items-center max-[639px]:text-[15px]" style={{ color: '#1F2937' }}>
                   {cvInfo.nationality === "arabic" ? "عربية" : cvInfo.nationality === "kurdish" ? "كردية" : "غير محدد"}
                 </div>
               )}
@@ -800,7 +802,7 @@ export default function ProfilePage() {
                 <select
                   value={cvInfo.maritalStatus}
                   onChange={(e) => setCVInfo({ ...cvInfo, maritalStatus: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300 max-[639px]:h-12 max-[639px]:py-0 max-[639px]:text-[15px]"
                   style={{ color: '#1F2937', backgroundColor: '#FAFBFC' }}
                 >
                   <option value="">اختر الحالة الزوجية</option>
@@ -810,7 +812,7 @@ export default function ProfilePage() {
                   <option value="widowed">أرمل</option>
                 </select>
               ) : (
-                <div className="px-4 py-2 bg-gray-50 rounded-lg border border-gray-200" style={{ color: '#1F2937' }}>
+                <div className="px-4 py-2 bg-gray-50 rounded-lg border border-gray-200 max-[639px]:min-h-12 max-[639px]:py-0 max-[639px]:flex max-[639px]:items-center max-[639px]:text-[15px]" style={{ color: '#1F2937' }}>
                   {cvInfo.maritalStatus === "single" ? "أعزب" : cvInfo.maritalStatus === "married" ? "متزوج" : cvInfo.maritalStatus === "divorced" ? "مطلق" : cvInfo.maritalStatus === "widowed" ? "أرمل" : "غير محدد"}
                 </div>
               )}
@@ -825,11 +827,11 @@ export default function ProfilePage() {
                   type="date"
                   value={cvInfo.birthDate}
                   onChange={(e) => setCVInfo({ ...cvInfo, birthDate: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300 max-[639px]:h-12 max-[639px]:py-0 max-[639px]:text-[15px]"
                   style={{ color: '#1F2937', backgroundColor: '#FAFBFC' }}
                 />
               ) : (
-                <div className="px-4 py-2 bg-gray-50 rounded-lg border border-gray-200" style={{ color: '#1F2937' }}>
+                <div className="px-4 py-2 bg-gray-50 rounded-lg border border-gray-200 max-[639px]:min-h-12 max-[639px]:py-0 max-[639px]:flex max-[639px]:items-center max-[639px]:text-[15px]" style={{ color: '#1F2937' }}>
                   {cvInfo.birthDate || "غير محدد"}
                 </div>
               )}
@@ -844,7 +846,7 @@ export default function ProfilePage() {
                   value={cvInfo.address}
                   onChange={(e) => setCVInfo({ ...cvInfo, address: e.target.value })}
                   rows={3}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300 max-[639px]:text-[15px]"
                   style={{ color: '#1F2937', backgroundColor: '#FAFBFC' }}
                 />
               ) : (
@@ -864,7 +866,7 @@ export default function ProfilePage() {
                   onChange={(e) => setCVInfo({ ...cvInfo, languages: e.target.value })}
                   rows={3}
                   placeholder="مثال: العربية (اللغة الأم)، الإنجليزية (متقدم)، الفرنسية (متوسط)"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300 max-[639px]:text-[15px]"
                   style={{ color: '#1F2937', backgroundColor: '#FAFBFC' }}
                 />
               ) : (
@@ -884,7 +886,7 @@ export default function ProfilePage() {
                   onChange={(e) => setCVInfo({ ...cvInfo, skills: e.target.value })}
                   rows={4}
                   placeholder="اذكر مهاراتك المهنية والتقنية..."
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300 max-[639px]:text-[15px]"
                   style={{ color: '#1F2937', backgroundColor: '#FAFBFC' }}
                 />
               ) : (
@@ -904,7 +906,7 @@ export default function ProfilePage() {
                   onChange={(e) => setCVInfo({ ...cvInfo, previousExperience: e.target.value })}
                   rows={5}
                   placeholder="اذكر خبراتك العملية السابقة..."
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300 max-[639px]:text-[15px]"
                   style={{ color: '#1F2937', backgroundColor: '#FAFBFC' }}
                 />
               ) : (
@@ -916,16 +918,16 @@ export default function ProfilePage() {
           </div>
 
           {isEditing && (
-            <div className="flex items-center justify-end gap-4 mt-6 pt-6 border-t border-gray-200">
+            <div className="flex items-center justify-end gap-4 mt-6 pt-6 border-t border-gray-200 max-[639px]:flex-col max-[639px]:items-stretch">
               <button
                 onClick={() => setIsEditing(false)}
-                className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors duration-300"
+                className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors duration-300 max-[639px]:h-12 max-[639px]:rounded-2xl"
               >
                 إلغاء
               </button>
               <button
                 onClick={handleSaveCVInfo}
-                className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-300"
+                className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-300 max-[639px]:h-12 max-[639px]:rounded-2xl"
               >
                 حفظ التغييرات
               </button>
@@ -936,17 +938,17 @@ export default function ProfilePage() {
 
       {/* Academic Qualifications Section */}
       {activeSection === 'academic' && (
-        <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
-          <div className="flex items-center justify-between mb-6">
+        <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm max-[639px]:rounded-3xl max-[639px]:p-4">
+          <div className="flex items-center justify-between mb-6 max-[639px]:flex-col max-[639px]:items-stretch max-[639px]:gap-3">
             <div>
-              <h2 className="text-2xl font-bold mb-2" style={{ color: '#1F2937' }}>
+              <h2 className="text-2xl font-bold mb-2 max-[639px]:text-lg" style={{ color: '#1F2937' }}>
                 السيرة العلمية
               </h2>
               <div className="h-1 w-20 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"></div>
             </div>
             <button
               onClick={handleAddQualification}
-              className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-300 flex items-center gap-2"
+              className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-300 flex items-center gap-2 max-[639px]:w-full max-[639px]:h-[52px] max-[639px]:rounded-2xl max-[639px]:justify-center"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -965,7 +967,123 @@ export default function ProfilePage() {
               <p className="text-gray-400 text-sm mt-2">اضغط على زر "إضافة شهادة علمية" لإضافة شهادتك الأولى</p>
             </div>
           ) : (
-            <div className="relative pr-8">
+            <div>
+              {/* Mobile-only: clean list cards (no timeline) */}
+              <div className="hidden max-[639px]:block">
+                <div className="space-y-3">
+                  {[...qualifications]
+                    .sort((a, b) => {
+                      const yearA = parseInt(a.graduationYear) || 0;
+                      const yearB = parseInt(b.graduationYear) || 0;
+                      return yearB - yearA;
+                    })
+                    .map((qual) => {
+                      const id = typeof qual.id === "number" ? qual.id : null;
+                      const isOpen = id !== null && mobileQualActionsId === id;
+                      return (
+                        <div
+                          key={id ?? `${qual.degree}-${qual.graduationYear}-${qual.university}`}
+                          className="bg-white rounded-[20px] border border-slate-200/70 shadow-sm p-4"
+                        >
+                          {/* Header */}
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0 flex items-center gap-2">
+                              <span className="inline-flex items-center px-3 py-1 rounded-full text-[12px] font-extrabold bg-indigo-50 text-indigo-700 border border-indigo-200/70">
+                                {qual.degree || "شهادة علمية"}
+                              </span>
+                              <span className="inline-flex items-center px-3 py-1 rounded-full text-[12px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                                {qual.graduationYear || "غير محدد"}
+                              </span>
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (!id) return;
+                                setMobileQualActionsId(id);
+                              }}
+                              className="h-11 w-11 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 flex items-center justify-center flex-shrink-0"
+                              aria-label="إجراءات"
+                            >
+                              <svg className="w-6 h-6 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6h.01M12 12h.01M12 18h.01" />
+                              </svg>
+                            </button>
+                          </div>
+
+                          {/* Body */}
+                          <div className="mt-3 space-y-2">
+                            {[
+                              { label: "التخصص العام", value: qual.majorGeneral || "غير محدد" },
+                              { label: "التخصص الدقيق", value: qual.majorSpecific || "غير محدد" },
+                              { label: "الجامعة", value: qual.university || "غير محدد" },
+                              { label: "البلد", value: qual.country || "غير محدد" },
+                            ].map((row) => (
+                              <div key={row.label} className="flex items-start justify-between gap-3">
+                                <div className="text-[12px] text-slate-500 font-bold whitespace-nowrap">
+                                  {row.label}
+                                </div>
+                                <div className="text-[14px] text-slate-800 font-semibold text-right break-words leading-5">
+                                  {row.value}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+
+                          {/* Mobile actions sheet */}
+                          {isOpen ? (
+                            <div
+                              className="fixed inset-0 z-50"
+                              onClick={() => setMobileQualActionsId(null)}
+                            >
+                              <div className="absolute inset-0 bg-black/40" />
+                              <div
+                                className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl p-4"
+                                onClick={(e) => e.stopPropagation()}
+                                dir="rtl"
+                              >
+                                <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-3" />
+                                <div className="space-y-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setMobileQualActionsId(null);
+                                      handleEditQualification(qual);
+                                    }}
+                                    className="w-full h-12 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-800 font-extrabold"
+                                  >
+                                    تعديل
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      if (!id) return;
+                                      setMobileQualActionsId(null);
+                                      handleDeleteQualification(id);
+                                    }}
+                                    className="w-full h-12 rounded-2xl border border-red-200 bg-red-50 hover:bg-red-100 text-red-700 font-extrabold"
+                                  >
+                                    حذف
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setMobileQualActionsId(null)}
+                                    className="w-full h-12 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 font-bold"
+                                  >
+                                    إغلاق
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          ) : null}
+                        </div>
+                      );
+                    })}
+                </div>
+              </div>
+
+              {/* Desktop/tablet: keep existing timeline */}
+              <div className="relative pr-8 max-[639px]:hidden">
               {/* Vertical Timeline Line */}
               <div className="absolute right-4 top-0 bottom-0 w-0.5 bg-gradient-to-b from-purple-400 via-pink-400 to-purple-400"></div>
               
@@ -991,7 +1109,7 @@ export default function ProfilePage() {
                       </div>
 
                       {/* Qualification Card */}
-                      <div className="flex-1 bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-5 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
+                      <div className="flex-1 bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-5 hover:shadow-lg transition-all duration-300 hover:scale-[1.02] max-[639px]:rounded-3xl max-[639px]:p-4">
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1">
                             {/* Degree Badge */}
@@ -1043,10 +1161,10 @@ export default function ProfilePage() {
                           </div>
 
                           {/* Action Buttons */}
-                          <div className="flex flex-col gap-2">
+                          <div className="flex flex-col gap-2 max-[639px]:flex-row max-[639px]:gap-2">
                             <button
                               onClick={() => handleEditQualification(qual)}
-                              className="p-2.5 text-indigo-600 hover:bg-indigo-100 rounded-lg transition-colors duration-300 hover:scale-110"
+                              className="p-2.5 text-indigo-600 hover:bg-indigo-100 rounded-lg transition-colors duration-300 hover:scale-110 max-[639px]:p-3 max-[639px]:rounded-2xl"
                               title="تعديل"
                             >
                               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1055,7 +1173,7 @@ export default function ProfilePage() {
                             </button>
                             <button
                               onClick={() => qual.id && handleDeleteQualification(qual.id)}
-                              className="p-2.5 text-red-600 hover:bg-red-100 rounded-lg transition-colors duration-300 hover:scale-110"
+                              className="p-2.5 text-red-600 hover:bg-red-100 rounded-lg transition-colors duration-300 hover:scale-110 max-[639px]:p-3 max-[639px]:rounded-2xl"
                               title="حذف"
                             >
                               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1067,6 +1185,7 @@ export default function ProfilePage() {
                       </div>
                     </div>
                   ))}
+              </div>
               </div>
             </div>
           )}

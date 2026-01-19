@@ -95,30 +95,33 @@ export default function TeachersLoginPage() {
   };
 
   return (
-    <div className="flex h-screen flex-col bg-gradient-to-b from-blue-50 to-white overflow-hidden">
+    <div className="flex h-screen flex-col bg-gradient-to-b from-blue-50 to-white overflow-hidden max-[639px]:overflow-x-hidden">
       {/* Header with Logo */}
       <header className="flex justify-center items-center py-2 px-4 bg-white shadow-sm flex-shrink-0">
         <div className="flex justify-center items-center">
-          <Logo size="small" />
+          {/* Mobile-only logo size target: 56–72px */}
+          <div className="max-[639px]:scale-110 origin-center">
+            <Logo size="small" />
+          </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 flex items-center justify-center px-4 py-4 overflow-y-auto">
-        <div className="w-full max-w-md">
+      <main className="flex-1 flex items-center justify-center px-4 py-4 overflow-y-auto max-[639px]:items-start max-[639px]:justify-start max-[639px]:pt-3 max-[639px]:pb-4">
+        <div className="w-full max-w-md max-[639px]:max-w-[420px] max-[639px]:mx-auto">
           {/* Title */}
-          <div className="text-center mb-6">
-            <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-1">
+          <div className="text-center mb-6 max-[639px]:mb-4">
+            <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-1 max-[639px]:text-2xl max-[639px]:leading-[1.3]">
               نظام إدارة الخطة العلمية للتدريسيين
             </h1>
-            <p className="text-gray-600 text-xs md:text-sm">
+            <p className="text-gray-600 text-xs md:text-sm max-[639px]:text-sm">
               كلية الشرق للعلوم التنقنية التخصصية
             </p>
           </div>
 
           {/* Login Form */}
-          <div className="bg-white rounded-lg shadow-lg p-6 md:p-8">
-            <form onSubmit={handleSubmit} className="space-y-4 md:space-y-5">
+          <div className="bg-white rounded-lg shadow-lg p-6 md:p-8 max-[639px]:rounded-3xl max-[639px]:p-5 max-[639px]:shadow-sm max-[639px]:border max-[639px]:border-slate-200/70">
+            <form onSubmit={handleSubmit} className="space-y-4 md:space-y-5 max-[639px]:space-y-3.5">
               {/* Email Field */}
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
@@ -151,7 +154,7 @@ export default function TeachersLoginPage() {
                     placeholder="example@shau.edu.iq"
                     className={`w-full px-4 py-3 pr-12 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition ${
                       errors.email ? "border-red-500" : "border-gray-300"
-                    }`}
+                    } max-[639px]:h-12 max-[639px]:py-0 max-[639px]:text-[15px]`}
                     dir="ltr"
                   />
                 </div>
@@ -177,7 +180,7 @@ export default function TeachersLoginPage() {
                     placeholder="أدخل كلمة المرور"
                     className={`w-full px-4 py-3 pl-12 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition ${
                       errors.password ? "border-red-500" : "border-gray-300"
-                    }`}
+                    } max-[639px]:h-12 max-[639px]:py-0 max-[639px]:text-[15px] max-[639px]:pr-12 max-[639px]:pl-4`}
                     dir="ltr"
                   />
                   <button
@@ -229,15 +232,15 @@ export default function TeachersLoginPage() {
               </div>
 
               {/* Remember Me */}
-              <div className="flex items-center">
+              <div className="flex items-center max-[639px]:justify-start max-[639px]:gap-2 max-[639px]:px-3 max-[639px]:py-2 max-[639px]:rounded-xl max-[639px]:border max-[639px]:border-slate-200/70">
                 <input
                   type="checkbox"
                   id="rememberMe"
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
-                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 max-[639px]:w-5 max-[639px]:h-5"
                 />
-                <label htmlFor="rememberMe" className="mr-2 text-sm text-gray-700">
+                <label htmlFor="rememberMe" className="mr-2 text-sm text-gray-700 max-[639px]:mr-0">
                   تذكرني
                 </label>
               </div>
@@ -253,27 +256,27 @@ export default function TeachersLoginPage() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-6 rounded-lg shadow-md transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none text-sm md:text-base"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-6 rounded-lg shadow-md transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none text-sm md:text-base max-[639px]:h-14 max-[639px]:py-0 max-[639px]:rounded-2xl max-[639px]:text-base max-[639px]:shadow-lg max-[639px]:flex max-[639px]:items-center max-[639px]:justify-center max-[639px]:hover:scale-100"
               >
                 {isLoading ? "جاري تسجيل الدخول..." : "تسجيل الدخول"}
               </button>
             </form>
 
             {/* Additional Links */}
-            <div className="mt-4 md:mt-5 space-y-2 text-center">
-              <p className="text-sm text-gray-600">
+            <div className="mt-4 md:mt-5 space-y-2 text-center max-[639px]:mt-5">
+              <p className="text-sm text-gray-600 max-[639px]:text-[13px]">
                 ليس لديك حساب؟{" "}
                 <Link
                   href="/teachers/register"
-                  className="text-blue-600 hover:text-blue-700 font-medium"
+                  className="text-blue-600 hover:text-blue-700 font-medium max-[639px]:inline-flex max-[639px]:items-center max-[639px]:justify-center max-[639px]:px-3 max-[639px]:py-2 max-[639px]:rounded-xl"
                 >
                   سجل حساب جديد
                 </Link>
               </p>
-              <div className="pt-3 border-t border-gray-200">
+              <div className="pt-3 border-t border-gray-200 max-[639px]:pt-2">
                 <Link
                   href="/"
-                  className="text-sm text-gray-600 hover:text-gray-800 font-medium"
+                  className="text-sm text-gray-600 hover:text-gray-800 font-medium max-[639px]:text-[13px] max-[639px]:inline-flex max-[639px]:items-center max-[639px]:justify-center max-[639px]:px-3 max-[639px]:py-2 max-[639px]:rounded-xl"
                 >
                   ← العودة للصفحة الرئيسية
                 </Link>

@@ -1,22 +1,11 @@
 "use client";
 
-import { useState, FormEvent } from "react";
+import { useEffect, useState, FormEvent } from "react";
 import Link from "next/link";
 import Logo from "@/app/components/Logo";
 
 type AcademicTitle = "professor" | "associate_professor" | "lecturer" | "assistant_lecturer";
-type Department = 
-  | "dental_technology"
-  | "radiology_technology"
-  | "anesthesia_technology"
-  | "optics_technology"
-  | "emergency_medicine_technology"
-  | "community_health_technology"
-  | "physical_therapy_technology"
-  | "health_physics_and_radiation_therapy_engineering"
-  | "oil_and_gas_engineering_technology"
-  | "cybersecurity_and_cloud_computing_engineering"
-  | "construction_and_building_engineering_technology";
+type Department = string;
 
 const academicTitles = [
   { value: "professor", label: "أستاذ" },
@@ -25,19 +14,7 @@ const academicTitles = [
   { value: "assistant_lecturer", label: "مدرس مساعد" },
 ];
 
-const departments = [
-  { value: "dental_technology", label: "قسم تقنيات صناعة الأسنان" },
-  { value: "radiology_technology", label: "قسم تقنيات الأشعة" },
-  { value: "anesthesia_technology", label: "قسم تقنيات التخدير" },
-  { value: "optics_technology", label: "قسم تقنيات البصريات" },
-  { value: "emergency_medicine_technology", label: "قسم تقنيات طب الطوارئ والإسعافات الأولية" },
-  { value: "community_health_technology", label: "قسم تقنيات صحة المجتمع" },
-  { value: "physical_therapy_technology", label: "قسم تقنيات العلاج الطبيعي" },
-  { value: "health_physics_and_radiation_therapy_engineering", label: "قسم هندسة تقنيات الفيزياء الصحية والعلاج الإشعاعي" },
-  { value: "oil_and_gas_engineering_technology", label: "قسم هندسة تقنيات النفط والغاز" },
-  { value: "cybersecurity_and_cloud_computing_engineering", label: "قسم هندسة تقنيات الأمن السيبراني والحوسبة السحابية" },
-  { value: "construction_and_building_engineering_technology", label: "قسم هندسة تقنيات البناء والإنشاءات" },
-];
+type DepartmentOption = { id: number; code: string; nameAr: string };
 
 export default function TeachersRegisterPage() {
   const [formData, setFormData] = useState({
@@ -50,12 +27,37 @@ export default function TeachersRegisterPage() {
     academicTitle: "" as AcademicTitle | "",
     department: "" as Department | "",
   });
+  const [departments, setDepartments] = useState<DepartmentOption[]>([]);
+  const [departmentsLoading, setDepartmentsLoading] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [agreeToTerms, setAgreeToTerms] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+    async function loadDepartments() {
+      try {
+        setDepartmentsLoading(true);
+        const res = await fetch("/api/departments");
+        const json = (await res.json()) as { ok: boolean; items: DepartmentOption[] };
+        if (!mounted) return;
+        setDepartments(Array.isArray(json.items) ? json.items : []);
+      } catch {
+        if (!mounted) return;
+        setDepartments([]);
+      } finally {
+        if (!mounted) return;
+        setDepartmentsLoading(false);
+      }
+    }
+    loadDepartments();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   // Validate email format and domain
   const validateEmail = (email: string): boolean => {
@@ -208,14 +210,17 @@ export default function TeachersRegisterPage() {
 
   if (success) {
     return (
-      <div className="flex h-screen flex-col bg-gradient-to-b from-blue-50 to-white overflow-hidden">
+      <div className="flex h-screen flex-col bg-gradient-to-b from-blue-50 to-white overflow-hidden max-[639px]:overflow-x-hidden">
         <header className="flex justify-center items-center py-2 px-4 bg-white shadow-sm flex-shrink-0">
           <div className="flex justify-center items-center">
-            <Logo size="small" />
+            {/* Mobile-only logo size target: 56–72px */}
+            <div className="max-[639px]:scale-110 origin-center">
+              <Logo size="small" />
+            </div>
           </div>
         </header>
-        <main className="flex-1 flex items-center justify-center px-4 py-4 overflow-y-auto">
-          <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-8 text-center">
+        <main className="flex-1 flex items-center justify-center px-4 py-4 overflow-y-auto max-[639px]:items-start max-[639px]:justify-start max-[639px]:pt-3">
+          <div className="w-full max-w-md max-[639px]:max-w-[420px] max-[639px]:mx-auto bg-white rounded-lg shadow-lg p-8 text-center max-[639px]:rounded-3xl max-[639px]:p-5 max-[639px]:shadow-sm max-[639px]:border max-[639px]:border-slate-200/70">
             <div className="mb-4">
               <svg className="mx-auto w-16 h-16 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -228,14 +233,14 @@ export default function TeachersRegisterPage() {
             <p className="text-sm text-gray-500 mb-6">
               تم حفظ بياناتك في قاعدة البيانات. يمكنك الآن تسجيل الدخول باستخدام بريدك الإلكتروني وكلمة المرور.
             </p>
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 max-[639px]:p-3 max-[639px]:text-[13px]">
               <p className="text-sm text-blue-800">
                 <strong>معلومة:</strong> تم حفظ جميع بياناتك في قاعدة البيانات ويمكن استخدامها للمصادقة مباشرة.
               </p>
             </div>
             <Link
               href="/teachers/login"
-              className="inline-block w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-all duration-300 transform hover:scale-105"
+              className="inline-block w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-all duration-300 transform hover:scale-105 max-[639px]:h-14 max-[639px]:py-0 max-[639px]:rounded-2xl max-[639px]:text-base max-[639px]:flex max-[639px]:items-center max-[639px]:justify-center max-[639px]:hover:scale-100"
             >
               الانتقال إلى تسجيل الدخول
             </Link>
@@ -246,34 +251,39 @@ export default function TeachersRegisterPage() {
   }
 
   return (
-    <div className="flex h-screen flex-col bg-gradient-to-b from-blue-50 to-white overflow-hidden">
+    <div className="flex h-screen flex-col bg-gradient-to-b from-blue-50 to-white overflow-hidden max-[639px]:overflow-x-hidden">
       {/* Header with Logo */}
       <header className="flex justify-center items-center py-2 px-4 bg-white shadow-sm flex-shrink-0">
         <div className="flex justify-center items-center">
-          <Logo size="small" />
+          {/* Mobile-only logo size target: 56–72px */}
+          <div className="max-[639px]:scale-110 origin-center">
+            <Logo size="small" />
+          </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto px-4 py-4">
-        <div className="max-w-4xl mx-auto">
+      <main className="flex-1 overflow-y-auto px-4 py-4 max-[639px]:pt-3">
+        <div className="max-w-4xl mx-auto max-[639px]:max-w-[420px]">
           {/* Title */}
-          <div className="text-center mb-6">
-            <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-1">
+          <div className="text-center mb-6 max-[639px]:mb-4">
+            <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-1 max-[639px]:text-2xl max-[639px]:leading-[1.3]">
               انضم إلى نظام إدارة الخطة العلمية
             </h1>
-            <p className="text-gray-600 text-xs md:text-sm">
+            <p className="text-gray-600 text-xs md:text-sm max-[639px]:text-sm">
               كلية الشرق للعلوم التنقنية التخصصية
             </p>
           </div>
 
           {/* Register Form */}
-          <div className="bg-white rounded-lg shadow-lg p-6 md:p-8">
-            <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="bg-white rounded-lg shadow-lg p-6 md:p-8 max-[639px]:rounded-3xl max-[639px]:p-5 max-[639px]:shadow-sm max-[639px]:border max-[639px]:border-slate-200/70">
+            <form onSubmit={handleSubmit} className="space-y-6 max-[639px]:space-y-5">
               {/* Personal Information Section */}
-              <div className="border-b border-gray-200 pb-6 mb-6">
-                <h2 className="text-lg font-bold text-gray-900 mb-4">المعلومات الشخصية</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="border-b border-gray-200 pb-6 mb-6 max-[639px]:pb-4 max-[639px]:mb-4">
+                <h2 className="text-lg font-bold text-gray-900 mb-4 max-[639px]:text-base max-[639px]:mb-3">
+                  المعلومات الشخصية
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-[639px]:gap-3.5">
                   {/* Email */}
                   <div className="md:col-span-2">
                     <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
@@ -294,14 +304,16 @@ export default function TeachersRegisterPage() {
                         placeholder="example@shau.edu.iq"
                         className={`w-full px-4 py-3 pr-12 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition ${
                           errors.email ? "border-red-500" : "border-gray-300"
-                        }`}
+                        } max-[639px]:h-12 max-[639px]:py-0 max-[639px]:text-[15px]`}
                         dir="ltr"
                       />
                     </div>
                     {errors.email && (
                       <p className="mt-1 text-sm text-red-600">{errors.email}</p>
                     )}
-                    <p className="mt-1 text-xs text-gray-500">يجب أن يكون البريد الإلكتروني بالامتداد @shau.edu.iq</p>
+                    <p className="mt-1 text-xs text-gray-500 max-[639px]:leading-relaxed">
+                      يجب أن يكون البريد الإلكتروني بالامتداد @shau.edu.iq
+                    </p>
                   </div>
 
                   {/* Password */}
@@ -319,7 +331,7 @@ export default function TeachersRegisterPage() {
                         placeholder="أدخل كلمة المرور"
                         className={`w-full px-4 py-3 pl-12 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition ${
                           errors.password ? "border-red-500" : "border-gray-300"
-                        }`}
+                        } max-[639px]:h-12 max-[639px]:py-0 max-[639px]:text-[15px] max-[639px]:pr-12 max-[639px]:pl-4`}
                         dir="ltr"
                       />
                       <button
@@ -360,7 +372,7 @@ export default function TeachersRegisterPage() {
                         placeholder="أعد إدخال كلمة المرور"
                         className={`w-full px-4 py-3 pl-12 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition ${
                           errors.confirmPassword ? "border-red-500" : "border-gray-300"
-                        }`}
+                        } max-[639px]:h-12 max-[639px]:py-0 max-[639px]:text-[15px] max-[639px]:pr-12 max-[639px]:pl-4`}
                         dir="ltr"
                       />
                       <button
@@ -399,7 +411,7 @@ export default function TeachersRegisterPage() {
                       placeholder="أدخل الاسم الكامل بالعربية"
                       className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition ${
                         errors.nameArabic ? "border-red-500" : "border-gray-300"
-                      }`}
+                      } max-[639px]:h-12 max-[639px]:py-0 max-[639px]:text-[15px]`}
                       dir="rtl"
                     />
                     {errors.nameArabic && (
@@ -421,7 +433,7 @@ export default function TeachersRegisterPage() {
                       placeholder="Enter full name in English"
                       className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition ${
                         errors.nameEnglish ? "border-red-500" : "border-gray-300"
-                      }`}
+                      } max-[639px]:h-12 max-[639px]:py-0 max-[639px]:text-[15px]`}
                       dir="ltr"
                     />
                     {errors.nameEnglish && (
@@ -443,21 +455,25 @@ export default function TeachersRegisterPage() {
                       placeholder="+964XXXXXXXXX"
                       className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition ${
                         errors.phone ? "border-red-500" : "border-gray-300"
-                      }`}
+                      } max-[639px]:h-12 max-[639px]:py-0 max-[639px]:text-[15px]`}
                       dir="ltr"
                     />
                     {errors.phone && (
                       <p className="mt-1 text-sm text-red-600">{errors.phone}</p>
                     )}
-                    <p className="mt-1 text-xs text-gray-500">يجب أن يبدأ بـ +964 متبوعاً بـ 9 أو 10 أرقام</p>
+                    <p className="mt-1 text-xs text-gray-500 max-[639px]:leading-relaxed">
+                      يجب أن يبدأ بـ +964 متبوعاً بـ 9 أو 10 أرقام
+                    </p>
                   </div>
                 </div>
               </div>
 
               {/* Academic Information Section */}
-              <div className="border-b border-gray-200 pb-6 mb-6">
-                <h2 className="text-lg font-bold text-gray-900 mb-4">المعلومات الأكاديمية</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="border-b border-gray-200 pb-6 mb-6 max-[639px]:pb-4 max-[639px]:mb-4">
+                <h2 className="text-lg font-bold text-gray-900 mb-4 max-[639px]:text-base max-[639px]:mb-3">
+                  المعلومات الأكاديمية
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-[639px]:gap-3.5">
                   {/* Academic Title */}
                   <div>
                     <label htmlFor="academicTitle" className="block text-sm font-medium text-gray-700 mb-2">
@@ -470,7 +486,7 @@ export default function TeachersRegisterPage() {
                       onChange={handleChange}
                       className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition ${
                         errors.academicTitle ? "border-red-500" : "border-gray-300"
-                      }`}
+                      } max-[639px]:h-12 max-[639px]:py-0 max-[639px]:text-[15px]`}
                       dir="rtl"
                     >
                       <option value="">اختر اللقب العلمي</option>
@@ -497,13 +513,15 @@ export default function TeachersRegisterPage() {
                       onChange={handleChange}
                       className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition ${
                         errors.department ? "border-red-500" : "border-gray-300"
-                      }`}
+                      } max-[639px]:h-12 max-[639px]:py-0 max-[639px]:text-[15px]`}
                       dir="rtl"
                     >
-                      <option value="">اختر القسم</option>
+                      <option value="">
+                        {departmentsLoading ? "جارٍ تحميل الأقسام..." : "اختر القسم"}
+                      </option>
                       {departments.map((dept) => (
-                        <option key={dept.value} value={dept.value}>
-                          {dept.label}
+                        <option key={dept.id} value={dept.code}>
+                          {dept.nameAr}
                         </option>
                       ))}
                     </select>
@@ -515,8 +533,8 @@ export default function TeachersRegisterPage() {
               </div>
 
               {/* Terms and Conditions */}
-              <div className="mb-6">
-                <div className="flex items-start">
+              <div className="mb-6 max-[639px]:mb-4">
+                <div className="flex items-start max-[639px]:gap-2 max-[639px]:px-3 max-[639px]:py-2.5 max-[639px]:rounded-xl max-[639px]:border max-[639px]:border-slate-200/70">
                   <input
                     type="checkbox"
                     id="agreeToTerms"
@@ -530,9 +548,12 @@ export default function TeachersRegisterPage() {
                     disabled={!isFormComplete()}
                     className={`mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 ${
                       !isFormComplete() ? "opacity-50 cursor-not-allowed" : ""
-                    }`}
+                    } max-[639px]:w-5 max-[639px]:h-5`}
                   />
-                  <label htmlFor="agreeToTerms" className={`mr-2 text-sm text-gray-700 ${!isFormComplete() ? "opacity-50" : ""}`}>
+                  <label
+                    htmlFor="agreeToTerms"
+                    className={`mr-2 text-sm text-gray-700 ${!isFormComplete() ? "opacity-50" : ""} max-[639px]:mr-0 max-[639px]:text-[13px] max-[639px]:leading-relaxed`}
+                  >
                     أوافق على <Link href="/terms" className="text-blue-600 hover:text-blue-700 underline">الشروط والأحكام</Link> و{" "}
                     <Link href="/privacy" className="text-blue-600 hover:text-blue-700 underline">سياسة الخصوصية</Link>
                   </label>
@@ -546,8 +567,8 @@ export default function TeachersRegisterPage() {
               </div>
 
               {/* Important Message */}
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-                <p className="text-sm text-yellow-800">
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6 max-[639px]:p-3 max-[639px]:mb-4">
+                <p className="text-sm text-yellow-800 max-[639px]:text-[13px] max-[639px]:leading-relaxed">
                   <strong>معلومة مهمة:</strong> سيتم التحقق من بياناتك من قبل إدارة النظام قبل تفعيل الحساب
                 </p>
               </div>
@@ -563,22 +584,22 @@ export default function TeachersRegisterPage() {
               <button
                 type="submit"
                 disabled={isLoading || !isFormComplete() || !agreeToTerms}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none max-[639px]:mt-4 max-[639px]:h-14 max-[639px]:py-0 max-[639px]:rounded-2xl max-[639px]:text-base max-[639px]:shadow-lg max-[639px]:flex max-[639px]:items-center max-[639px]:justify-center max-[639px]:hover:scale-100"
               >
                 {isLoading ? "جاري إنشاء الحساب..." : "إنشاء الحساب"}
               </button>
             </form>
 
             {/* Login Link */}
-            <div className="mt-6 text-center pt-6 border-t border-gray-200">
-              <p className="text-sm text-gray-600">
+            <div className="mt-6 text-center pt-6 border-t border-gray-200 max-[639px]:mt-5 max-[639px]:pt-4">
+              <p className="text-sm text-gray-600 max-[639px]:text-[13px]">
                 لديك حساب بالفعل؟{" "}
-                <Link href="/teachers/login" className="text-blue-600 hover:text-blue-700 font-medium">
+                <Link href="/teachers/login" className="text-blue-600 hover:text-blue-700 font-medium max-[639px]:inline-flex max-[639px]:items-center max-[639px]:justify-center max-[639px]:px-3 max-[639px]:py-2 max-[639px]:rounded-xl">
                   تسجيل الدخول
                 </Link>
               </p>
-              <div className="mt-3">
-                <Link href="/" className="text-sm text-gray-600 hover:text-gray-800 font-medium">
+              <div className="mt-3 max-[639px]:mt-2">
+                <Link href="/" className="text-sm text-gray-600 hover:text-gray-800 font-medium max-[639px]:text-[13px] max-[639px]:inline-flex max-[639px]:items-center max-[639px]:justify-center max-[639px]:px-3 max-[639px]:py-2 max-[639px]:rounded-xl">
                   ← العودة للصفحة الرئيسية
                 </Link>
               </div>

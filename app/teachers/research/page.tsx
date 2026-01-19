@@ -39,6 +39,7 @@ export default function ResearchPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [editingResearch, setEditingResearch] = useState<Research | null>(null);
   const [researchToDelete, setResearchToDelete] = useState<Research | null>(null);
+  const [mobileShowMoreFilters, setMobileShowMoreFilters] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterByResearchType, setFilterByResearchType] = useState<string>("all");
   const [filterByStatus, setFilterByStatus] = useState<string>("all");
@@ -295,6 +296,140 @@ export default function ResearchPage() {
     return types[type] || type;
   };
 
+  const getClassificationLabel = (value: string) => {
+    const map: Record<string, string> = {
+      global: "عالمي",
+      local: "محلي",
+      scopus: "سكوبس",
+      thomson_reuters: "ثومبسون رويتر",
+    };
+    return map[value] || value;
+  };
+
+  const MobileResearchCard = ({ research }: { research: Research }) => {
+    const classificationsText =
+      research.classifications && research.classifications.length > 0
+        ? research.classifications.map(getClassificationLabel).join("، ")
+        : "-";
+
+    const openLink = () => {
+      if (research.download_link) {
+        window.open(research.download_link, "_blank");
+        return;
+      }
+      if (research.research_link) {
+        window.open(research.research_link, "_blank");
+      }
+    };
+
+    return (
+      <div className="bg-white border border-slate-200/70 rounded-3xl shadow-sm p-4 overflow-hidden">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <div
+              className={`text-[16px] leading-6 font-extrabold text-slate-900 break-words ${
+                research.download_link || research.research_link
+                  ? "cursor-pointer hover:text-indigo-700"
+                  : ""
+              }`}
+              onClick={openLink}
+              title={research.title}
+            >
+              {research.title}
+            </div>
+
+            <div className="mt-2 inline-flex items-center gap-2">
+              <span className="text-[11px] font-bold text-slate-500">السنة</span>
+              <span className="text-[11px] font-extrabold text-indigo-700 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-full">
+                {research.year?.toString() || "-"}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-3 space-y-2">
+          <div className="flex items-start gap-3">
+            <span className="w-[92px] text-right text-[12px] leading-5 font-bold text-slate-500 flex-shrink-0">
+              نوع البحث
+            </span>
+            <span className="flex-1 text-[13px] leading-5 font-semibold text-slate-800 text-left break-words">
+              {getResearchTypeLabel(research.research_type)}
+            </span>
+          </div>
+
+          <div className="flex items-start gap-3">
+            <span className="w-[92px] text-right text-[12px] leading-5 font-bold text-slate-500 flex-shrink-0">
+              الحالة
+            </span>
+            <span className="flex-1 text-[13px] leading-5 font-semibold text-slate-800 text-left break-words">
+              {research.is_completed ? "منجز" : "غير منجز"}
+              {!research.is_completed && (
+                <span className="text-slate-500 font-bold"> ({research.completion_percentage || 0}%)</span>
+              )}
+            </span>
+          </div>
+
+          <div className="flex items-start gap-3">
+            <span className="w-[92px] text-right text-[12px] leading-5 font-bold text-slate-500 flex-shrink-0">
+              النشر
+            </span>
+            <span className="flex-1 text-[13px] leading-5 font-semibold text-slate-800 text-left break-words">
+              {research.is_completed ? (research.is_published ? "منشور" : "غير منشور") : "-"}
+            </span>
+          </div>
+
+          <div className="flex items-start gap-3">
+            <span className="w-[92px] text-right text-[12px] leading-5 font-bold text-slate-500 flex-shrink-0">
+              الناشر
+            </span>
+            <span className="flex-1 text-[13px] leading-5 font-semibold text-slate-800 text-left break-words">
+              {research.publisher || "-"}
+            </span>
+          </div>
+
+          <div className="flex items-start gap-3">
+            <span className="w-[92px] text-right text-[12px] leading-5 font-bold text-slate-500 flex-shrink-0">
+              التصنيفات
+            </span>
+            <span className="flex-1 text-[13px] leading-5 font-semibold text-slate-800 text-left truncate" title={classificationsText}>
+              {classificationsText}
+            </span>
+          </div>
+
+          {research.classifications?.includes("scopus") && (
+            <div className="flex items-start gap-3">
+              <span className="w-[92px] text-right text-[12px] leading-5 font-bold text-slate-500 flex-shrink-0">
+                Q
+              </span>
+              <span className="flex-1 text-[13px] leading-5 font-semibold text-slate-800 text-left break-words">
+                {research.scopus_quartile || "-"}
+              </span>
+            </div>
+          )}
+        </div>
+
+        <div className="mt-4 pt-3 border-t border-slate-200/70">
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => handleEditResearch(research)}
+              className="h-11 rounded-2xl border border-slate-200 bg-white text-slate-800 hover:bg-slate-50 text-sm font-extrabold"
+            >
+              تعديل
+            </button>
+            <button
+              type="button"
+              onClick={() => setResearchToDelete(research)}
+              className="h-11 rounded-2xl bg-red-600 text-white hover:bg-red-700 text-sm font-extrabold"
+            >
+              حذف
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   // Export to CSV
   const handleExportCSV = () => {
     const headers = [
@@ -514,13 +649,14 @@ export default function ResearchPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-[639px]:space-y-4 max-[639px]:overflow-x-hidden">
       {/* Statistics Card */}
-      <div className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 rounded-lg border border-indigo-200 p-4 shadow-sm">
+      <div className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 rounded-lg border border-indigo-200 p-4 shadow-sm max-[639px]:rounded-3xl">
         <h3 className="text-lg font-bold mb-4" style={{ color: '#1F2937' }}>إحصائيات البحوث</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+        <div className="relative">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 max-[639px]:flex max-[639px]:flex-nowrap max-[639px]:overflow-x-auto max-[639px]:gap-3 max-[639px]:snap-x max-[639px]:snap-mandatory max-[639px]:pb-1 m-scroll">
           {/* إجمالي البحوث */}
-          <div className="bg-white rounded-lg p-3 shadow-sm border border-indigo-100 text-center">
+          <div className="bg-white rounded-lg p-3 shadow-sm border border-indigo-100 text-center max-[639px]:min-w-[132px] max-[639px]:h-[104px] max-[639px]:snap-start max-[639px]:rounded-2xl max-[639px]:flex max-[639px]:flex-col max-[639px]:justify-center">
             <div className="flex items-center justify-center mb-2">
               <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
                 <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -533,7 +669,7 @@ export default function ResearchPage() {
           </div>
 
           {/* البحوث المنجزة */}
-          <div className="bg-white rounded-lg p-3 shadow-sm border border-green-100 text-center">
+          <div className="bg-white rounded-lg p-3 shadow-sm border border-green-100 text-center max-[639px]:min-w-[132px] max-[639px]:h-[104px] max-[639px]:snap-start max-[639px]:rounded-2xl max-[639px]:flex max-[639px]:flex-col max-[639px]:justify-center">
             <div className="flex items-center justify-center mb-2">
               <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
                 <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -546,7 +682,7 @@ export default function ResearchPage() {
           </div>
 
           {/* البحوث المنشورة */}
-          <div className="bg-white rounded-lg p-3 shadow-sm border border-blue-100 text-center">
+          <div className="bg-white rounded-lg p-3 shadow-sm border border-blue-100 text-center max-[639px]:min-w-[132px] max-[639px]:h-[104px] max-[639px]:snap-start max-[639px]:rounded-2xl max-[639px]:flex max-[639px]:flex-col max-[639px]:justify-center">
             <div className="flex items-center justify-center mb-2">
               <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
                 <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -559,7 +695,7 @@ export default function ResearchPage() {
           </div>
 
           {/* البحوث المخططة */}
-          <div className="bg-white rounded-lg p-3 shadow-sm border border-purple-100 text-center">
+          <div className="bg-white rounded-lg p-3 shadow-sm border border-purple-100 text-center max-[639px]:min-w-[132px] max-[639px]:h-[104px] max-[639px]:snap-start max-[639px]:rounded-2xl max-[639px]:flex max-[639px]:flex-col max-[639px]:justify-center">
             <div className="flex items-center justify-center mb-2">
               <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
                 <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -572,7 +708,7 @@ export default function ResearchPage() {
           </div>
 
           {/* السكوبس */}
-          <div className="bg-white rounded-lg p-3 shadow-sm border border-orange-100 text-center">
+          <div className="bg-white rounded-lg p-3 shadow-sm border border-orange-100 text-center max-[639px]:min-w-[132px] max-[639px]:h-[104px] max-[639px]:snap-start max-[639px]:rounded-2xl max-[639px]:flex max-[639px]:flex-col max-[639px]:justify-center">
             <div className="flex items-center justify-center mb-2">
               <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
                 <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -585,7 +721,7 @@ export default function ResearchPage() {
           </div>
 
           {/* العالمية */}
-          <div className="bg-white rounded-lg p-3 shadow-sm border border-cyan-100 text-center">
+          <div className="bg-white rounded-lg p-3 shadow-sm border border-cyan-100 text-center max-[639px]:min-w-[132px] max-[639px]:h-[104px] max-[639px]:snap-start max-[639px]:rounded-2xl max-[639px]:flex max-[639px]:flex-col max-[639px]:justify-center">
             <div className="flex items-center justify-center mb-2">
               <div className="w-10 h-10 bg-cyan-100 rounded-full flex items-center justify-center">
                 <svg className="w-5 h-5 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -598,7 +734,7 @@ export default function ResearchPage() {
           </div>
 
           {/* المحلية */}
-          <div className="bg-white rounded-lg p-3 shadow-sm border border-teal-100 text-center">
+          <div className="bg-white rounded-lg p-3 shadow-sm border border-teal-100 text-center max-[639px]:min-w-[132px] max-[639px]:h-[104px] max-[639px]:snap-start max-[639px]:rounded-2xl max-[639px]:flex max-[639px]:flex-col max-[639px]:justify-center">
             <div className="flex items-center justify-center mb-2">
               <div className="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center">
                 <svg className="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -610,16 +746,21 @@ export default function ResearchPage() {
             <p className="text-2xl font-bold" style={{ color: '#14B8A6' }}>{localResearch}</p>
             <p className="text-xs text-gray-600 mt-1">المحلية</p>
           </div>
+          </div>
+
+          {/* Mobile-only edge fade (hint swipe, no scrollbar) */}
+          <div className="hidden max-[639px]:block pointer-events-none absolute inset-y-0 left-0 w-6 bg-gradient-to-r from-indigo-50/90 to-transparent" />
+          <div className="hidden max-[639px]:block pointer-events-none absolute inset-y-0 right-0 w-6 bg-gradient-to-l from-indigo-50/90 to-transparent" />
         </div>
       </div>
 
-      <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
-        <div className="flex items-center justify-between mb-6">
+      <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm max-[639px]:rounded-3xl max-[639px]:p-4 max-[639px]:shadow-sm max-[639px]:overflow-x-hidden">
+        <div className="flex items-center justify-between mb-6 max-[639px]:mb-4 max-[639px]:flex-col max-[639px]:items-stretch max-[639px]:gap-3">
           <div>
             <h1 className="text-2xl font-bold mb-2" style={{ color: '#1F2937' }}>البحوث</h1>
             <div className="h-1 w-20 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full"></div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 max-[639px]:hidden">
             {/* Export Dropdown */}
             <div className="relative">
               <button
@@ -635,7 +776,7 @@ export default function ResearchPage() {
                 <span>تصدير</span>
               </button>
               {showExportDropdown && (
-                <div className="absolute left-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                <div className="absolute left-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10 max-[639px]:left-0 max-[639px]:right-0 max-[639px]:w-full">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -698,8 +839,187 @@ export default function ResearchPage() {
           </div>
         </div>
 
+        {/* Mobile Actions */}
+        <div className="hidden max-[639px]:block mb-3 space-y-2.5">
+          <button
+            onClick={() => {
+              setEditingResearch(null);
+              setFormData({
+                title: "",
+                research_type: "planned",
+                author_type: "single",
+                is_completed: false,
+                completion_percentage: 0,
+                year: new Date().getFullYear().toString(),
+                is_published: false,
+                research_link: "",
+                publication_type: "journal",
+                publisher: "",
+                doi: "",
+                publication_month: "",
+                download_link: "",
+                classifications: [],
+                scopus_quartile: "Q1",
+              });
+              setShowForm(true);
+            }}
+            className="w-full h-[54px] rounded-2xl bg-indigo-600 text-white hover:bg-indigo-700 transition-colors duration-200 flex items-center justify-center gap-2 font-extrabold"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            <span>إضافة بحث</span>
+          </button>
+
+          <div className="relative">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowExportDropdown(!showExportDropdown);
+              }}
+              className="w-full h-11 rounded-2xl border border-slate-200 bg-white text-slate-800 hover:bg-slate-50 transition-colors duration-200 flex items-center justify-center gap-2 font-bold"
+            >
+              <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <span>تصدير</span>
+            </button>
+            {showExportDropdown && (
+              <div className="absolute left-0 right-0 mt-2 w-full bg-white border border-gray-200 rounded-2xl shadow-lg z-10 overflow-hidden">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleExportCSV();
+                    setShowExportDropdown(false);
+                  }}
+                  className="w-full text-right px-4 py-3 hover:bg-gray-50 transition-colors duration-200 flex items-center gap-2"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  <span>تصدير CSV</span>
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleExportPDF();
+                    setShowExportDropdown(false);
+                  }}
+                  className="w-full text-right px-4 py-3 hover:bg-gray-50 transition-colors duration-200 flex items-center gap-2 border-t border-gray-100"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                  </svg>
+                  <span>تصدير PDF</span>
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Search, Filter, Sort Bar */}
-        <div className="flex flex-col gap-3 p-4 bg-gray-50 rounded-lg border border-gray-200 mb-6">
+        {/* Mobile Filters Card */}
+        <div className="hidden max-[639px]:block mb-3 bg-white rounded-3xl border border-slate-200/70 p-3 shadow-sm">
+          <div className="flex items-center gap-2 text-slate-700 mb-2">
+            <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L15 12.414V19a1 1 0 01-1.447.894l-4-2A1 1 0 019 17v-4.586L3.293 6.707A1 1 0 013 6V4z" />
+            </svg>
+            <span className="text-[12px] font-extrabold">بحث / فلترة</span>
+          </div>
+
+          <div className="space-y-2.5">
+            <div className="relative">
+              <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="ابحث عن عنوان، ناشر، أو سنة..."
+                className="w-full pr-10 pl-3 h-11 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200"
+                style={{ color: '#1F2937', backgroundColor: '#FFFFFF' }}
+              />
+            </div>
+
+            <select
+              value={filterByResearchType}
+              onChange={(e) => setFilterByResearchType(e.target.value)}
+              className="w-full px-3 h-11 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200"
+              style={{ color: '#1F2937', backgroundColor: '#FFFFFF' }}
+            >
+              <option value="all">جميع أنواع البحوث</option>
+              <option value="planned">مخطط</option>
+              <option value="unplanned">غير مخطط</option>
+            </select>
+
+            <select
+              value={filterByYear}
+              onChange={(e) => setFilterByYear(e.target.value)}
+              className="w-full px-3 h-11 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200"
+              style={{ color: '#1F2937', backgroundColor: '#FFFFFF' }}
+            >
+              <option value="all">جميع السنوات</option>
+              {uniqueYears.map((year) => (
+                <option key={year} value={year}>
+                  {year}
+                </option>
+              ))}
+            </select>
+
+            {mobileShowMoreFilters && (
+              <>
+                <select
+                  value={filterByStatus}
+                  onChange={(e) => setFilterByStatus(e.target.value)}
+                  className="w-full px-3 h-11 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200"
+                  style={{ color: '#1F2937', backgroundColor: '#FFFFFF' }}
+                >
+                  <option value="all">جميع الحالات</option>
+                  <option value="completed">منجز</option>
+                  <option value="not-completed">غير منجز</option>
+                </select>
+
+                <select
+                  value={filterByPublication}
+                  onChange={(e) => setFilterByPublication(e.target.value)}
+                  className="w-full px-3 h-11 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200"
+                  style={{ color: '#1F2937', backgroundColor: '#FFFFFF' }}
+                >
+                  <option value="all">جميع حالات النشر</option>
+                  <option value="published">منشور</option>
+                  <option value="not-published">غير منشور</option>
+                </select>
+
+                <select
+                  value={filterByClassification}
+                  onChange={(e) => setFilterByClassification(e.target.value)}
+                  className="w-full px-3 h-11 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200"
+                  style={{ color: '#1F2937', backgroundColor: '#FFFFFF' }}
+                >
+                  <option value="all">جميع التصنيفات</option>
+                  <option value="global">عالمي</option>
+                  <option value="local">محلي</option>
+                  <option value="scopus">سكوبس</option>
+                  <option value="thomson_reuters">ثومبسون رويتر</option>
+                </select>
+              </>
+            )}
+
+            <button
+              type="button"
+              onClick={() => setMobileShowMoreFilters((v) => !v)}
+              className="w-full h-11 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-slate-100 transition-colors duration-200 text-sm font-extrabold text-slate-800 flex items-center justify-center gap-2"
+            >
+              <svg className={`w-4 h-4 transition-transform ${mobileShowMoreFilters ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+              <span>{mobileShowMoreFilters ? "إخفاء الفلاتر المتقدمة" : "عرض المزيد من الفلاتر"}</span>
+            </button>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-3 p-4 bg-gray-50 rounded-lg border border-gray-200 mb-6 max-[639px]:hidden">
           {/* Search */}
           <div className="flex-1">
             <div className="relative">
@@ -798,168 +1118,215 @@ export default function ResearchPage() {
 
         {/* Research Table */}
         {isLoading && researchList.length === 0 ? (
-          <div className="text-center py-12">
+          <div className="text-center py-12 max-[639px]:py-8">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
             <p className="mt-4 text-gray-600">جاري التحميل...</p>
           </div>
         ) : researchList.length === 0 ? (
-          <div className="text-center py-12 border-2 border-dashed border-gray-300 rounded-lg">
-            <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            <p className="text-gray-500 text-lg">لا توجد بحوث مضافة</p>
-            <p className="text-gray-400 text-sm mt-2">اضغط على زر &quot;إضافة بحث&quot; لإضافة بحثك الأول</p>
-          </div>
+          <>
+            <div className="hidden max-[639px]:flex flex-col items-center justify-center text-center rounded-3xl border border-slate-200/70 bg-white shadow-sm px-4 py-6">
+              <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center">
+                <svg className="w-7 h-7 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+              <div className="mt-4 text-[16px] font-extrabold text-slate-900">لا توجد بحوث مضافة</div>
+              <div className="mt-1 text-[13px] text-slate-500">ابدأ بإضافة بحثك الأول بسهولة.</div>
+              {/* Mobile: keep a single strong CTA (top). Provide a secondary action here. */}
+              <button
+                onClick={() => {
+                  setEditingResearch(null);
+                  setFormData({
+                    title: "",
+                    research_type: "planned",
+                    author_type: "single",
+                    is_completed: false,
+                    completion_percentage: 0,
+                    year: new Date().getFullYear().toString(),
+                    is_published: false,
+                    research_link: "",
+                    publication_type: "journal",
+                    publisher: "",
+                    doi: "",
+                    publication_month: "",
+                    download_link: "",
+                    classifications: [],
+                    scopus_quartile: "Q1",
+                  });
+                  setShowForm(true);
+                }}
+                className="mt-4 w-full h-11 rounded-2xl border border-slate-200 bg-white text-indigo-700 hover:bg-slate-50 transition-colors duration-200 font-extrabold flex items-center justify-center gap-2"
+              >
+                <span>إضافة بحث الآن</span>
+              </button>
+            </div>
+
+            <div className="max-[639px]:hidden text-center py-12 border-2 border-dashed border-gray-300 rounded-lg">
+              <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <p className="text-gray-500 text-lg">لا توجد بحوث مضافة</p>
+              <p className="text-gray-400 text-sm mt-2">اضغط على زر &quot;إضافة بحث&quot; لإضافة بحثك الأول</p>
+            </div>
+          </>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">عنوان البحث</th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">نوع البحث</th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">نوع المؤلف</th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الحالة</th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">نسبة الإنجاز</th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">نوع النشر</th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الناشر</th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">السنة</th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الشهر</th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">عالمي</th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">محلي</th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">ثومبسون</th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">سكوبس</th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Q</th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">الإجراءات</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {filteredAndSortedResearch.map((research) => (
-                  <tr key={research.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-4 whitespace-nowrap">
-                      <div 
-                        className={`text-sm font-medium ${research.download_link || research.research_link ? "cursor-pointer hover:text-indigo-600 hover:underline transition-colors" : ""}`}
-                        style={{ color: '#1F2937' }}
-                        onClick={() => {
-                          if (research.download_link) {
-                            window.open(research.download_link, '_blank');
-                          } else if (research.research_link) {
-                            window.open(research.research_link, '_blank');
-                          }
-                        }}
-                      >
-                        {research.title}
-                      </div>
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap">
-                      <div className="text-sm" style={{ color: '#374151' }}>{getResearchTypeLabel(research.research_type)}</div>
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap">
-                      <div className="text-sm" style={{ color: '#374151' }}>{getAuthorTypeLabel(research.author_type)}</div>
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        research.is_completed 
-                          ? "bg-green-100 text-green-800" 
-                          : "bg-yellow-100 text-yellow-800"
-                      }`}>
-                        {research.is_completed ? "منجز" : "غير منجز"}
-                      </span>
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap">
-                      <div className="text-sm" style={{ color: '#374151' }}>
-                        {research.is_completed ? "100%" : `${research.completion_percentage || 0}%`}
-                      </div>
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap">
-                      <div className="text-sm" style={{ color: '#374151' }}>
-                        {getPublicationTypeLabel(research.publication_type)}
-                      </div>
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap">
-                      <div className="text-sm" style={{ color: '#374151' }}>{research.publisher || "-"}</div>
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap">
-                      <div className="text-sm" style={{ color: '#374151' }}>{research.year}</div>
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap">
-                      <div className="text-sm" style={{ color: '#374151' }}>{research.publication_month || "-"}</div>
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-center">
-                      {research.classifications?.includes("global") ? (
-                        <svg className="w-5 h-5 text-green-500 mx-auto" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                        </svg>
-                      ) : (
-                        <svg className="w-5 h-5 text-red-500 mx-auto" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                        </svg>
-                      )}
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-center">
-                      {research.classifications?.includes("local") ? (
-                        <svg className="w-5 h-5 text-green-500 mx-auto" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                        </svg>
-                      ) : (
-                        <svg className="w-5 h-5 text-red-500 mx-auto" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                        </svg>
-                      )}
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-center">
-                      {research.classifications?.includes("thomson_reuters") ? (
-                        <svg className="w-5 h-5 text-green-500 mx-auto" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                        </svg>
-                      ) : (
-                        <svg className="w-5 h-5 text-red-500 mx-auto" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                        </svg>
-                      )}
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-center">
-                      {research.classifications?.includes("scopus") ? (
-                        <svg className="w-5 h-5 text-green-500 mx-auto" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                        </svg>
-                      ) : (
-                        <svg className="w-5 h-5 text-red-500 mx-auto" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                        </svg>
-                      )}
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium" style={{ color: '#374151' }}>
-                        {research.classifications?.includes("scopus") ? research.scopus_quartile || "-" : "-"}
-                      </div>
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-center">
-                      <div className="flex items-center justify-center gap-2">
-                        <button
-                          onClick={() => handleEditResearch(research)}
-                          className="p-2 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-md transition-all duration-300 hover:scale-105"
-                          title="تعديل"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                          </svg>
-                        </button>
-                        <button
-                          onClick={() => setResearchToDelete(research)}
-                          className="p-2 text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 rounded-md transition-all duration-300 hover:scale-105"
-                          title="حذف"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        </button>
-                      </div>
-                    </td>
+          <>
+            <div className="hidden max-[639px]:block space-y-3">
+              {filteredAndSortedResearch.map((research) => (
+                <MobileResearchCard key={research.id} research={research} />
+              ))}
+            </div>
+
+            <div className="max-[639px]:hidden overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">عنوان البحث</th>
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">نوع البحث</th>
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">نوع المؤلف</th>
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الحالة</th>
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">نسبة الإنجاز</th>
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">نوع النشر</th>
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الناشر</th>
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">السنة</th>
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">الشهر</th>
+                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">عالمي</th>
+                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">محلي</th>
+                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">ثومبسون</th>
+                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">سكوبس</th>
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Q</th>
+                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">الإجراءات</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {filteredAndSortedResearch.map((research) => (
+                    <tr key={research.id} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-4 py-4 whitespace-nowrap">
+                        <div 
+                          className={`text-sm font-medium ${research.download_link || research.research_link ? "cursor-pointer hover:text-indigo-600 hover:underline transition-colors" : ""}`}
+                          style={{ color: '#1F2937' }}
+                          onClick={() => {
+                            if (research.download_link) {
+                              window.open(research.download_link, '_blank');
+                            } else if (research.research_link) {
+                              window.open(research.research_link, '_blank');
+                            }
+                          }}
+                        >
+                          {research.title}
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap">
+                        <div className="text-sm" style={{ color: '#374151' }}>{getResearchTypeLabel(research.research_type)}</div>
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap">
+                        <div className="text-sm" style={{ color: '#374151' }}>{getAuthorTypeLabel(research.author_type)}</div>
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap">
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          research.is_completed 
+                            ? "bg-green-100 text-green-800" 
+                            : "bg-yellow-100 text-yellow-800"
+                        }`}>
+                          {research.is_completed ? "منجز" : "غير منجز"}
+                        </span>
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap">
+                        <div className="text-sm" style={{ color: '#374151' }}>
+                          {research.is_completed ? "100%" : `${research.completion_percentage || 0}%`}
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap">
+                        <div className="text-sm" style={{ color: '#374151' }}>
+                          {getPublicationTypeLabel(research.publication_type)}
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap">
+                        <div className="text-sm" style={{ color: '#374151' }}>{research.publisher || "-"}</div>
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap">
+                        <div className="text-sm" style={{ color: '#374151' }}>{research.year}</div>
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap">
+                        <div className="text-sm" style={{ color: '#374151' }}>{research.publication_month || "-"}</div>
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap text-center">
+                        {research.classifications?.includes("global") ? (
+                          <svg className="w-5 h-5 text-green-500 mx-auto" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          </svg>
+                        ) : (
+                          <svg className="w-5 h-5 text-red-500 mx-auto" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                          </svg>
+                        )}
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap text-center">
+                        {research.classifications?.includes("local") ? (
+                          <svg className="w-5 h-5 text-green-500 mx-auto" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          </svg>
+                        ) : (
+                          <svg className="w-5 h-5 text-red-500 mx-auto" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                          </svg>
+                        )}
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap text-center">
+                        {research.classifications?.includes("thomson_reuters") ? (
+                          <svg className="w-5 h-5 text-green-500 mx-auto" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          </svg>
+                        ) : (
+                          <svg className="w-5 h-5 text-red-500 mx-auto" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                          </svg>
+                        )}
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap text-center">
+                        {research.classifications?.includes("scopus") ? (
+                          <svg className="w-5 h-5 text-green-500 mx-auto" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          </svg>
+                        ) : (
+                          <svg className="w-5 h-5 text-red-500 mx-auto" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                          </svg>
+                        )}
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium" style={{ color: '#374151' }}>
+                          {research.classifications?.includes("scopus") ? research.scopus_quartile || "-" : "-"}
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          <button
+                            onClick={() => handleEditResearch(research)}
+                            className="p-2 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-md transition-all duration-300 hover:scale-105"
+                            title="تعديل"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={() => setResearchToDelete(research)}
+                            className="p-2 text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 rounded-md transition-all duration-300 hover:scale-105"
+                            title="حذف"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
 

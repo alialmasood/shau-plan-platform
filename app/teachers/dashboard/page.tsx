@@ -226,6 +226,7 @@ export default function TeachersDashboardPage() {
   const { user } = useLayout();
   const [selectedYear, setSelectedYear] = useState(getAcademicYear());
   const [selectedMonth, setSelectedMonth] = useState("all");
+  const [allYearsExpanded, setAllYearsExpanded] = useState(false);
   
   // Data states
   const [positions, setPositions] = useState<Position[]>([]);
@@ -408,13 +409,13 @@ export default function TeachersDashboardPage() {
   }
 
   return (
-    <>
+    <div className="max-[639px]:space-y-4 max-[639px]:text-[14px] max-[639px]:leading-[1.55]">
       {/* General Statistics Section */}
-      <div className="bg-gray-50 rounded-lg border border-blue-200 p-5 mb-6 shadow-sm hover:shadow-md transition-shadow duration-300">
+      <div className="bg-gray-50 rounded-lg border border-blue-200 p-5 mb-6 shadow-sm hover:shadow-md transition-shadow duration-300 max-[639px]:bg-white max-[639px]:rounded-3xl max-[639px]:p-4 max-[639px]:mb-4 max-[639px]:shadow-sm max-[639px]:border-slate-200/70">
         <div className="mb-4 pb-2 border-b border-gray-300">
-          <h2 className="text-xl font-bold" style={{ color: '#1F2937' }}>إحصائيات البحوث</h2>
+          <h2 className="text-xl font-bold max-[639px]:text-[16px]" style={{ color: '#1F2937' }}>إحصائيات البحوث</h2>
         </div>
-        <div className="flex flex-nowrap items-start gap-5 justify-center pb-2 px-2">
+        <div className="flex flex-nowrap items-start gap-5 justify-center pb-2 px-2 max-[639px]:overflow-x-auto max-[639px]:justify-start max-[639px]:gap-3 max-[639px]:px-1 max-[639px]:pb-1 max-[639px]:snap-x max-[639px]:snap-mandatory max-[639px]:[&>div]:min-w-[120px] max-[639px]:[&>div]:h-[104px] max-[639px]:[&>div]:justify-center max-[639px]:[&>div]:items-center max-[639px]:[&>div]:bg-slate-50 max-[639px]:[&>div]:rounded-2xl max-[639px]:[&>div]:border max-[639px]:[&>div]:border-slate-200/70 max-[639px]:[&>div]:p-3 max-[639px]:[&>div]:shadow-sm max-[639px]:[&>div]:gap-1 max-[639px]:[&>div]:snap-start max-[639px]:[&>div>div:first-child]:w-10 max-[639px]:[&>div>div:first-child]:h-10 max-[639px]:[&>div>div:first-child_svg]:w-4 max-[639px]:[&>div>div:first-child_svg]:h-4 max-[639px]:[&>div>span:last-child]:truncate max-[639px]:[&>div>span:last-child]:max-w-full max-[639px]:[&>div>span:last-child]:text-[12px] max-[639px]:[&>div>span:last-child]:leading-5 m-scroll">
           {/* Total Research */}
           <div className="flex flex-col items-center gap-2 group cursor-pointer">
             <div className="w-14 h-14 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-md group-hover:shadow-lg group-hover:scale-110 transition-all duration-300 ease-in-out">
@@ -530,11 +531,11 @@ export default function TeachersDashboardPage() {
       </div>
 
       {/* General Statistics Section */}
-      <div className="bg-gray-50 rounded-lg border border-blue-200 p-5 mb-6 shadow-sm hover:shadow-md transition-shadow duration-300">
+      <div className="bg-gray-50 rounded-lg border border-blue-200 p-5 mb-6 shadow-sm hover:shadow-md transition-shadow duration-300 max-[639px]:bg-white max-[639px]:rounded-3xl max-[639px]:p-4 max-[639px]:mb-4 max-[639px]:shadow-sm max-[639px]:border-slate-200/70">
         <div className="mb-4 pb-2 border-b border-gray-300">
-          <h2 className="text-xl font-bold" style={{ color: '#1F2937' }}>إحصائيات عامة</h2>
+          <h2 className="text-xl font-bold max-[639px]:text-[16px]" style={{ color: '#1F2937' }}>إحصائيات عامة</h2>
         </div>
-        <div className="flex flex-nowrap items-start gap-5 justify-center pb-2 px-2">
+        <div className="flex flex-nowrap items-start gap-5 justify-center pb-2 px-2 max-[639px]:overflow-x-auto max-[639px]:justify-start max-[639px]:gap-3 max-[639px]:px-1 max-[639px]:pb-1 max-[639px]:snap-x max-[639px]:snap-mandatory max-[639px]:[&>div]:min-w-[120px] max-[639px]:[&>div]:h-[104px] max-[639px]:[&>div]:justify-center max-[639px]:[&>div]:items-center max-[639px]:[&>div]:bg-slate-50 max-[639px]:[&>div]:rounded-2xl max-[639px]:[&>div]:border max-[639px]:[&>div]:border-slate-200/70 max-[639px]:[&>div]:p-3 max-[639px]:[&>div]:shadow-sm max-[639px]:[&>div]:gap-1 max-[639px]:[&>div]:snap-start max-[639px]:[&>div>div:first-child]:w-10 max-[639px]:[&>div>div:first-child]:h-10 max-[639px]:[&>div>div:first-child_svg]:w-4 max-[639px]:[&>div>div:first-child_svg]:h-4 max-[639px]:[&>div>span:last-child]:truncate max-[639px]:[&>div>span:last-child]:max-w-full max-[639px]:[&>div>span:last-child]:text-[12px] max-[639px]:[&>div>span:last-child]:leading-5 m-scroll">
           {/* Conferences */}
           <div className="flex flex-col items-center gap-2 group cursor-pointer flex-shrink-0">
             <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-400 to-blue-500 flex items-center justify-center shadow-md group-hover:shadow-lg group-hover:scale-110 transition-all duration-300 ease-in-out">
@@ -681,18 +682,18 @@ export default function TeachersDashboardPage() {
       </div>
 
       {/* Performance Achievements Section */}
-      <div className="bg-white rounded-lg border border-gray-200 p-5 mb-6 shadow-sm hover:shadow-md transition-shadow duration-300">
-        <div className="flex items-center justify-between mb-4 pb-2 border-b border-gray-300">
-          <h2 className="text-xl font-bold" style={{ color: '#1F2937' }}>
+      <div className="bg-white rounded-lg border border-gray-200 p-5 mb-6 shadow-sm hover:shadow-md transition-shadow duration-300 max-[639px]:rounded-3xl max-[639px]:p-4 max-[639px]:mb-4">
+        <div className="flex items-center justify-between mb-4 pb-2 border-b border-gray-300 max-[639px]:flex-col max-[639px]:items-stretch max-[639px]:gap-3">
+          <h2 className="text-xl font-bold max-[639px]:text-[16px]" style={{ color: '#1F2937' }}>
             إنجازات استمارة الأداء - العام الدراسي {selectedYear}
           </h2>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 max-[639px]:flex-col max-[639px]:items-stretch max-[639px]:w-full max-[639px]:gap-2 max-[639px]:bg-slate-50 max-[639px]:border max-[639px]:border-slate-200/70 max-[639px]:rounded-2xl max-[639px]:p-3">
             {/* Year Selector */}
-            <div className="relative">
+            <div className="relative max-[639px]:w-full">
               <select
                 value={selectedYear}
                 onChange={(e) => setSelectedYear(e.target.value)}
-                className="px-4 py-2 pr-8 border border-gray-300 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300"
+                className="px-4 py-2 pr-8 border border-gray-300 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300 max-[639px]:w-full max-[639px]:h-11"
                 style={{ color: '#1F2937', backgroundColor: '#FAFBFC' }}
               >
                 {Array.from({ length: 10 }, (_, i) => {
@@ -708,11 +709,11 @@ export default function TeachersDashboardPage() {
             </div>
 
             {/* Month Selector */}
-            <div className="relative">
+            <div className="relative max-[639px]:w-full">
               <select
                 value={selectedMonth}
                 onChange={(e) => setSelectedMonth(e.target.value)}
-                className="px-4 py-2 pr-8 border border-gray-300 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300"
+                className="px-4 py-2 pr-8 border border-gray-300 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300 max-[639px]:w-full max-[639px]:h-11"
                 style={{ color: '#1F2937', backgroundColor: '#FAFBFC' }}
               >
                 <option value="all">جميع الأشهر</option>
@@ -734,13 +735,13 @@ export default function TeachersDashboardPage() {
         </div>
         <div className="mt-4">
           {/* Research Statistics Card */}
-          <div className="bg-gray-50 rounded-lg border border-gray-200 p-5 shadow-sm">
+          <div className="bg-gray-50 rounded-lg border border-gray-200 p-5 shadow-sm max-[639px]:bg-white max-[639px]:rounded-3xl max-[639px]:p-4 max-[639px]:border-slate-200/70">
             <div className="mb-4 pb-2 border-b border-gray-300">
               <h3 className="text-lg font-bold" style={{ color: '#1F2937' }}>
                 إحصائيات البحوث - {getMonthName(selectedMonth)} {selectedYear.split('-')[0]}
               </h3>
             </div>
-            <div className="flex flex-wrap items-start gap-6 justify-center pb-2 px-2">
+            <div className="flex flex-wrap items-start gap-6 justify-center pb-2 px-2 max-[639px]:flex-nowrap max-[639px]:overflow-x-auto max-[639px]:justify-start max-[639px]:gap-3 max-[639px]:px-1 max-[639px]:pb-1 max-[639px]:snap-x max-[639px]:snap-mandatory max-[639px]:[&>div]:min-w-[120px] max-[639px]:[&>div]:h-[104px] max-[639px]:[&>div]:justify-center max-[639px]:[&>div]:items-center max-[639px]:[&>div]:bg-slate-50 max-[639px]:[&>div]:rounded-2xl max-[639px]:[&>div]:border max-[639px]:[&>div]:border-slate-200/70 max-[639px]:[&>div]:p-3 max-[639px]:[&>div]:shadow-sm max-[639px]:[&>div]:gap-1 max-[639px]:[&>div]:snap-start max-[639px]:[&>div>div:first-child]:w-10 max-[639px]:[&>div>div:first-child]:h-10 max-[639px]:[&>div>div:first-child_svg]:w-4 max-[639px]:[&>div>div:first-child_svg]:h-4 max-[639px]:[&>div>span:last-child]:truncate max-[639px]:[&>div>span:last-child]:max-w-full max-[639px]:[&>div>span:last-child]:text-[12px] max-[639px]:[&>div>span:last-child]:leading-5 m-scroll">
               {/* Planned Research */}
               <div className="flex flex-col items-center gap-2 group cursor-pointer flex-shrink-0">
                 <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-400 to-blue-500 flex items-center justify-center shadow-md group-hover:shadow-lg group-hover:scale-110 transition-all duration-300 ease-in-out">
@@ -788,13 +789,13 @@ export default function TeachersDashboardPage() {
           </div>
 
           {/* General Statistics Card */}
-          <div className="bg-gray-50 rounded-lg border border-gray-200 p-5 shadow-sm mt-4">
+          <div className="bg-gray-50 rounded-lg border border-gray-200 p-5 shadow-sm mt-4 max-[639px]:bg-white max-[639px]:rounded-3xl max-[639px]:p-4 max-[639px]:border-slate-200/70 max-[639px]:mt-3">
             <div className="mb-4 pb-2 border-b border-gray-300">
               <h3 className="text-lg font-bold" style={{ color: '#1F2937' }}>
                 الإحصائيات العامة - {getMonthName(selectedMonth)} {selectedYear.split('-')[0]}
               </h3>
             </div>
-            <div className="flex flex-wrap items-start gap-6 justify-center pb-2 px-2">
+            <div className="flex flex-wrap items-start gap-6 justify-center pb-2 px-2 max-[639px]:flex-nowrap max-[639px]:overflow-x-auto max-[639px]:justify-start max-[639px]:gap-3 max-[639px]:px-1 max-[639px]:pb-1 max-[639px]:snap-x max-[639px]:snap-mandatory max-[639px]:[&>div]:min-w-[120px] max-[639px]:[&>div]:h-[104px] max-[639px]:[&>div]:justify-center max-[639px]:[&>div]:items-center max-[639px]:[&>div]:bg-slate-50 max-[639px]:[&>div]:rounded-2xl max-[639px]:[&>div]:border max-[639px]:[&>div]:border-slate-200/70 max-[639px]:[&>div]:p-3 max-[639px]:[&>div]:shadow-sm max-[639px]:[&>div]:gap-1 max-[639px]:[&>div]:snap-start max-[639px]:[&>div>div:first-child]:w-10 max-[639px]:[&>div>div:first-child]:h-10 max-[639px]:[&>div>div:first-child_svg]:w-4 max-[639px]:[&>div>div:first-child_svg]:h-4 max-[639px]:[&>div>span:last-child]:truncate max-[639px]:[&>div>span:last-child]:max-w-full max-[639px]:[&>div>span:last-child]:text-[12px] max-[639px]:[&>div>span:last-child]:leading-5 m-scroll">
               {/* Conferences */}
               <div className="flex flex-col items-center gap-2 group cursor-pointer flex-shrink-0">
                 <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-400 to-blue-500 flex items-center justify-center shadow-md group-hover:shadow-lg group-hover:scale-110 transition-all duration-300 ease-in-out">
@@ -930,10 +931,10 @@ export default function TeachersDashboardPage() {
           </div>
 
           {/* Summary Achievements Card */}
-          <div className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 rounded-lg border-2 border-indigo-200 p-6 shadow-lg mt-4">
+          <div className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 rounded-lg border-2 border-indigo-200 p-6 shadow-lg mt-4 max-[639px]:rounded-3xl max-[639px]:p-4 max-[639px]:mt-3">
             <div className="mb-5 pb-3 border-b-2 border-indigo-300">
-              <h3 className="text-2xl font-bold flex items-center gap-3" style={{ color: '#1F2937' }}>
-                <svg className="w-7 h-7" style={{ color: '#6366F1' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <h3 className="text-2xl font-bold flex items-center gap-3 max-[639px]:text-[16px]" style={{ color: '#1F2937' }}>
+                <svg className="w-7 h-7 max-[639px]:w-5 max-[639px]:h-5" style={{ color: '#6366F1' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
                 </svg>
                 منجزاتك للعام الدراسي {selectedYear}
@@ -1053,10 +1054,10 @@ export default function TeachersDashboardPage() {
                 </div>
                 <div className="space-y-4">
                   <div className="text-center">
-                    <div className="text-5xl font-bold text-white mb-2">{researchStatsByDate.total + conferencesCountByDate + seminarsCountByDate + coursesCountByDate + workshopsCountByDate + committeesCountByDate + positionsCountByDate + thankYouBooksCountByDate + assignmentsCountByDate + supervisionCountByDate + journalMembershipsCountByDate + scientificEvaluationsCountByDate + volunteerWorkCountByDate}</div>
+                    <div className="text-5xl font-bold text-white mb-2 max-[639px]:text-4xl max-[639px]:mb-1.5">{researchStatsByDate.total + conferencesCountByDate + seminarsCountByDate + coursesCountByDate + workshopsCountByDate + committeesCountByDate + positionsCountByDate + thankYouBooksCountByDate + assignmentsCountByDate + supervisionCountByDate + journalMembershipsCountByDate + scientificEvaluationsCountByDate + volunteerWorkCountByDate}</div>
                     <div className="text-white/90 text-sm font-medium">إجمالي الإنجازات</div>
                   </div>
-                  <div className="grid grid-cols-2 gap-3 pt-3 border-t border-white/20">
+                  <div className="grid grid-cols-2 gap-3 pt-3 border-t border-white/20 max-[639px]:grid-cols-1">
                     <div className="text-center">
                       <div className="text-2xl font-bold text-white">{researchStatsByDate.total}</div>
                       <div className="text-white/80 text-xs">بحوث</div>
@@ -1092,18 +1093,23 @@ export default function TeachersDashboardPage() {
       </div>
 
       {/* General Achievements Section - All Years */}
-      <div className="bg-white rounded-lg border border-gray-200 p-5 mb-6 shadow-sm hover:shadow-md transition-shadow duration-300">
+      <div className="bg-white rounded-lg border border-gray-200 p-5 mb-6 shadow-sm hover:shadow-md transition-shadow duration-300 max-[639px]:rounded-3xl max-[639px]:p-4 max-[639px]:mb-4">
         <div className="mb-4 pb-2 border-b border-gray-300">
-          <h2 className="text-xl font-bold" style={{ color: '#1F2937' }}>
+          <h2 className="text-xl font-bold max-[639px]:text-[16px]" style={{ color: '#1F2937' }}>
             المنجزات العامة - جميع السنوات
           </h2>
         </div>
         
         {/* Summary Achievements Card - All Years */}
-        <div className="bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 rounded-lg border-2 border-emerald-200 p-6 shadow-lg mt-4">
+        <div
+          className={[
+            "bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 rounded-lg border-2 border-emerald-200 p-6 shadow-lg mt-4 max-[639px]:rounded-3xl max-[639px]:p-4 max-[639px]:mt-3 max-[639px]:relative",
+            allYearsExpanded ? "" : "max-[639px]:max-h-[420px] max-[639px]:overflow-hidden",
+          ].join(" ")}
+        >
           <div className="mb-5 pb-3 border-b-2 border-emerald-300">
-            <h3 className="text-2xl font-bold flex items-center gap-3" style={{ color: '#1F2937' }}>
-              <svg className="w-7 h-7" style={{ color: '#10B981' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <h3 className="text-2xl font-bold flex items-center gap-3 max-[639px]:text-[16px]" style={{ color: '#1F2937' }}>
+              <svg className="w-7 h-7 max-[639px]:w-5 max-[639px]:h-5" style={{ color: '#10B981' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
               </svg>
               إنجازاتك الإجمالية
@@ -1155,7 +1161,7 @@ export default function TeachersDashboardPage() {
                   </svg>
                 </div>
               </div>
-              <div className="space-y-2.5 max-h-64 overflow-y-auto">
+              <div className="space-y-2.5 max-h-64 overflow-y-auto max-[639px]:max-h-none max-[639px]:overflow-visible">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-medium" style={{ color: '#6B7280' }}>المؤتمرات</span>
                   <span className="text-lg font-bold" style={{ color: '#1F2937' }}>{totalConferencesCount}</span>
@@ -1231,10 +1237,10 @@ export default function TeachersDashboardPage() {
               </div>
               <div className="space-y-4">
                 <div className="text-center">
-                  <div className="text-5xl font-bold text-white mb-2">{totalResearchCount + totalConferencesCount + totalSeminarsCount + totalCoursesCount + totalWorkshopsCount + totalCommitteesCount + totalPositionsCount + totalThankYouBooksCount + totalAssignmentsCount + totalSupervisionCount + totalJournalMembershipsCount + totalScientificEvaluationsCount + totalVolunteerWorkCount + totalParticipationCertificatesCount + totalPublicationsCount}</div>
+                  <div className="text-5xl font-bold text-white mb-2 max-[639px]:text-4xl max-[639px]:mb-1.5">{totalResearchCount + totalConferencesCount + totalSeminarsCount + totalCoursesCount + totalWorkshopsCount + totalCommitteesCount + totalPositionsCount + totalThankYouBooksCount + totalAssignmentsCount + totalSupervisionCount + totalJournalMembershipsCount + totalScientificEvaluationsCount + totalVolunteerWorkCount + totalParticipationCertificatesCount + totalPublicationsCount}</div>
                   <div className="text-white/90 text-sm font-medium">إجمالي الإنجازات</div>
                 </div>
-                <div className="grid grid-cols-2 gap-3 pt-3 border-t border-white/20">
+            <div className="grid grid-cols-2 gap-3 pt-3 border-t border-white/20 max-[639px]:grid-cols-1">
                   <div className="text-center">
                     <div className="text-2xl font-bold text-white">{totalResearchCount}</div>
                     <div className="text-white/80 text-xs">بحوث</div>
@@ -1265,8 +1271,23 @@ export default function TeachersDashboardPage() {
               </div>
             </div>
           </div>
+
+          {!allYearsExpanded ? (
+            <div className="hidden max-[639px]:block pointer-events-none absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-emerald-50 to-transparent" />
+          ) : null}
+        </div>
+
+        {/* Mobile-only expand/collapse toggle */}
+        <div className="hidden max-[639px]:block mt-3">
+          <button
+            type="button"
+            onClick={() => setAllYearsExpanded((v) => !v)}
+            className="w-full h-11 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-extrabold"
+          >
+            {allYearsExpanded ? "إخفاء" : "عرض المزيد"}
+          </button>
         </div>
       </div>
-    </>
+    </div>
   );
 }

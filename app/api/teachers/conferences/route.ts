@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db/query";
+import { ensureConferencesTable } from "@/lib/db/conferences";
 
 export async function GET(request: NextRequest) {
   try {
@@ -10,50 +11,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "userId is required" }, { status: 400 });
     }
 
-    // Create conferences table if it doesn't exist
-    try {
-      await query(`
-        CREATE TABLE IF NOT EXISTS conferences (
-          id SERIAL PRIMARY KEY,
-          user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-          conference_title VARCHAR(500) NOT NULL,
-          date DATE NOT NULL,
-          scope VARCHAR(50) NOT NULL,
-          type VARCHAR(50) NOT NULL,
-          sponsoring_organization VARCHAR(255),
-          location VARCHAR(255),
-          is_committee_member BOOLEAN DEFAULT FALSE,
-          assignment_document TEXT,
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-      `);
-      
-      // Add missing columns if table already exists
-      const alterQueries = [
-        `ALTER TABLE conferences ADD COLUMN IF NOT EXISTS conference_title VARCHAR(500)`,
-        `ALTER TABLE conferences ADD COLUMN IF NOT EXISTS date DATE`,
-        `ALTER TABLE conferences ADD COLUMN IF NOT EXISTS scope VARCHAR(50)`,
-        `ALTER TABLE conferences ADD COLUMN IF NOT EXISTS type VARCHAR(50)`,
-        `ALTER TABLE conferences ADD COLUMN IF NOT EXISTS sponsoring_organization VARCHAR(255)`,
-        `ALTER TABLE conferences ADD COLUMN IF NOT EXISTS location VARCHAR(255)`,
-        `ALTER TABLE conferences ADD COLUMN IF NOT EXISTS is_committee_member BOOLEAN DEFAULT FALSE`,
-        `ALTER TABLE conferences ADD COLUMN IF NOT EXISTS assignment_document TEXT`,
-        `ALTER TABLE conferences ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`,
-        `ALTER TABLE conferences ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`,
-      ];
-      
-      for (const alterQuery of alterQueries) {
-        try {
-          await query(alterQuery);
-        } catch (error: any) {
-          // Ignore errors if column already exists
-          console.error("Error altering conferences table:", error.message);
-        }
-      }
-    } catch (error: any) {
-      console.error("Error creating conferences table:", error);
-    }
+    await ensureConferencesTable();
 
     const result = await query(
       `SELECT 
@@ -84,50 +42,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create conferences table if it doesn't exist
-    try {
-      await query(`
-        CREATE TABLE IF NOT EXISTS conferences (
-          id SERIAL PRIMARY KEY,
-          user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-          conference_title VARCHAR(500) NOT NULL,
-          date DATE NOT NULL,
-          scope VARCHAR(50) NOT NULL,
-          type VARCHAR(50) NOT NULL,
-          sponsoring_organization VARCHAR(255),
-          location VARCHAR(255),
-          is_committee_member BOOLEAN DEFAULT FALSE,
-          assignment_document TEXT,
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-      `);
-      
-      // Add missing columns if table already exists
-      const alterQueries = [
-        `ALTER TABLE conferences ADD COLUMN IF NOT EXISTS conference_title VARCHAR(500)`,
-        `ALTER TABLE conferences ADD COLUMN IF NOT EXISTS date DATE`,
-        `ALTER TABLE conferences ADD COLUMN IF NOT EXISTS scope VARCHAR(50)`,
-        `ALTER TABLE conferences ADD COLUMN IF NOT EXISTS type VARCHAR(50)`,
-        `ALTER TABLE conferences ADD COLUMN IF NOT EXISTS sponsoring_organization VARCHAR(255)`,
-        `ALTER TABLE conferences ADD COLUMN IF NOT EXISTS location VARCHAR(255)`,
-        `ALTER TABLE conferences ADD COLUMN IF NOT EXISTS is_committee_member BOOLEAN DEFAULT FALSE`,
-        `ALTER TABLE conferences ADD COLUMN IF NOT EXISTS assignment_document TEXT`,
-        `ALTER TABLE conferences ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`,
-        `ALTER TABLE conferences ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`,
-      ];
-      
-      for (const alterQuery of alterQueries) {
-        try {
-          await query(alterQuery);
-        } catch (error: any) {
-          // Ignore errors if column already exists
-          console.error("Error altering conferences table:", error.message);
-        }
-      }
-    } catch (error: any) {
-      console.error("Error creating conferences table:", error);
-    }
+    await ensureConferencesTable();
 
     const result = await query(
       `INSERT INTO conferences (
