@@ -32,6 +32,48 @@ const months = [
   "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"
 ];
 
+function normalizeClassifications(value: unknown): string[] {
+  if (!value) return [];
+  if (Array.isArray(value)) {
+    return value
+      .map((v) => String(v ?? "").trim())
+      .filter(Boolean);
+  }
+  if (typeof value === "string") {
+    const s = value.trim();
+    if (!s) return [];
+    // JSON array/string stored as text
+    try {
+      const parsed = JSON.parse(s);
+      if (Array.isArray(parsed)) {
+        return parsed
+          .map((v) => String(v ?? "").trim())
+          .filter(Boolean);
+      }
+      if (typeof parsed === "string") {
+        const one = parsed.trim();
+        return one ? [one] : [];
+      }
+    } catch {
+      // ignore
+    }
+    // Postgres array literal: {a,b}
+    if (s.startsWith("{") && s.endsWith("}")) {
+      const inner = s.slice(1, -1);
+      return inner
+        .split(",")
+        .map((x) => x.replace(/^"|"$/g, "").trim())
+        .filter(Boolean);
+    }
+    // Fallback: comma-separated
+    return s
+      .split(",")
+      .map((x) => x.trim())
+      .filter(Boolean);
+  }
+  return [];
+}
+
 export default function ResearchPage() {
   const { user } = useLayout();
   const [showForm, setShowForm] = useState(false);
@@ -76,7 +118,13 @@ export default function ResearchPage() {
         const response = await fetch(`/api/teachers/research?userId=${user.id}`);
         if (response.ok) {
           const data = await response.json();
-          setResearchList(data);
+          const list: Research[] = Array.isArray(data) ? data : [];
+          setResearchList(
+            list.map((r: any) => ({
+              ...r,
+              classifications: normalizeClassifications(r?.classifications),
+            }))
+          );
         }
       } catch (error) {
         console.error("Error fetching research:", error);
@@ -307,9 +355,10 @@ export default function ResearchPage() {
   };
 
   const MobileResearchCard = ({ research }: { research: Research }) => {
+    const normalizedClassifications = normalizeClassifications(research.classifications);
     const classificationsText =
-      research.classifications && research.classifications.length > 0
-        ? research.classifications.map(getClassificationLabel).join("، ")
+      normalizedClassifications.length > 0
+        ? normalizedClassifications.map(getClassificationLabel).join("، ")
         : "-";
 
     const openLink = () => {
@@ -396,7 +445,7 @@ export default function ResearchPage() {
             </span>
           </div>
 
-          {research.classifications?.includes("scopus") && (
+          {normalizedClassifications.includes("scopus") && (
             <div className="flex items-start gap-3">
               <span className="w-[92px] text-right text-[12px] leading-5 font-bold text-slate-500 flex-shrink-0">
                 Q

@@ -1,6 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/db/query";
 
+async function hasColumn(tableName: string, columnName: string): Promise<boolean> {
+  const res = await query(
+    `
+    SELECT EXISTS (
+      SELECT 1
+      FROM information_schema.columns
+      WHERE table_name = $1 AND column_name = $2
+    ) AS exists
+    `,
+    [tableName, columnName]
+  );
+  return Boolean(res.rows?.[0]?.exists);
+}
+
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
@@ -69,15 +83,40 @@ export async function GET(request: NextRequest) {
       console.error("Error creating research table:", error);
     }
 
+    // Backfill title from legacy column if present
+    try {
+      const hasResearchTitle = await hasColumn("research", "research_title");
+      const hasTitle = await hasColumn("research", "title");
+      if (hasResearchTitle && hasTitle) {
+        await query(
+          `UPDATE research SET title = COALESCE(title, research_title) WHERE title IS NULL`
+        );
+      }
+    } catch (error: any) {
+      console.error("Error backfilling research.title:", error?.message || error);
+    }
+
+    // Avoid referencing legacy columns if they don't exist
+    const hasResearchTitle = await hasColumn("research", "research_title");
+
     const result = await query(
-      `SELECT 
-        id, user_id, 
-        COALESCE(research_title, title) AS title,
-        research_type, author_type, is_completed, completion_percentage,
-        year, is_published, research_link, publication_type, publisher, doi,
-        publication_month, download_link, classifications, scopus_quartile,
-        created_at, updated_at
-      FROM research WHERE user_id = $1 ORDER BY year DESC, created_at DESC`,
+      hasResearchTitle
+        ? `SELECT 
+            id, user_id, 
+            COALESCE(research_title, title) AS title,
+            research_type, author_type, is_completed, completion_percentage,
+            year, is_published, research_link, publication_type, publisher, doi,
+            publication_month, download_link, classifications, scopus_quartile,
+            created_at, updated_at
+          FROM research WHERE user_id = $1 ORDER BY year DESC, created_at DESC`
+        : `SELECT 
+            id, user_id, 
+            title,
+            research_type, author_type, is_completed, completion_percentage,
+            year, is_published, research_link, publication_type, publisher, doi,
+            publication_month, download_link, classifications, scopus_quartile,
+            created_at, updated_at
+          FROM research WHERE user_id = $1 ORDER BY year DESC, created_at DESC`,
       [parseInt(userId)]
     );
 
@@ -179,69 +218,43 @@ export async function POST(request: NextRequest) {
       console.error("Error creating research table:", error);
     }
 
-    // Check if research_title exists, if so use it, otherwise use title
-    // First try to insert with research_title (old schema)
-    let result;
-    try {
-      result = await query(
-        `INSERT INTO research (
-          user_id, research_title, research_type, author_type, is_completed, completion_percentage,
-          year, is_published, research_link, publication_type, publisher, doi,
-          publication_month, download_link, classifications, scopus_quartile
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
-        RETURNING *`,
-        [
-          parseInt(userId.toString()),
-          title,
-          researchType,
-          authorType,
-          isCompleted || false,
-          completionPercentage !== undefined && completionPercentage !== null ? parseInt(completionPercentage.toString()) : null,
-          parseInt(year.toString()),
-          isPublished || false,
-          researchLink || null,
-          publicationType || null,
-          publisher || null,
-          doi || null,
-          publicationMonth || null,
-          downloadLink || null,
-          classifications && classifications.length > 0 ? classifications : null,
-          scopusQuartile || null,
-        ]
-      );
-    } catch (error: any) {
-      // If research_title doesn't exist, try with title (new schema)
-      if (error.message && error.message.includes("research_title")) {
-        result = await query(
-          `INSERT INTO research (
+    const hasResearchTitle = await hasColumn("research", "research_title");
+
+    const result = await query(
+      hasResearchTitle
+        ? `INSERT INTO research (
+            user_id, research_title, research_type, author_type, is_completed, completion_percentage,
+            year, is_published, research_link, publication_type, publisher, doi,
+            publication_month, download_link, classifications, scopus_quartile
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+          RETURNING *`
+        : `INSERT INTO research (
             user_id, title, research_type, author_type, is_completed, completion_percentage,
             year, is_published, research_link, publication_type, publisher, doi,
             publication_month, download_link, classifications, scopus_quartile
           ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
           RETURNING *`,
-          [
-            parseInt(userId.toString()),
-            title,
-            researchType,
-            authorType,
-            isCompleted || false,
-            completionPercentage !== undefined && completionPercentage !== null ? parseInt(completionPercentage.toString()) : null,
-            parseInt(year.toString()),
-            isPublished || false,
-            researchLink || null,
-            publicationType || null,
-            publisher || null,
-            doi || null,
-            publicationMonth || null,
-            downloadLink || null,
-            classifications && classifications.length > 0 ? classifications : null,
-            scopusQuartile || null,
-          ]
-        );
-      } else {
-        throw error;
-      }
-    }
+      [
+        parseInt(userId.toString()),
+        title,
+        researchType,
+        authorType,
+        isCompleted || false,
+        completionPercentage !== undefined && completionPercentage !== null
+          ? parseInt(completionPercentage.toString())
+          : null,
+        parseInt(year.toString()),
+        isPublished || false,
+        researchLink || null,
+        publicationType || null,
+        publisher || null,
+        doi || null,
+        publicationMonth || null,
+        downloadLink || null,
+        classifications && classifications.length > 0 ? classifications : null,
+        scopusQuartile || null,
+      ]
+    );
 
     // Map research_title to title for consistency
     const researchData = result.rows[0];
@@ -285,53 +298,30 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "id is required" }, { status: 400 });
     }
 
-    // Try to update research_title first (old schema), if column doesn't exist, use title
-    let result;
-    try {
-      result = await query(
-        `UPDATE research SET
-          research_title = COALESCE($1, research_title),
-          research_type = COALESCE($2, research_type),
-          author_type = COALESCE($3, author_type),
-          is_completed = COALESCE($4, is_completed),
-          completion_percentage = $5,
-          year = COALESCE($6, year),
-          is_published = COALESCE($7, is_published),
-          research_link = $8,
-          publication_type = $9,
-          publisher = $10,
-          doi = $11,
-          publication_month = $12,
-          download_link = $13,
-          classifications = $14,
-          scopus_quartile = $15,
-          updated_at = CURRENT_TIMESTAMP
-        WHERE id = $16
-        RETURNING *`,
-        [
-          title || null,
-          researchType || null,
-          authorType || null,
-          isCompleted !== undefined ? isCompleted : null,
-          completionPercentage !== undefined && completionPercentage !== null ? parseInt(completionPercentage.toString()) : null,
-          year ? parseInt(year.toString()) : null,
-          isPublished !== undefined ? isPublished : null,
-          researchLink || null,
-          publicationType || null,
-          publisher || null,
-          doi || null,
-          publicationMonth || null,
-          downloadLink || null,
-          classifications && classifications.length > 0 ? classifications : null,
-          scopusQuartile || null,
-          id,
-        ]
-      );
-    } catch (error: any) {
-      // If research_title doesn't exist, try with title (new schema)
-      if (error.message && error.message.includes("research_title")) {
-        result = await query(
-          `UPDATE research SET
+    const hasResearchTitle = await hasColumn("research", "research_title");
+
+    const result = await query(
+      hasResearchTitle
+        ? `UPDATE research SET
+            research_title = COALESCE($1, research_title),
+            research_type = COALESCE($2, research_type),
+            author_type = COALESCE($3, author_type),
+            is_completed = COALESCE($4, is_completed),
+            completion_percentage = $5,
+            year = COALESCE($6, year),
+            is_published = COALESCE($7, is_published),
+            research_link = $8,
+            publication_type = $9,
+            publisher = $10,
+            doi = $11,
+            publication_month = $12,
+            download_link = $13,
+            classifications = $14,
+            scopus_quartile = $15,
+            updated_at = CURRENT_TIMESTAMP
+          WHERE id = $16
+          RETURNING *`
+        : `UPDATE research SET
             title = COALESCE($1, title),
             research_type = COALESCE($2, research_type),
             author_type = COALESCE($3, author_type),
@@ -350,29 +340,27 @@ export async function PATCH(request: NextRequest) {
             updated_at = CURRENT_TIMESTAMP
           WHERE id = $16
           RETURNING *`,
-          [
-            title || null,
-            researchType || null,
-            authorType || null,
-            isCompleted !== undefined ? isCompleted : null,
-            completionPercentage !== undefined && completionPercentage !== null ? parseInt(completionPercentage.toString()) : null,
-            year ? parseInt(year.toString()) : null,
-            isPublished !== undefined ? isPublished : null,
-            researchLink || null,
-            publicationType || null,
-            publisher || null,
-            doi || null,
-            publicationMonth || null,
-            downloadLink || null,
-            classifications && classifications.length > 0 ? classifications : null,
-            scopusQuartile || null,
-            id,
-          ]
-        );
-      } else {
-        throw error;
-      }
-    }
+      [
+        title || null,
+        researchType || null,
+        authorType || null,
+        isCompleted !== undefined ? isCompleted : null,
+        completionPercentage !== undefined && completionPercentage !== null
+          ? parseInt(completionPercentage.toString())
+          : null,
+        year ? parseInt(year.toString()) : null,
+        isPublished !== undefined ? isPublished : null,
+        researchLink || null,
+        publicationType || null,
+        publisher || null,
+        doi || null,
+        publicationMonth || null,
+        downloadLink || null,
+        classifications && classifications.length > 0 ? classifications : null,
+        scopusQuartile || null,
+        id,
+      ]
+    );
 
     // Map research_title to title for consistency
     if (result.rows[0] && result.rows[0].research_title) {
