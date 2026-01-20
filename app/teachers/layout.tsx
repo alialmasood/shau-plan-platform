@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useState, createContext, useContext } from "react";
+import { useEffect, useRef, useState, createContext, useContext, type CSSProperties } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import Link from "next/link";
 import Image from "next/image";
 import { createPortal } from "react-dom";
+import { Bell, Search } from "lucide-react";
 import { getAcademicTitleLabel } from "@/lib/utils/academic";
 import MobileRankBar from "./_components/MobileRankBar";
 
@@ -79,7 +81,7 @@ export default function TeachersLayout({
   const [notificationCount, setNotificationCount] = useState(3);
   const [activitiesDropdownOpen, setActivitiesDropdownOpen] = useState(false);
   const [profilePictureMenuOpen, setProfilePictureMenuOpen] = useState(false);
-  const [isUploadingPicture, setIsUploadingPicture] = useState(false);
+  const [showAnnouncementBar, setShowAnnouncementBar] = useState(true);
   const [totalPoints, setTotalPoints] = useState<number | null>(null);
   const [collegeRank, setCollegeRank] = useState<number | null>(null);
   const [departmentRank, setDepartmentRank] = useState<number | null>(null);
@@ -91,71 +93,81 @@ export default function TeachersLayout({
 
   // Determine active menu item based on pathname and close dropdown when pathname changes
   useEffect(() => {
-    // Close activities dropdown when pathname changes
-    setActivitiesDropdownOpen(false);
-    // Close mobile drawer on navigation (mobile-only UI)
-    setMobileDrawerOpen(false);
-    setMobileActivitiesOpen(false);
-    
-    if (pathname === "/teachers/dashboard") {
-      setActiveMenuItem("home");
-    } else if (pathname === "/teachers/researcher-links") {
-      setActiveMenuItem("researcher-links");
-    } else if (pathname === "/teachers/profile") {
-      setActiveMenuItem("profile");
-    } else if (pathname === "/teachers/positions") {
-      setActiveMenuItem("positions");
-    } else if (pathname === "/teachers/research") {
-      setActiveMenuItem("research");
-    } else if (pathname === "/teachers/publications") {
-      setActiveMenuItem("publications");
-    } else if (pathname === "/teachers/courses") {
-      setActiveMenuItem("courses");
-    } else if (pathname === "/teachers/seminars") {
-      setActiveMenuItem("seminars");
-    } else if (pathname === "/teachers/workshops") {
-      setActiveMenuItem("training-workshops");
-    } else if (pathname === "/teachers/conferences") {
-      setActiveMenuItem("conferences");
-    } else if (pathname === "/teachers/committees") {
-      setActiveMenuItem("committees");
-    } else if (pathname === "/teachers/thank-you-books") {
-      setActiveMenuItem("thank-you-books");
-    } else if (pathname === "/teachers/assignments") {
-      setActiveMenuItem("assignments");
-    } else if (pathname === "/teachers/participation-certificates") {
-      setActiveMenuItem("participation-certificates");
-    } else if (pathname === "/teachers/supervision") {
-      setActiveMenuItem("supervision");
-    } else if (pathname === "/teachers/scientific-evaluation") {
-      setActiveMenuItem("scientific-evaluation");
-    } else if (pathname === "/teachers/journals-management") {
-      setActiveMenuItem("journals-management");
-    } else if (pathname === "/teachers/volunteer-work") {
-      setActiveMenuItem("volunteer-work");
-    } else if (pathname === "/teachers/evaluation") {
-      setActiveMenuItem("evaluation");
-    } else if (pathname === "/teachers/analytics") {
-      setActiveMenuItem("analytics");
-    } else if (pathname === "/teachers/comparison") {
-      setActiveMenuItem("comparison");
-    } else if (pathname === "/teachers/cv") {
-      setActiveMenuItem("cv");
-    } else if (pathname === "/teachers/collaboration") {
-      setActiveMenuItem("collaboration");
-    } else if (pathname === "/teachers/communication") {
-      setActiveMenuItem("communication");
-    } else if (pathname === "/teachers/users-management") {
-      setActiveMenuItem("users-management");
-    }
+    const t = setTimeout(() => {
+      // Close activities dropdown when pathname changes
+      setActivitiesDropdownOpen(false);
+      // Close mobile drawer on navigation (mobile-only UI)
+      setMobileDrawerOpen(false);
+      setMobileActivitiesOpen(false);
+      // Close desktop menus on navigation
+      setProfilePictureMenuOpen(false);
+      setOnlineUsersMenuOpen(false);
+      
+      if (pathname === "/teachers/dashboard") {
+        setActiveMenuItem("home");
+      } else if (pathname === "/teachers/researcher-links") {
+        setActiveMenuItem("researcher-links");
+      } else if (pathname === "/teachers/profile") {
+        setActiveMenuItem("profile");
+      } else if (pathname === "/teachers/positions") {
+        setActiveMenuItem("positions");
+      } else if (pathname === "/teachers/research") {
+        setActiveMenuItem("research");
+      } else if (pathname === "/teachers/publications") {
+        setActiveMenuItem("publications");
+      } else if (pathname === "/teachers/courses") {
+        setActiveMenuItem("courses");
+      } else if (pathname === "/teachers/seminars") {
+        setActiveMenuItem("seminars");
+      } else if (pathname === "/teachers/workshops") {
+        setActiveMenuItem("training-workshops");
+      } else if (pathname === "/teachers/conferences") {
+        setActiveMenuItem("conferences");
+      } else if (pathname === "/teachers/committees") {
+        setActiveMenuItem("committees");
+      } else if (pathname === "/teachers/thank-you-books") {
+        setActiveMenuItem("thank-you-books");
+      } else if (pathname === "/teachers/assignments") {
+        setActiveMenuItem("assignments");
+      } else if (pathname === "/teachers/participation-certificates") {
+        setActiveMenuItem("participation-certificates");
+      } else if (pathname === "/teachers/supervision") {
+        setActiveMenuItem("supervision");
+      } else if (pathname === "/teachers/scientific-evaluation") {
+        setActiveMenuItem("scientific-evaluation");
+      } else if (pathname === "/teachers/journals-management") {
+        setActiveMenuItem("journals-management");
+      } else if (pathname === "/teachers/volunteer-work") {
+        setActiveMenuItem("volunteer-work");
+      } else if (pathname === "/teachers/evaluation") {
+        setActiveMenuItem("evaluation");
+      } else if (pathname === "/teachers/analytics") {
+        setActiveMenuItem("analytics");
+      } else if (pathname === "/teachers/comparison") {
+        setActiveMenuItem("comparison");
+      } else if (pathname === "/teachers/cv") {
+        setActiveMenuItem("cv");
+      } else if (pathname === "/teachers/collaboration") {
+        setActiveMenuItem("collaboration");
+      } else if (pathname === "/teachers/communication") {
+        setActiveMenuItem("communication");
+      } else if (pathname === "/teachers/users-management") {
+        setActiveMenuItem("users-management");
+      }
+    }, 0);
+
+    return () => clearTimeout(t);
   }, [pathname]);
 
   useEffect(() => {
+    let tUser: ReturnType<typeof setTimeout> | null = null;
+    let tLoading: ReturnType<typeof setTimeout> | null = null;
+
     // Check if user is logged in
     const userData = localStorage.getItem("user");
     if (userData) {
       const parsedUser = JSON.parse(userData);
-      setUser(parsedUser);
+      tUser = setTimeout(() => setUser(parsedUser), 0);
       
       // Fetch latest user data from database to ensure profile picture is up to date
       const fetchLatestUserData = async () => {
@@ -175,13 +187,13 @@ export default function TeachersLayout({
       };
       
       fetchLatestUserData();
-      setIsLoading(false);
+      tLoading = setTimeout(() => setIsLoading(false), 0);
     } else {
       // Redirect to login if not logged in (except for login/register pages)
       if (!pathname?.includes("/login") && !pathname?.includes("/register")) {
         router.push("/teachers/login");
       } else {
-        setIsLoading(false);
+        tLoading = setTimeout(() => setIsLoading(false), 0);
       }
     }
 
@@ -193,6 +205,8 @@ export default function TeachersLayout({
     window.addEventListener("userUpdated", handleUserUpdate as EventListener);
 
     return () => {
+      if (tUser) clearTimeout(tUser);
+      if (tLoading) clearTimeout(tLoading);
       window.removeEventListener("userUpdated", handleUserUpdate as EventListener);
     };
   }, [router, pathname]);
@@ -305,18 +319,24 @@ export default function TeachersLayout({
 
   // Track viewport for mobile-only portal UI
   useEffect(() => {
-    setIsClient(true);
+    const t = setTimeout(() => setIsClient(true), 0);
     if (typeof window === "undefined") return;
     const mql = window.matchMedia("(max-width: 639px)");
     const onChange = () => setIsMobileViewport(Boolean(mql.matches));
     onChange();
     try {
       mql.addEventListener("change", onChange);
-      return () => mql.removeEventListener("change", onChange);
+      return () => {
+        clearTimeout(t);
+        mql.removeEventListener("change", onChange);
+      };
     } catch {
       // Safari legacy
       mql.addListener(onChange);
-      return () => mql.removeListener(onChange);
+      return () => {
+        clearTimeout(t);
+        mql.removeListener(onChange);
+      };
     }
   }, []);
 
@@ -325,84 +345,115 @@ export default function TeachersLayout({
     router.push("/teachers/login");
   };
 
+  const profilePictureInputRef = useRef<HTMLInputElement | null>(null);
+  const [isUpdatingProfilePicture, setIsUpdatingProfilePicture] = useState(false);
+
+  const patchProfilePicture = async (profilePicture: string | null) => {
+    if (!user) return;
+
+    setIsUpdatingProfilePicture(true);
+    try {
+      const response = await fetch("/api/teachers/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user.id, profilePicture }),
+      });
+
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) {
+        const msg =
+          payload?.message ||
+          payload?.error ||
+          "حدث خطأ أثناء تحديث الصورة الشخصية. حاول مرة أخرى.";
+        alert(msg);
+        return;
+      }
+
+      const updatedUser = payload?.user ? { ...user, ...payload.user } : { ...user, profile_picture: profilePicture || undefined };
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+      setUser(updatedUser);
+      window.dispatchEvent(new CustomEvent("userUpdated", { detail: updatedUser }));
+    } catch (error) {
+      console.error("Error updating profile picture:", error);
+      alert("حدث خطأ أثناء تحديث الصورة الشخصية. حاول مرة أخرى.");
+    } finally {
+      setIsUpdatingProfilePicture(false);
+    }
+  };
+
+  const onPickProfilePictureFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // reset to allow re-selecting same file
+    e.target.value = "";
+
+    if (!file.type.startsWith("image/")) {
+      alert("يرجى اختيار ملف صورة صالح.");
+      return;
+    }
+
+    const maxBytes = 2 * 1024 * 1024; // 2MB
+    if (file.size > maxBytes) {
+      alert("حجم الصورة كبير جداً. يرجى اختيار صورة أقل من 2MB.");
+      return;
+    }
+
+    const dataUrl: string = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || ""));
+      reader.onerror = () => reject(new Error("FileReader failed"));
+      reader.readAsDataURL(file);
+    });
+
+    if (!dataUrl) {
+      alert("تعذّر قراءة الصورة. حاول مرة أخرى.");
+      return;
+    }
+
+    await patchProfilePicture(dataUrl);
+    setProfilePictureMenuOpen(false);
+  };
+
   const handleProfilePictureClick = () => {
     setProfilePictureMenuOpen(!profilePictureMenuOpen);
   };
-
-  const handleFileInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !user) return;
-
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      alert('يرجى اختيار ملف صورة صالح');
-      return;
-    }
-
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      alert('حجم الصورة يجب أن يكون أقل من 5 ميجابايت');
-      return;
-    }
-
-    setIsUploadingPicture(true);
-    setProfilePictureMenuOpen(false);
-
-    try {
-      // Convert image to base64
-      const reader = new FileReader();
-      reader.onload = async (event) => {
-        const base64Image = event.target?.result as string;
-
-        try {
-          const response = await fetch('/api/teachers/profile', {
-            method: 'PATCH',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              userId: user.id,
-              profilePicture: base64Image,
-            }),
-          });
-
-          if (!response.ok) {
-            throw new Error('فشل تحديث الصورة الشخصية');
-          }
-
-          const result = await response.json();
-          
-          // Update local storage and state
-          const updatedUser = { ...user, profile_picture: result.user.profile_picture };
-          localStorage.setItem('user', JSON.stringify(updatedUser));
-          setUser(updatedUser);
-
-          // Dispatch event to notify other components
-          window.dispatchEvent(new CustomEvent('userUpdated', { detail: updatedUser }));
-        } catch (error) {
-          console.error('Error uploading profile picture:', error);
-          alert('حدث خطأ أثناء رفع الصورة. يرجى المحاولة مرة أخرى.');
-        } finally {
-          setIsUploadingPicture(false);
-        }
-      };
-
-      reader.onerror = () => {
-        console.error('Error reading file');
-        alert('حدث خطأ أثناء قراءة الملف');
-        setIsUploadingPicture(false);
-      };
-
-      reader.readAsDataURL(file);
-    } catch (error) {
-      console.error('Error processing file:', error);
-      alert('حدث خطأ أثناء معالجة الملف');
-      setIsUploadingPicture(false);
-    }
-
-    // Reset input
-    e.target.value = '';
-  };
+  
+  const pageLabel = (() => {
+    const map: Record<string, string> = {
+      "/teachers/dashboard": "لوحة التحكم",
+      "/teachers/research": "البحوث",
+      "/teachers/positions": "المناصب",
+      "/teachers/evaluation": "التقييم",
+      "/teachers/analytics": "التحليلات",
+      "/teachers/comparison": "المقارنات",
+      "/teachers/profile": "الملف الشخصي",
+      "/teachers/researcher-links": "روابط الباحث",
+      "/teachers/publications": "المنشورات",
+      "/teachers/courses": "الدورات",
+      "/teachers/seminars": "الندوات",
+      "/teachers/workshops": "ورش العمل",
+      "/teachers/conferences": "المؤتمرات",
+      "/teachers/committees": "اللجان",
+      "/teachers/thank-you-books": "كتب الشكر",
+      "/teachers/assignments": "التكليفات",
+      "/teachers/participation-certificates": "شهادات المشاركة",
+      "/teachers/supervision": "الإشراف",
+      "/teachers/scientific-evaluation": "التقويم العلمي واللغوي",
+      "/teachers/journals-management": "إدارة المجلات العلمية",
+      "/teachers/volunteer-work": "الأعمال الطوعية",
+      "/teachers/cv": "السيرة الذاتية",
+      "/teachers/collaboration": "نظام التعاون",
+      "/teachers/communication": "نظام التواصل",
+      "/teachers/users-management": "إدارة المستخدمين",
+    };
+    if (pathname && map[pathname]) return map[pathname];
+    if (!pathname) return "الرئيسية";
+    if (!pathname.startsWith("/teachers/")) return "الرئيسية";
+    const last = pathname.split("/").filter(Boolean).pop() || "";
+    if (!last) return "الرئيسية";
+    return last;
+  })();
 
   // Close profile picture menu when clicking outside
   useEffect(() => {
@@ -421,6 +472,9 @@ export default function TeachersLayout({
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [profilePictureMenuOpen]);
+
+  const iconButtonClass =
+    "h-10 w-10 rounded-xl border border-slate-200/70 bg-white/80 text-slate-700 inline-flex items-center justify-center transition-colors duration-200 hover:bg-indigo-50/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6366F1]/30 focus-visible:ring-offset-2 focus-visible:ring-offset-indigo-50";
 
   // Don't show layout for login/register pages
   if (pathname?.includes("/login") || pathname?.includes("/register")) {
@@ -442,6 +496,9 @@ export default function TeachersLayout({
     return null;
   }
 
+  type CSSVars = CSSProperties & Record<`--${string}`, string>;
+  const shellVars: CSSVars = { "--sidebar-w": "320px" };
+
   return (
     <LayoutContext.Provider
       value={{
@@ -458,12 +515,15 @@ export default function TeachersLayout({
         user,
       }}
     >
-      <div className="flex h-screen flex-col bg-[#FAFBFC] overflow-hidden">
-        {/* Header */}
-        <header className="bg-white shadow-sm flex-shrink-0 border-b border-gray-100 max-[639px]:sticky max-[639px]:top-0 max-[639px]:z-50 max-[639px]:bg-white/90 max-[639px]:backdrop-blur-md max-[639px]:supports-[backdrop-filter]:bg-white/70">
+      <div
+        className="relative flex h-screen flex-col bg-[#FAFBFC] overflow-x-hidden"
+        style={shellVars}
+      >
+        {/* Header (Top Bar) */}
+        <header className="bg-white flex-shrink-0 border-b border-gray-100 max-[639px]:sticky max-[639px]:top-0 max-[639px]:z-50 max-[639px]:bg-white/90 max-[639px]:backdrop-blur-md max-[639px]:supports-[backdrop-filter]:bg-white/70 md:sticky md:top-0 md:z-50 md:bg-white/90 md:backdrop-blur-md md:supports-[backdrop-filter]:bg-white/70 md:border-b md:border-slate-200/60 md:shadow-sm md:shadow-black/5">
           <div className="w-full">
             {/* Mobile app header (STRICT: < 640px only) */}
-            <div className="hidden max-[639px]:block" dir="rtl">
+            <div className="md:hidden" dir="rtl">
               <div className="flex items-center justify-between px-4 py-2">
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 border border-gray-200 flex items-center justify-center flex-shrink-0">
@@ -537,237 +597,367 @@ export default function TeachersLayout({
               />
             </div>
 
-            {/* Desktop/Tablet header (unchanged; hidden only on mobile) */}
-            <div className="flex justify-between items-center py-3 pr-4 sm:pr-6 lg:pr-8 max-[639px]:hidden">
-              {/* Sidebar Toggle Button */}
-              <button
-                onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors flex-shrink-0"
-                aria-label="Toggle sidebar"
+            {/* Desktop/Tablet top bar + under-header strip (md+ only) */}
+            <div className="hidden md:block">
+              <div
+                className={
+                  sidebarOpen
+                    ? "w-full max-w-full md:pr-[320px]"
+                    : "w-full max-w-full md:pr-0"
+                }
               >
-                <svg className="w-6 h-6" style={{ color: '#1F2937' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              </button>
-
-              {/* Platform Name */}
-              <div className="flex-shrink-0 mr-4">
-                <h3 className="text-xl font-bold tracking-wide whitespace-nowrap" style={{ color: '#1F2937' }}>
-                  المنصة البحثية
-                </h3>
-              </div>
-
-              {/* User Profile Section */}
-              <div className="flex items-center gap-2 flex-1">
-                {/* User Info */}
-                <div className="flex-1" style={{ marginRight: 'calc(256px - 16px - 12.5rem)', marginLeft: '2.5rem' }}>
-                  <div className="pl-4">
-                    <div className="space-y-1">
-                    {/* First Line: Academic Title and Name */}
-                    <h2 className="text-xl md:text-2xl font-bold" style={{ color: '#1F2937' }}>
-                      <span className="text-indigo-600 font-extrabold">
-                        {getAcademicTitleLabel(user.academic_title)}
-                      </span>{" "}
-                      <span style={{ color: '#1F2937' }}>
-                        {user.full_name?.split(" / ")[0] || user.username}
-                      </span>
-                    </h2>
-                    
-                    {/* Second Line: Welcome Message */}
-                    <p className="text-xs md:text-sm font-medium" style={{ color: '#6B7280' }}>
-                      مرحباً بك في{" "}
-                      <span className="text-indigo-600 font-semibold">منصتك البحثية</span>
-                      {" "}للعام الدراسي{" "}
-                      <span className="font-bold px-2 py-0.5 rounded-md" style={{ backgroundColor: '#EEF2FF', color: '#6366F1' }}>
-                        {getAcademicYear()}
-                      </span>
-                    </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Search Bar */}
-              <div className="flex-1 max-w-xs mx-4">
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="ابحث..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full px-3 py-1.5 pr-8 border border-gray-200 rounded-full focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-transparent text-xs md:text-sm transition-all duration-300 ease-in-out"
-                    style={{ 
-                      color: '#1F2937',
-                      backgroundColor: '#F3F4F6'
-                    }}
-                  />
-                  <svg
-                    className="absolute right-2.5 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 pointer-events-none"
-                    style={{ color: '#6B7280' }}
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+                {/* Top Bar Row */}
+                <div className="md:px-6 lg:px-8 md:h-[72px] md:py-0 flex items-center">
+                  <div
+                    className="w-full md:grid md:grid-cols-[1fr_minmax(420px,720px)_1fr] md:items-center md:gap-4"
+                    dir="ltr"
                   >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                </div>
-              </div>
-
-              {/* User Profile Picture */}
-              <div className="flex-shrink-0 ml-4 relative profile-picture-container self-center flex items-center">
-                <div 
-                  onClick={handleProfilePictureClick}
-                  className="w-20 h-20 max-h-full rounded-full overflow-hidden bg-gray-200 border-2 border-gray-200 shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer hover:scale-105 relative"
-                >
-                  {isUploadingPicture ? (
-                    <div className="w-full h-full flex items-center justify-center bg-gray-300">
-                      <div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-                    </div>
-                  ) : user.profile_picture ? (
-                    <Image
-                      src={user.profile_picture}
-                      alt="الصورة الشخصية"
-                      width={80}
-                      height={80}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : user.full_name ? (
-                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600 text-white font-bold text-lg">
-                      {user.full_name.split(" / ")[0]?.charAt(0) || user.username?.charAt(0).toUpperCase()}
-                    </div>
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600 text-white font-bold text-lg">
-                      {user.username?.charAt(0).toUpperCase() || 'U'}
-                    </div>
-                  )}
-                </div>
-
-                {/* Profile Picture Menu */}
-                {profilePictureMenuOpen && (
-                  <div className="absolute left-full ml-2 top-0 mt-0 w-48 bg-white rounded-lg shadow-xl border border-gray-200 z-50 py-2">
-                    <label className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer transition-colors">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={handleFileInputChange}
-                        disabled={isUploadingPicture}
-                      />
-                      <div className="flex items-center gap-2">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                        <span>رفع صورة جديدة</span>
-                      </div>
-                    </label>
-                    {user.profile_picture && (
-                      <button
-                        onClick={async () => {
-                          if (!user) return;
-                          try {
-                            const response = await fetch('/api/teachers/profile', {
-                              method: 'PATCH',
-                              headers: {
-                                'Content-Type': 'application/json',
-                              },
-                              body: JSON.stringify({
-                                userId: user.id,
-                                profilePicture: null,
-                              }),
-                            });
-
-                            if (response.ok) {
-                              const result = await response.json();
-                              const updatedUser = { ...user, profile_picture: undefined };
-                              localStorage.setItem('user', JSON.stringify(updatedUser));
-                              setUser(updatedUser);
-                              window.dispatchEvent(new CustomEvent('userUpdated', { detail: updatedUser }));
-                              setProfilePictureMenuOpen(false);
-                            }
-                          } catch (error) {
-                            console.error('Error removing profile picture:', error);
-                            alert('حدث خطأ أثناء حذف الصورة');
-                          }
-                        }}
-                        className="w-full text-right px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                        <span>حذف الصورة</span>
+                    {/* Left zone: actions */}
+                    <div className="flex items-center gap-3 justify-self-start" dir="rtl">
+                      {/* Notifications */}
+                      <button type="button" className={`${iconButtonClass} relative`} aria-label="الإشعارات">
+                        <Bell className="w-5 h-5" />
+                        {notificationCount > 0 ? (
+                          <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-rose-500 text-white text-[10px] font-extrabold rounded-full flex items-center justify-center border border-white">
+                            {notificationCount > 9 ? "9+" : notificationCount}
+                          </span>
+                        ) : null}
                       </button>
-                    )}
+
+                      {/* Profile */}
+                      <div className="relative profile-picture-container">
+                        <button
+                          type="button"
+                          onClick={handleProfilePictureClick}
+                          className={iconButtonClass}
+                          aria-label="قائمة المستخدم"
+                        >
+                          <div className="w-8 h-8 rounded-full overflow-hidden bg-slate-200 border border-slate-200 flex items-center justify-center">
+                            {user.profile_picture ? (
+                              <Image
+                                src={user.profile_picture}
+                                alt="الصورة الشخصية"
+                                width={32}
+                                height={32}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center bg-indigo-600 text-white font-extrabold text-[12px]">
+                                {user.full_name?.split(" / ")[0]?.charAt(0) || user.username?.charAt(0).toUpperCase()}
+                              </div>
+                            )}
+                          </div>
+                        </button>
+
+                        {profilePictureMenuOpen && (
+                          <div className="absolute left-0 mt-2 w-56 bg-white rounded-2xl shadow-sm border border-slate-200 z-50 py-2" dir="rtl">
+                            <button
+                              type="button"
+                              onClick={() => { setProfilePictureMenuOpen(false); router.push("/teachers/profile"); }}
+                              className="w-full text-right px-4 py-2 text-[13px] font-semibold text-slate-800 hover:bg-slate-50 transition-colors"
+                            >
+                              الملف الشخصي
+                            </button>
+
+                            <div className="px-4 py-2 text-[12px] text-slate-500">
+                              العام الدراسي: <span className="font-extrabold text-slate-800">{getAcademicYear()}</span>
+                            </div>
+
+                            <div className="my-1 h-px bg-slate-200/70" />
+
+                            <input
+                              ref={profilePictureInputRef}
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={onPickProfilePictureFile}
+                            />
+
+                            <button
+                              type="button"
+                              onClick={() => profilePictureInputRef.current?.click()}
+                              disabled={isUpdatingProfilePicture}
+                              className={[
+                                "w-full text-right px-4 py-2 text-[13px] font-semibold transition-colors",
+                                isUpdatingProfilePicture
+                                  ? "text-slate-400 cursor-not-allowed"
+                                  : "text-indigo-700 hover:bg-indigo-50",
+                              ].join(" ")}
+                            >
+                              {user.profile_picture ? "تغيير الصورة الشخصية" : "تعيين الصورة الشخصية"}
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => patchProfilePicture(null)}
+                              disabled={isUpdatingProfilePicture || !user.profile_picture}
+                              className={[
+                                "w-full text-right px-4 py-2 text-[13px] font-semibold transition-colors",
+                                isUpdatingProfilePicture || !user.profile_picture
+                                  ? "text-slate-400 cursor-not-allowed"
+                                  : "text-rose-700 hover:bg-rose-50",
+                              ].join(" ")}
+                            >
+                              حذف الصورة الشخصية
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Divider + lightweight breadcrumb */}
+                      <span className="select-none text-slate-300" aria-hidden="true">
+                        |
+                      </span>
+                      <div className="flex items-center gap-2 min-w-0 max-w-[240px] lg:max-w-[360px]">
+                        <span className="text-[12px] lg:text-[13px] text-slate-600 font-medium truncate">
+                          منصة البحث العلمي
+                        </span>
+                        <span className="text-[#6366F1]/50" aria-hidden="true">
+                          ›
+                        </span>
+                        <span className="text-[12px] lg:text-[13px] text-slate-700 font-medium truncate">
+                          {pageLabel}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Center zone: search */}
+                    <div className="justify-self-center w-full" dir="rtl">
+                      <div className="relative mx-auto w-full">
+                        <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
+                        <input
+                          type="text"
+                          placeholder="ابحث في المنصة..."
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          className="w-full h-11 pr-11 pl-4 rounded-2xl border border-slate-200/70 bg-white/70 backdrop-blur text-sm text-slate-900 placeholder:text-slate-400/70 shadow-[inset_0_1px_1px_rgba(15,23,42,0.05)] focus:outline-none focus:border-[#6366F1]/40 focus:ring-2 focus:ring-[#6366F1]/15"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Right zone: breadcrumb/title */}
+                    <div className="justify-self-end min-w-0" dir="rtl">
+                      <div className="flex items-center justify-end gap-2 min-w-0">
+                        {/* Sidebar toggle (placed next to page title) */}
+                        <button
+                          type="button"
+                          onClick={() => setSidebarOpen(!sidebarOpen)}
+                          className={iconButtonClass}
+                          aria-label="إظهار/إخفاء القائمة"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                          </svg>
+                        </button>
+                        <div className="text-lg font-extrabold text-slate-900 truncate">{pageLabel}</div>
+                        <span className="hidden lg:inline-flex items-center h-6 px-2 rounded-full border border-indigo-200/60 bg-indigo-50 text-[11px] font-extrabold text-indigo-700 shrink-0">
+                          {getAcademicYear()}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                )}
+                </div>
               </div>
             </div>
           </div>
         </header>
 
-        {/* Main Layout with Sidebar */}
-        <div className="flex-1 flex overflow-hidden">
-          {/* Sidebar */}
-          <aside
-            className={`shadow-xl flex-shrink-0 flex flex-col transition-all duration-300 ease-in-out ${
-              sidebarOpen ? "w-64" : "w-0 overflow-hidden"
-            } max-[639px]:hidden`}
-            style={{ backgroundColor: '#6366F1', zIndex: 1000, position: 'relative' }}
+        {/* Subbar under header (md+ only): news + ranking chips */}
+        <div className="hidden md:block sticky top-[72px] z-[45] bg-white/90 backdrop-blur-md supports-[backdrop-filter]:bg-white/70 border-b border-slate-200/60">
+          <div
+            className={
+              sidebarOpen
+                ? "w-full max-w-full md:pr-[320px]"
+                : "w-full max-w-full md:pr-0"
+            }
           >
-            {/* Sidebar Navigation */}
-            <nav className={`flex-1 p-4 space-y-1 ${sidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none"}`}>
+            <div className="md:px-6 lg:px-8 h-[56px] flex items-center">
+              <div className="w-full flex items-center justify-between gap-3" dir="rtl">
+                {/* News */}
+                <div className="flex-1 min-w-0">
+                  <div className="h-12 rounded-2xl border border-slate-200/60 bg-white/70 px-4 flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-9 h-9 rounded-xl border border-indigo-100 bg-indigo-50 flex items-center justify-center shrink-0">
+                        <svg className="w-5 h-5 text-indigo-600/80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+                        </svg>
+                      </div>
+                      <div className="min-w-0">
+                        <div className="text-[12px] font-extrabold text-slate-900">الأخبار</div>
+                        <div className="text-[12px] text-slate-600 truncate">
+                          {showAnnouncementBar ? "آخر الأخبار والتحديثات الخاصة بالمنصة." : "لا توجد إعلانات حالياً (تم الإخفاء)."}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 shrink-0">
+                      <Link
+                        href="/teachers/dashboard"
+                        className="text-[12px] font-extrabold text-indigo-700/80 hover:text-indigo-700 transition-colors"
+                      >
+                        عرض التفاصيل
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={() => setShowAnnouncementBar((v) => !v)}
+                        className="text-[12px] font-bold text-slate-500 hover:text-slate-700 transition-colors"
+                        aria-label={showAnnouncementBar ? "إخفاء شريط الأخبار" : "إظهار شريط الأخبار"}
+                      >
+                        {showAnnouncementBar ? "إخفاء" : "إظهار"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Ranking chips: scrollable, no visible scrollbar */}
+                <div
+                  className={[
+                    "shrink-0 w-[520px] max-w-full",
+                    "flex items-center gap-3 overflow-x-auto",
+                    "[-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+                  ].join(" ")}
+                >
+                  <div className="flex items-center gap-3 whitespace-nowrap">
+                    {/* Points */}
+                    <div className="shrink-0 h-12 rounded-2xl border border-slate-200/60 bg-white hover:shadow-sm transition-shadow px-3 flex items-center justify-between gap-3 min-w-[170px]">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="w-8 h-8 rounded-xl border border-indigo-100 bg-indigo-50 flex items-center justify-center shrink-0">
+                          <svg className="w-4 h-4 text-indigo-600/80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                          </svg>
+                        </div>
+                        <div className="text-[11px] text-slate-600 truncate">نقاطي</div>
+                      </div>
+                      <div className="text-[14px] font-extrabold text-slate-900 tabular-nums">
+                        {totalPoints !== null ? totalPoints : "—"}
+                      </div>
+                    </div>
+
+                    {/* Dept rank */}
+                    <div className="shrink-0 h-12 rounded-2xl border border-slate-200/60 bg-white hover:shadow-sm transition-shadow px-3 flex items-center justify-between gap-3 min-w-[170px]">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="w-8 h-8 rounded-xl border border-indigo-100 bg-indigo-50 flex items-center justify-center shrink-0">
+                          <svg className="w-4 h-4 text-indigo-600/80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                          </svg>
+                        </div>
+                        <div className="text-[11px] text-slate-600 truncate">ترتيبي بالقسم</div>
+                      </div>
+                      <div className="text-[14px] font-extrabold text-slate-900 tabular-nums">
+                        {departmentRank !== null ? departmentRank : "—"}
+                      </div>
+                    </div>
+
+                    {/* College rank */}
+                    <div className="shrink-0 h-12 rounded-2xl border border-slate-200/60 bg-white hover:shadow-sm transition-shadow px-3 flex items-center justify-between gap-3 min-w-[170px]">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="w-8 h-8 rounded-xl border border-indigo-100 bg-indigo-50 flex items-center justify-center shrink-0">
+                          <svg className="w-4 h-4 text-indigo-600/80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                          </svg>
+                        </div>
+                        <div className="text-[11px] text-slate-600 truncate">ترتيبي بالكلية</div>
+                      </div>
+                      <div className="text-[14px] font-extrabold text-slate-900 tabular-nums">
+                        {collegeRank !== null ? collegeRank : "—"}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Layout with Sidebar */}
+        <div className="flex-1 overflow-hidden relative">
+          {/* Sidebar (fixed, overlays; md+ only) */}
+          <aside
+           className={[
+              "hidden md:flex fixed right-0 top-0 h-screen z-[55]",
+              "w-[320px]",
+
+              "bg-gradient-to-b from-indigo-600 to-violet-600",
+              "shadow-2xl border-l border-white/10",
+              "rounded-l-2xl",
+              "transition-transform duration-300 ease-in-out",
+              sidebarOpen ? "translate-x-0" : "translate-x-full pointer-events-none",
+            ].join(" ")}
+          >
+            <div className="h-full p-4 flex flex-col min-h-0" dir="rtl">
+              {/* Sidebar Navigation */}
+              <div className="flex-1 min-h-0 relative">
+                <nav className="h-full overflow-y-auto overflow-x-hidden space-y-1.5 m-scroll [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <a
                 href="/teachers/dashboard"
                 onClick={(e) => { e.preventDefault(); setActiveMenuItem("home"); router.push("/teachers/dashboard"); }}
-                className={`flex items-center gap-3 px-4 py-1.5 text-white rounded-lg transition-all duration-300 ease-in-out group relative ${
+                className={`flex items-center gap-3 h-11 px-3 rounded-xl border border-transparent transition-colors duration-200 group relative ${
                   activeMenuItem === "home" 
-                    ? "bg-white/20 shadow-sm" 
-                    : "hover:bg-white/10"
+                    ? "bg-white/18 border-white/20 text-white font-semibold" 
+                    : "text-white/85 hover:text-white hover:bg-white/10 hover:border-white/10 font-medium"
                 }`}
               >
                 {activeMenuItem === "home" && (
-                  <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-1 h-6 bg-white rounded-r-full"></div>
+                  <div className="absolute right-2 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full bg-white/70" />
                 )}
-                <svg className="w-4 h-4 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg
+                  className={`w-5 h-5 shrink-0 ${activeMenuItem === "home" ? "text-white" : "text-white/80"}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                 </svg>
-                <span className="font-medium text-sm">الصفحة الرئيسية</span>
+                <span className="text-sm font-[inherit]">الصفحة الرئيسية</span>
               </a>
 
               <a
                 href="/teachers/researcher-links"
                 onClick={(e) => { e.preventDefault(); setActiveMenuItem("researcher-links"); router.push("/teachers/researcher-links"); }}
-                className={`flex items-center gap-3 px-4 py-1.5 text-white rounded-lg transition-all duration-300 ease-in-out group relative ${
+                className={`flex items-center gap-3 h-11 px-3 rounded-xl border border-transparent transition-colors duration-200 group relative ${
                   activeMenuItem === "researcher-links" 
-                    ? "bg-white/20 shadow-sm" 
-                    : "hover:bg-white/10"
+                    ? "bg-white/18 border-white/20 text-white font-semibold" 
+                    : "text-white/85 hover:text-white hover:bg-white/10 hover:border-white/10 font-medium"
                 }`}
               >
                 {activeMenuItem === "researcher-links" && (
-                  <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-1 h-6 bg-white rounded-r-full"></div>
+                  <div className="absolute right-2 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full bg-white/70" />
                 )}
-                <svg className="w-4 h-4 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg
+                  className={`w-5 h-5 shrink-0 ${activeMenuItem === "researcher-links" ? "text-white" : "text-white/80"}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                 </svg>
-                <span className="font-medium text-sm">روابط الباحث</span>
+                <span className="text-sm font-[inherit]">روابط الباحث</span>
               </a>
 
               <a
                 href="/teachers/profile"
                 onClick={(e) => { e.preventDefault(); setActiveMenuItem("profile"); router.push("/teachers/profile"); }}
-                className={`flex items-center gap-3 px-4 py-1.5 text-white rounded-lg transition-all duration-300 ease-in-out group relative ${
+                className={`flex items-center gap-3 h-11 px-3 rounded-xl border border-transparent transition-colors duration-200 group relative ${
                   activeMenuItem === "profile" 
-                    ? "bg-white/20 shadow-sm" 
-                    : "hover:bg-white/10"
+                    ? "bg-white/18 border-white/20 text-white font-semibold" 
+                    : "text-white/85 hover:text-white hover:bg-white/10 hover:border-white/10 font-medium"
                 }`}
               >
                 {activeMenuItem === "profile" && (
-                  <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-1 h-6 bg-white rounded-r-full"></div>
+                  <div className="absolute right-2 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full bg-white/70" />
                 )}
-                <svg className="w-4 h-4 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg
+                  className={`w-5 h-5 shrink-0 ${activeMenuItem === "profile" ? "text-white" : "text-white/80"}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
-                <span className="font-medium text-sm">المعلومات الشخصية والأكاديمية</span>
+                <span className="text-sm font-[inherit]">المعلومات الشخصية والأكاديمية</span>
               </a>
+
+              <div className="h-2" />
 
               <div className="relative">
                 <button
@@ -775,20 +965,32 @@ export default function TeachersLayout({
                     e.preventDefault();
                     setActivitiesDropdownOpen(!activitiesDropdownOpen);
                   }}
-                  className={`flex items-center justify-between w-full gap-3 px-4 py-1.5 text-white rounded-lg transition-all duration-300 ease-in-out group relative ${
+                  className={`flex items-center justify-between w-full gap-3 h-11 px-3 rounded-xl border border-transparent transition-colors duration-200 group relative ${
                     activitiesDropdownOpen || ["positions", "research", "publications", "courses", "seminars", "training-workshops", "conferences", "committees", "thank-you-books", "assignments", "participation-certificates", "supervision", "scientific-evaluation", "journals-management", "volunteer-work"].includes(activeMenuItem)
-                      ? "bg-white/20 shadow-sm"
-                      : "hover:bg-white/10"
+                      ? "bg-white/18 border-white/20 text-white font-semibold"
+                      : "text-white/85 hover:text-white hover:bg-white/10 hover:border-white/10 font-medium"
                   }`}
                 >
+                  {(activitiesDropdownOpen || ["positions", "research", "publications", "courses", "seminars", "training-workshops", "conferences", "committees", "thank-you-books", "assignments", "participation-certificates", "supervision", "scientific-evaluation", "journals-management", "volunteer-work"].includes(activeMenuItem)) && (
+                    <div className="absolute right-2 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full bg-white/70" />
+                  )}
                   <div className="flex items-center gap-3">
-                    <svg className="w-4 h-4 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg
+                      className={`w-5 h-5 shrink-0 ${
+                        activitiesDropdownOpen || ["positions", "research", "publications", "courses", "seminars", "training-workshops", "conferences", "committees", "thank-you-books", "assignments", "participation-certificates", "supervision", "scientific-evaluation", "journals-management", "volunteer-work"].includes(activeMenuItem)
+                          ? "text-white"
+                          : "text-white/80"
+                      }`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
                     </svg>
-                    <span className="font-medium text-sm">نشاطاتك العلمية والأكاديمية</span>
+                    <span className="text-sm font-[inherit]">نشاطاتك العلمية والأكاديمية</span>
                   </div>
                   <svg
-                    className={`w-4 h-4 transition-transform duration-300 ${activitiesDropdownOpen ? "rotate-180" : ""}`}
+                    className={`w-5 h-5 shrink-0 transition-transform duration-200 text-white/80 ${activitiesDropdownOpen ? "rotate-180" : ""}`}
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -796,385 +998,236 @@ export default function TeachersLayout({
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
-                {activitiesDropdownOpen && (
-                  <div className="absolute right-full -top-4 mt-0 w-64 bg-indigo-700/90 backdrop-blur-sm rounded-lg shadow-lg z-50 py-2 pb-4 mr-2 max-h-[80vh] overflow-y-auto overflow-x-hidden custom-scrollbar" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.3) rgba(255,255,255,0.1)', overscrollBehavior: 'contain' }}>
-                    <a
-                      href="/teachers/positions"
-                      onClick={(e) => { e.preventDefault(); setActiveMenuItem("positions"); setActivitiesDropdownOpen(false); router.push("/teachers/positions"); }}
-                      className={`flex items-center gap-3 px-4 py-1.5 text-white rounded-lg transition-all duration-300 ease-in-out group relative ${
-                        activeMenuItem === "positions" 
-                          ? "bg-white/20 shadow-sm" 
-                          : "hover:bg-white/10"
-                      }`}
-                    >
-                      {activeMenuItem === "positions" && (
-                        <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-1 h-6 bg-white rounded-r-full"></div>
-                      )}
-                      <svg className="w-4 h-4 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                      </svg>
-                      <span className="font-medium text-sm">المناصب</span>
-                    </a>
-                    <a
-                      href="/teachers/research"
-                      onClick={(e) => { e.preventDefault(); setActiveMenuItem("research"); setActivitiesDropdownOpen(false); router.push("/teachers/research"); }}
-                      className={`flex items-center gap-3 px-4 py-1.5 text-white rounded-lg transition-all duration-300 ease-in-out group relative ${
-                        activeMenuItem === "research" 
-                          ? "bg-white/20 shadow-sm" 
-                          : "hover:bg-white/10"
-                      }`}
-                    >
-                      {activeMenuItem === "research" && (
-                        <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-1 h-6 bg-white rounded-r-full"></div>
-                      )}
-                      <svg className="w-4 h-4 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                      </svg>
-                      <span className="font-medium text-sm">البحوث</span>
-                    </a>
-                    <a
-                      href="/teachers/publications"
-                      onClick={(e) => { e.preventDefault(); setActiveMenuItem("publications"); setActivitiesDropdownOpen(false); router.push("/teachers/publications"); }}
-                      className={`flex items-center gap-3 px-4 py-1.5 text-white rounded-lg transition-all duration-300 ease-in-out group relative ${
-                        activeMenuItem === "publications" 
-                          ? "bg-white/20 shadow-sm" 
-                          : "hover:bg-white/10"
-                      }`}
-                    >
-                      {activeMenuItem === "publications" && (
-                        <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-1 h-6 bg-white rounded-r-full"></div>
-                      )}
-                      <svg className="w-4 h-4 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                      </svg>
-                      <span className="font-medium text-sm">المؤلفات</span>
-                    </a>
-                    <a
-                      href="/teachers/courses"
-                      onClick={(e) => { e.preventDefault(); setActiveMenuItem("courses"); setActivitiesDropdownOpen(false); router.push("/teachers/courses"); }}
-                      className={`flex items-center gap-3 px-4 py-1.5 text-white rounded-lg transition-all duration-300 ease-in-out group relative ${
-                        activeMenuItem === "courses" 
-                          ? "bg-white/20 shadow-sm" 
-                          : "hover:bg-white/10"
-                      }`}
-                    >
-                      {activeMenuItem === "courses" && (
-                        <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-1 h-6 bg-white rounded-r-full"></div>
-                      )}
-                      <svg className="w-4 h-4 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                      </svg>
-                      <span className="font-medium text-sm">الدورات</span>
-                    </a>
-                    <a
-                      href="/teachers/seminars"
-                      onClick={(e) => { e.preventDefault(); setActiveMenuItem("seminars"); setActivitiesDropdownOpen(false); router.push("/teachers/seminars"); }}
-                      className={`flex items-center gap-3 px-4 py-1.5 text-white rounded-lg transition-all duration-300 ease-in-out group relative ${
-                        activeMenuItem === "seminars" 
-                          ? "bg-white/20 shadow-sm" 
-                          : "hover:bg-white/10"
-                      }`}
-                    >
-                      {activeMenuItem === "seminars" && (
-                        <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-1 h-6 bg-white rounded-r-full"></div>
-                      )}
-                      <svg className="w-4 h-4 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                      <span className="font-medium text-sm">الندوات</span>
-                    </a>
-                    <a
-                      href="/teachers/workshops"
-                      onClick={(e) => { e.preventDefault(); setActiveMenuItem("training-workshops"); setActivitiesDropdownOpen(false); router.push("/teachers/workshops"); }}
-                      className={`flex items-center gap-3 px-4 py-1.5 text-white rounded-lg transition-all duration-300 ease-in-out group relative ${
-                        activeMenuItem === "training-workshops" 
-                          ? "bg-white/20 shadow-sm" 
-                          : "hover:bg-white/10"
-                      }`}
-                    >
-                      {activeMenuItem === "training-workshops" && (
-                        <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-1 h-6 bg-white rounded-r-full"></div>
-                      )}
-                      <svg className="w-4 h-4 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                      </svg>
-                      <span className="font-medium text-sm">ورش العمل</span>
-                    </a>
-                    <a
-                      href="/teachers/conferences"
-                      onClick={(e) => { e.preventDefault(); setActiveMenuItem("conferences"); setActivitiesDropdownOpen(false); router.push("/teachers/conferences"); }}
-                      className={`flex items-center gap-3 px-4 py-1.5 text-white rounded-lg transition-all duration-300 ease-in-out group relative ${
-                        activeMenuItem === "conferences" 
-                          ? "bg-white/20 shadow-sm" 
-                          : "hover:bg-white/10"
-                      }`}
-                    >
-                      {activeMenuItem === "conferences" && (
-                        <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-1 h-6 bg-white rounded-r-full"></div>
-                      )}
-                      <svg className="w-4 h-4 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                      <span className="font-medium text-sm">المؤتمرات</span>
-                    </a>
-                    <a
-                      href="/teachers/committees"
-                      onClick={(e) => { e.preventDefault(); setActiveMenuItem("committees"); setActivitiesDropdownOpen(false); router.push("/teachers/committees"); }}
-                      className={`flex items-center gap-3 px-4 py-1.5 text-white rounded-lg transition-all duration-300 ease-in-out group relative ${
-                        activeMenuItem === "committees" 
-                          ? "bg-white/20 shadow-sm" 
-                          : "hover:bg-white/10"
-                      }`}
-                    >
-                      {activeMenuItem === "committees" && (
-                        <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-1 h-6 bg-white rounded-r-full"></div>
-                      )}
-                      <svg className="w-4 h-4 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                      </svg>
-                      <span className="font-medium text-sm">اللجان</span>
-                    </a>
-                    <a
-                      href="/teachers/thank-you-books"
-                      onClick={(e) => { e.preventDefault(); setActiveMenuItem("thank-you-books"); setActivitiesDropdownOpen(false); router.push("/teachers/thank-you-books"); }}
-                      className={`flex items-center gap-3 px-4 py-1.5 text-white rounded-lg transition-all duration-300 ease-in-out group relative ${
-                        activeMenuItem === "thank-you-books" 
-                          ? "bg-white/20 shadow-sm" 
-                          : "hover:bg-white/10"
-                      }`}
-                    >
-                      {activeMenuItem === "thank-you-books" && (
-                        <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-1 h-6 bg-white rounded-r-full"></div>
-                      )}
-                      <svg className="w-4 h-4 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                      </svg>
-                      <span className="font-medium text-sm">كتب الشكر والتقدير</span>
-                    </a>
-                    <a
-                      href="/teachers/assignments"
-                      onClick={(e) => { e.preventDefault(); setActiveMenuItem("assignments"); setActivitiesDropdownOpen(false); router.push("/teachers/assignments"); }}
-                      className={`flex items-center gap-3 px-4 py-1.5 text-white rounded-lg transition-all duration-300 ease-in-out group relative ${
-                        activeMenuItem === "assignments" 
-                          ? "bg-white/20 shadow-sm" 
-                          : "hover:bg-white/10"
-                      }`}
-                    >
-                      {activeMenuItem === "assignments" && (
-                        <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-1 h-6 bg-white rounded-r-full"></div>
-                      )}
-                      <svg className="w-4 h-4 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                      </svg>
-                      <span className="font-medium text-sm">التكليفات</span>
-                    </a>
-                    <a
-                      href="/teachers/participation-certificates"
-                      onClick={(e) => { e.preventDefault(); setActiveMenuItem("participation-certificates"); setActivitiesDropdownOpen(false); router.push("/teachers/participation-certificates"); }}
-                      className={`flex items-center gap-3 px-4 py-1.5 text-white rounded-lg transition-all duration-300 ease-in-out group relative ${
-                        activeMenuItem === "participation-certificates" 
-                          ? "bg-white/20 shadow-sm" 
-                          : "hover:bg-white/10"
-                      }`}
-                    >
-                      {activeMenuItem === "participation-certificates" && (
-                        <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-1 h-6 bg-white rounded-r-full"></div>
-                      )}
-                      <svg className="w-4 h-4 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <span className="font-medium text-sm">شهادات المشاركة</span>
-                    </a>
-                    <a
-                      href="/teachers/supervision"
-                      onClick={(e) => { e.preventDefault(); setActiveMenuItem("supervision"); setActivitiesDropdownOpen(false); router.push("/teachers/supervision"); }}
-                      className={`flex items-center gap-3 px-4 py-1.5 text-white rounded-lg transition-all duration-300 ease-in-out group relative ${
-                        activeMenuItem === "supervision" 
-                          ? "bg-white/20 shadow-sm" 
-                          : "hover:bg-white/10"
-                      }`}
-                    >
-                      {activeMenuItem === "supervision" && (
-                        <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-1 h-6 bg-white rounded-r-full"></div>
-                      )}
-                      <svg className="w-4 h-4 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                      </svg>
-                      <span className="font-medium text-sm">الإشراف على الطلبة</span>
-                    </a>
-                    <a
-                      href="/teachers/scientific-evaluation"
-                      onClick={(e) => { e.preventDefault(); setActiveMenuItem("scientific-evaluation"); setActivitiesDropdownOpen(false); router.push("/teachers/scientific-evaluation"); }}
-                      className={`flex items-center gap-3 px-4 py-1.5 text-white rounded-lg transition-all duration-300 ease-in-out group relative ${
-                        activeMenuItem === "scientific-evaluation" 
-                          ? "bg-white/20 shadow-sm" 
-                          : "hover:bg-white/10"
-                      }`}
-                    >
-                      {activeMenuItem === "scientific-evaluation" && (
-                        <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-1 h-6 bg-white rounded-r-full"></div>
-                      )}
-                      <svg className="w-4 h-4 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                      </svg>
-                      <span className="font-medium text-sm">التقويم العلمي واللغوي</span>
-                    </a>
-                    <a
-                      href="/teachers/journals-management"
-                      onClick={(e) => { e.preventDefault(); setActiveMenuItem("journals-management"); setActivitiesDropdownOpen(false); router.push("/teachers/journals-management"); }}
-                      className={`flex items-center gap-3 px-4 py-1.5 text-white rounded-lg transition-all duration-300 ease-in-out group relative ${
-                        activeMenuItem === "journals-management" 
-                          ? "bg-white/20 shadow-sm" 
-                          : "hover:bg-white/10"
-                      }`}
-                    >
-                      {activeMenuItem === "journals-management" && (
-                        <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-1 h-6 bg-white rounded-r-full"></div>
-                      )}
-                      <svg className="w-4 h-4 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                      </svg>
-                      <span className="font-medium text-sm">إدارة المجلات العلمية</span>
-                    </a>
-                    <a
-                      href="/teachers/volunteer-work"
-                      onClick={(e) => { e.preventDefault(); setActiveMenuItem("volunteer-work"); setActivitiesDropdownOpen(false); router.push("/teachers/volunteer-work"); }}
-                      className={`flex items-center gap-3 px-4 py-1.5 text-white rounded-lg transition-all duration-300 ease-in-out group relative ${
-                        activeMenuItem === "volunteer-work" 
-                          ? "bg-white/20 shadow-sm" 
-                          : "hover:bg-white/10"
-                      }`}
-                    >
-                      {activeMenuItem === "volunteer-work" && (
-                        <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-1 h-6 bg-white rounded-r-full"></div>
-                      )}
-                      <svg className="w-4 h-4 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                      </svg>
-                      <span className="font-medium text-sm">الأعمال الطوعية</span>
-                    </a>
-                    {/* Extra padding at the bottom for better scrolling */}
-                    <div className="h-2"></div>
-                  </div>
-                )}
               </div>
+
+              <div className="h-2" />
 
               <a
                 href="/teachers/evaluation"
                 onClick={(e) => { e.preventDefault(); setActiveMenuItem("evaluation"); router.push("/teachers/evaluation"); }}
-                className={`flex items-center gap-3 px-4 py-1.5 text-white rounded-lg transition-all duration-300 ease-in-out group relative ${
+                className={`flex items-center gap-3 h-11 px-3 rounded-xl border border-transparent transition-colors duration-200 group relative ${
                   activeMenuItem === "evaluation" 
-                    ? "bg-white/20 shadow-sm" 
-                    : "hover:bg-white/10"
+                    ? "bg-white/18 border-white/20 text-white font-semibold" 
+                    : "text-white/85 hover:text-white hover:bg-white/10 hover:border-white/10 font-medium"
                 }`}
               >
                 {activeMenuItem === "evaluation" && (
-                  <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-1 h-6 bg-white rounded-r-full"></div>
+                  <div className="absolute right-2 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full bg-white/70" />
                 )}
-                <svg className="w-4 h-4 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg
+                  className={`w-5 h-5 shrink-0 ${activeMenuItem === "evaluation" ? "text-white" : "text-white/80"}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
-                <span className="font-medium text-sm">التقييم</span>
+                <span className="text-sm font-[inherit]">التقييم</span>
               </a>
 
               <a
                 href="/teachers/analytics"
                 onClick={(e) => { e.preventDefault(); setActiveMenuItem("analytics"); router.push("/teachers/analytics"); }}
-                className={`flex items-center gap-3 px-4 py-1.5 text-white rounded-lg transition-all duration-300 ease-in-out group relative ${
+                className={`flex items-center gap-3 h-11 px-3 rounded-xl border border-transparent transition-colors duration-200 group relative ${
                   activeMenuItem === "analytics" 
-                    ? "bg-white/20 shadow-sm" 
-                    : "hover:bg-white/10"
+                    ? "bg-white/18 border-white/20 text-white font-semibold" 
+                    : "text-white/85 hover:text-white hover:bg-white/10 hover:border-white/10 font-medium"
                 }`}
               >
                 {activeMenuItem === "analytics" && (
-                  <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-1 h-6 bg-white rounded-r-full"></div>
+                  <div className="absolute right-2 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full bg-white/70" />
                 )}
-                <svg className="w-4 h-4 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg
+                  className={`w-5 h-5 shrink-0 ${activeMenuItem === "analytics" ? "text-white" : "text-white/80"}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <span className="font-medium text-sm">التحليلات الزمنية والإنتاجية</span>
+                <span className="text-sm font-[inherit]">التحليلات الزمنية والإنتاجية</span>
               </a>
 
               <a
                 href="/teachers/comparison"
                 onClick={(e) => { e.preventDefault(); setActiveMenuItem("comparison"); router.push("/teachers/comparison"); }}
-                className={`flex items-center gap-3 px-4 py-1.5 text-white rounded-lg transition-all duration-300 ease-in-out group relative ${
+                className={`flex items-center gap-3 h-11 px-3 rounded-xl border border-transparent transition-colors duration-200 group relative ${
                   activeMenuItem === "comparison" 
-                    ? "bg-white/20 shadow-sm" 
-                    : "hover:bg-white/10"
+                    ? "bg-white/18 border-white/20 text-white font-semibold" 
+                    : "text-white/85 hover:text-white hover:bg-white/10 hover:border-white/10 font-medium"
                 }`}
               >
                 {activeMenuItem === "comparison" && (
-                  <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-1 h-6 bg-white rounded-r-full"></div>
+                  <div className="absolute right-2 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full bg-white/70" />
                 )}
-                <svg className="w-4 h-4 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg
+                  className={`w-5 h-5 shrink-0 ${activeMenuItem === "comparison" ? "text-white" : "text-white/80"}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
-                <span className="font-medium text-sm">المقارنات</span>
+                <span className="text-sm font-[inherit]">المقارنات</span>
               </a>
+
+              <div className="h-2" />
 
               <a
                 href="/teachers/cv"
                 onClick={(e) => { e.preventDefault(); setActiveMenuItem("cv"); router.push("/teachers/cv"); }}
-                className={`flex items-center gap-3 px-4 py-1.5 text-white rounded-lg transition-all duration-300 ease-in-out group relative ${
+                className={`flex items-center gap-3 h-11 px-3 rounded-xl border border-transparent transition-colors duration-200 group relative ${
                   activeMenuItem === "cv" 
-                    ? "bg-white/20 shadow-sm" 
-                    : "hover:bg-white/10"
+                    ? "bg-white/18 border-white/20 text-white font-semibold" 
+                    : "text-white/85 hover:text-white hover:bg-white/10 hover:border-white/10 font-medium"
                 }`}
               >
                 {activeMenuItem === "cv" && (
-                  <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-1 h-6 bg-white rounded-r-full"></div>
+                  <div className="absolute right-2 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full bg-white/70" />
                 )}
-                <svg className="w-4 h-4 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg
+                  className={`w-5 h-5 shrink-0 ${activeMenuItem === "cv" ? "text-white" : "text-white/80"}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
-                <span className="font-medium text-sm">السيرة الذاتية</span>
+                <span className="text-sm font-[inherit]">السيرة الذاتية</span>
               </a>
 
               <a
                 href="/teachers/collaboration"
                 onClick={(e) => { e.preventDefault(); setActiveMenuItem("collaboration"); router.push("/teachers/collaboration"); }}
-                className={`flex items-center gap-3 px-4 py-1.5 text-white rounded-lg transition-all duration-300 ease-in-out group relative ${
+                className={`flex items-center gap-3 h-11 px-3 rounded-xl border border-transparent transition-colors duration-200 group relative ${
                   activeMenuItem === "collaboration" 
-                    ? "bg-white/20 shadow-sm" 
-                    : "hover:bg-white/10"
+                    ? "bg-white/18 border-white/20 text-white font-semibold" 
+                    : "text-white/85 hover:text-white hover:bg-white/10 hover:border-white/10 font-medium"
                 }`}
               >
                 {activeMenuItem === "collaboration" && (
-                  <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-1 h-6 bg-white rounded-r-full"></div>
+                  <div className="absolute right-2 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full bg-white/70" />
                 )}
-                <svg className="w-4 h-4 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg
+                  className={`w-5 h-5 shrink-0 ${activeMenuItem === "collaboration" ? "text-white" : "text-white/80"}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
-                <span className="font-medium text-sm">نظام التعاون</span>
+                <span className="text-sm font-[inherit]">نظام التعاون</span>
               </a>
 
               <a
                 href="/teachers/communication"
                 onClick={(e) => { e.preventDefault(); setActiveMenuItem("communication"); router.push("/teachers/communication"); }}
-                className={`flex items-center gap-3 px-4 py-1.5 text-white rounded-lg transition-all duration-300 ease-in-out group relative ${
+                className={`flex items-center gap-3 h-11 px-3 rounded-xl border border-transparent transition-colors duration-200 group relative ${
                   activeMenuItem === "communication" 
-                    ? "bg-white/20 shadow-sm" 
-                    : "hover:bg-white/10"
+                    ? "bg-white/18 border-white/20 text-white font-semibold" 
+                    : "text-white/85 hover:text-white hover:bg-white/10 hover:border-white/10 font-medium"
                 }`}
               >
                 {activeMenuItem === "communication" && (
-                  <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-1 h-6 bg-white rounded-r-full"></div>
+                  <div className="absolute right-2 top-1/2 -translate-y-1/2 w-1 h-6 rounded-full bg-white/70" />
                 )}
-                <svg className="w-4 h-4 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg
+                  className={`w-5 h-5 shrink-0 ${activeMenuItem === "communication" ? "text-white" : "text-white/80"}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                 </svg>
-                <span className="font-medium text-sm">نظام التواصل</span>
+                <span className="text-sm font-[inherit]">نظام التواصل</span>
               </a>
-            </nav>
+                </nav>
 
-            {/* Messages, Notifications and Logout Buttons */}
-            <div className={`mt-auto p-4 border-t ${sidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none"}`} style={{ borderColor: 'rgba(255, 255, 255, 0.2)' }}>
-              <div className="flex items-center justify-center gap-3">
+                {/* Activities flyout panel (opens beside the main menu, not over it) */}
+                <div
+                  className={[
+                    "absolute right-full top-0 h-full mr-3 z-[70]",
+                    "w-[280px] lg:w-[320px]",
+                    "rounded-2xl",
+                    "bg-gradient-to-b from-indigo-600 to-violet-600",
+                    "shadow-2xl shadow-black/15",
+                    "border border-white/10",
+                    "transition-[transform,opacity] duration-200 ease-out",
+                    activitiesDropdownOpen
+                      ? "translate-x-0 opacity-100 pointer-events-auto"
+                      : "translate-x-4 opacity-0 pointer-events-none",
+                  ].join(" ")}
+                  dir="rtl"
+                >
+                  <div className="h-full p-1.5 flex flex-col min-h-0">
+                    <div className="h-11 px-3 rounded-xl bg-white/10 border border-white/15 flex items-center justify-between gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setActivitiesDropdownOpen(false)}
+                        className="inline-flex items-center gap-2 text-white/90 hover:text-white transition-colors"
+                        aria-label="رجوع"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                        </svg>
+                        <span className="text-[13px] font-semibold">رجوع</span>
+                      </button>
+                      <div className="text-[13px] font-extrabold text-white truncate">
+                        نشاطاتك العلمية والأكاديمية
+                      </div>
+                    </div>
+
+                    <div className="mt-2 flex-1 min-h-0 overflow-y-auto overflow-x-hidden rounded-2xl bg-white/10 border border-white/15 p-2 space-y-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                      {[
+                        { key: "positions", label: "المناصب", href: "/teachers/positions" },
+                        { key: "research", label: "البحوث", href: "/teachers/research" },
+                        { key: "publications", label: "المؤلفات", href: "/teachers/publications" },
+                        { key: "courses", label: "الدورات", href: "/teachers/courses" },
+                        { key: "seminars", label: "الندوات", href: "/teachers/seminars" },
+                        { key: "training-workshops", label: "ورش العمل", href: "/teachers/workshops" },
+                        { key: "conferences", label: "المؤتمرات", href: "/teachers/conferences" },
+                        { key: "committees", label: "اللجان", href: "/teachers/committees" },
+                        { key: "thank-you-books", label: "كتب الشكر", href: "/teachers/thank-you-books" },
+                        { key: "assignments", label: "التكليفات", href: "/teachers/assignments" },
+                        { key: "participation-certificates", label: "شهادات المشاركة", href: "/teachers/participation-certificates" },
+                        { key: "supervision", label: "الإشراف على الطلبة", href: "/teachers/supervision" },
+                        { key: "scientific-evaluation", label: "التقويم العلمي", href: "/teachers/scientific-evaluation" },
+                        { key: "journals-management", label: "إدارة المجلات", href: "/teachers/journals-management" },
+                        { key: "volunteer-work", label: "الأعمال الطوعية", href: "/teachers/volunteer-work" },
+                      ].map((it) => (
+                        <a
+                          key={it.key}
+                          href={it.href}
+                          onClick={(e) => { e.preventDefault(); setActiveMenuItem(it.key); setActivitiesDropdownOpen(false); router.push(it.href); }}
+                          className={[
+                            "h-10 px-3 rounded-xl flex items-center justify-between gap-3",
+                            "transition-colors duration-150",
+                            activeMenuItem === it.key ? "bg-white/14 text-white" : "text-white/90 hover:bg-white/10 hover:text-white",
+                          ].join(" ")}
+                        >
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className={`w-1 h-6 rounded-full ${activeMenuItem === it.key ? "bg-white/70" : "bg-transparent"}`} aria-hidden="true" />
+                            <span className="text-[13px] font-semibold truncate">{it.label}</span>
+                          </div>
+                          <svg className="w-4 h-4 text-white/70 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Messages, Notifications and Logout Buttons */}
+              <div className="mt-auto p-3 border-t border-white/15">
+                <div className="bg-white/10 border border-white/20 rounded-xl p-2">
+                  <div className="flex items-center justify-center gap-2.5">
                 {/* Messages Button */}
                 <button
-                  className="w-10 h-10 flex items-center justify-center border-2 border-white text-white hover:bg-white/10 rounded-lg transition-colors"
+                  className="w-10 h-10 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/15 text-white transition-colors"
                   aria-label="الرسائل"
+                  title="الرسائل"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -1183,14 +1236,15 @@ export default function TeachersLayout({
 
                 {/* Notifications Button */}
                 <button
-                  className="w-10 h-10 flex items-center justify-center border-2 border-white text-white hover:bg-white/10 rounded-lg transition-colors relative"
+                  className="w-10 h-10 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/15 text-white transition-colors relative"
                   aria-label="الإشعارات"
+                  title="الإشعارات"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                   </svg>
                   {notificationCount > 0 && (
-                    <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-[10px] font-bold rounded-full border-2 border-[#6366F1]">
+                    <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-[10px] font-bold rounded-full border border-white/40">
                       {notificationCount > 9 ? '9+' : notificationCount}
                     </span>
                   )}
@@ -1200,14 +1254,15 @@ export default function TeachersLayout({
                 <div className="relative online-users-container" style={{ zIndex: 10000 }}>
                   <button
                     onClick={() => setOnlineUsersMenuOpen(!onlineUsersMenuOpen)}
-                    className="w-10 h-10 flex items-center justify-center border-2 border-white text-white hover:bg-white/10 rounded-lg transition-colors relative"
+                    className="w-10 h-10 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/15 text-white transition-colors relative"
                     aria-label="المتصلين"
+                    title="المتصلين"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                     </svg>
                     {onlineUsersCount > 0 && (
-                      <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 bg-green-500 text-white text-[10px] font-bold rounded-full border-2 border-[#6366F1]">
+                      <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 bg-green-500 text-white text-[10px] font-bold rounded-full border border-white/40">
                         {onlineUsersCount > 99 ? '99+' : onlineUsersCount}
                       </span>
                     )}
@@ -1247,17 +1302,28 @@ export default function TeachersLayout({
                 {/* Logout Button */}
                 <button
                   onClick={handleLogout}
-                  className="w-10 h-10 flex items-center justify-center border-2 border-white text-white hover:bg-white/10 rounded-lg transition-colors"
+                  className="w-10 h-10 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/15 text-white transition-colors"
                   aria-label="تسجيل الخروج"
+                  title="تسجيل الخروج"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                   </svg>
                 </button>
+                  </div>
+                </div>
               </div>
             </div>
           </aside>
 
+          {/* Content (reserve space via margin-right; md+ only) */}
+          <div
+            className={
+              sidebarOpen
+                ? "h-full w-full max-w-full md:pr-[320px] flex flex-col min-h-0"
+                : "h-full w-full max-w-full md:pr-0 flex flex-col min-h-0"
+            }
+          >
           {/* Mobile drawer / off-canvas menu (STRICT: < 640px only) */}
           {mobileDrawerOpen ? (
             <div className="fixed inset-0 z-[60] hidden max-[639px]:block" dir="rtl">
@@ -1675,69 +1741,15 @@ export default function TeachersLayout({
             : null}
 
           {/* Main Content */}
-          <main className="flex-1 flex flex-col overflow-hidden" style={{ backgroundColor: '#FAFBFC' }}>
-            {/* Stats Bar / News Bar */}
-            <div className="bg-white border-b border-gray-100 flex-shrink-0 max-[639px]:hidden">
-              <div className="px-4 sm:px-6 lg:px-8 py-3">
-                <div className="flex items-center justify-between gap-4">
-                  {/* News Ticker */}
-                  <div className="flex-1 flex items-center gap-3 border-l border-gray-200 pl-4">
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      <svg className="w-4 h-4" style={{ color: '#6366F1' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
-                      </svg>
-                      <span className="text-xs font-bold uppercase" style={{ color: '#6366F1' }}>الأخبار</span>
-                    </div>
-                    <div className="flex-1 overflow-hidden">
-                      <div className="flex items-center gap-4 animate-marquee">
-                        <span className="text-sm whitespace-nowrap" style={{ color: '#6B7280' }}>مرحباً بك في منصة البحث العلمي - آخر الأخبار والتحديثات</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Stats */}
-                  <div className="flex items-center gap-6">
-                    {/* College Rank */}
-                    <div className="flex items-center gap-2">
-                      <svg className="w-4 h-4" style={{ color: '#6366F1' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-                      </svg>
-                      <span className="text-sm font-medium" style={{ color: '#1F2937' }}>
-                        ترتيبه بالكلية: <span className="font-bold text-indigo-600">{collegeRank !== null ? collegeRank : "..."}</span>
-                      </span>
-                    </div>
-
-                    {/* Department Rank */}
-                    <div className="flex items-center gap-2">
-                      <svg className="w-4 h-4" style={{ color: '#6366F1' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                      </svg>
-                      <span className="text-sm font-medium" style={{ color: '#1F2937' }}>
-                        ترتيبه بالقسم: <span className="font-bold text-indigo-600">{departmentRank !== null ? departmentRank : "..."}</span>
-                      </span>
-                    </div>
-
-                    {/* Points */}
-                    <div className="flex items-center gap-2">
-                      <svg className="w-4 h-4" style={{ color: '#6366F1' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                      </svg>
-                      <span className="text-sm font-medium" style={{ color: '#1F2937' }}>
-                        نقاطه: <span className="font-bold text-indigo-600">{totalPoints !== null ? totalPoints : "..."}</span>
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
+          <main className="flex-1 min-h-0 flex flex-col overflow-hidden" style={{ backgroundColor: '#FAFBFC' }}>
             {/* Page Content Area */}
-            <div className="flex-1 overflow-y-auto px-4 py-6 max-[639px]:px-3 max-[639px]:py-3 max-[639px]:overflow-x-hidden">
+            <div className="flex-1 min-h-0 overflow-y-auto px-4 py-6 max-[639px]:px-3 max-[639px]:py-3 max-[639px]:overflow-x-hidden md:px-6 lg:px-8 md:pt-4">
               <div className="max-w-full mx-auto px-2 max-[639px]:max-w-[420px] max-[639px]:mx-auto max-[639px]:px-0">
                 {children}
               </div>
             </div>
           </main>
+          </div>
         </div>
       </div>
     </LayoutContext.Provider>

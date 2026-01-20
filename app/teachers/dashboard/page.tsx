@@ -1,7 +1,37 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, type ReactNode } from "react";
+import Link from "next/link";
 import { useLayout } from "../layout";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  LabelList,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import type { LucideIcon } from "lucide-react";
+import {
+  Award,
+  BookOpen,
+  Briefcase,
+  CalendarCheck2,
+  CalendarDays,
+  ChevronLeft,
+  CheckCircle,
+  ClipboardCheck,
+  ClipboardList,
+  FileText,
+  Globe,
+  HandHeart,
+  Landmark,
+  Presentation,
+  Users,
+} from "lucide-react";
 
 // Get academic year based on current year
 function getAcademicYear(): string {
@@ -35,6 +65,248 @@ function getMonthName(monthValue: string): string {
     "12": "ديسمبر"
   };
   return monthNames[monthValue] || "جميع الأشهر";
+}
+
+function DesktopCard({
+  title,
+  subtitle,
+  right,
+  children,
+  className = "",
+}: {
+  title: string;
+  subtitle?: string;
+  right?: ReactNode;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={["md:bg-white md:border md:border-slate-200/70 md:rounded-2xl md:shadow-sm", className].join(" ")}>
+      <div className="hidden md:flex md:items-start md:justify-between md:gap-4 md:px-5 md:pt-5 md:pb-3 md:border-b md:border-slate-200/70" dir="rtl">
+        <div className="min-w-0">
+          <div className="text-base font-bold text-slate-900">{title}</div>
+          {subtitle ? <div className="mt-1 text-xs text-slate-500">{subtitle}</div> : null}
+        </div>
+        {right ? <div className="shrink-0">{right}</div> : null}
+      </div>
+      <div className="md:px-5 md:pb-5 md:pt-4">{children}</div>
+    </div>
+  );
+}
+
+function DesktopChip({
+  label,
+  tone = "neutral",
+}: {
+  label: string;
+  tone?: "neutral" | "indigo" | "blue" | "emerald" | "amber";
+}) {
+  const cls =
+    tone === "blue"
+      ? "bg-blue-50 text-blue-700 border-blue-200/60"
+      : tone === "emerald"
+      ? "bg-emerald-50 text-emerald-700 border-emerald-200/60"
+      : tone === "amber"
+      ? "bg-amber-50 text-amber-700 border-amber-200/60"
+      : tone === "indigo"
+      ? "bg-indigo-50 text-indigo-700 border-indigo-200/60"
+      : "bg-slate-50 text-slate-700 border-slate-200/70";
+
+  return (
+    <span className={`inline-flex items-center h-7 px-2.5 rounded-full border text-[12px] font-bold ${cls}`}>
+      {label}
+    </span>
+  );
+}
+
+function DesktopQuickLinkButton({
+  href,
+  label,
+  icon: Icon,
+}: {
+  href: string;
+  label: string;
+  icon: LucideIcon;
+}) {
+  return (
+    <Link
+      href={href}
+      className={[
+        "md:h-11 md:px-4 md:rounded-xl md:border md:border-slate-200 md:bg-white md:cursor-pointer md:shadow-[0_1px_0_rgba(15,23,42,0.03)]",
+        "md:inline-flex md:items-center md:gap-2",
+        "md:hover:bg-slate-50 md:hover:border-slate-300 md:hover:shadow-sm",
+        "md:active:scale-[0.98]",
+        "md:transition md:duration-150",
+        "md:focus-visible:outline-none md:focus-visible:ring-2 md:focus-visible:ring-indigo-300",
+      ].join(" ")}
+      dir="rtl"
+    >
+      <span className="md:w-8 md:h-8 md:rounded-lg md:border md:border-slate-200 md:bg-white md:flex md:items-center md:justify-center md:shrink-0">
+        <Icon className="md:w-4 md:h-4 text-slate-700" strokeWidth={2} />
+      </span>
+      <span className="md:text-[14px] md:font-semibold md:text-slate-900">{label}</span>
+      <span className="md:ml-auto md:flex md:items-center md:justify-center md:shrink-0 text-slate-500">
+        <ChevronLeft className="md:w-4 md:h-4" strokeWidth={2} />
+      </span>
+    </Link>
+  );
+}
+
+function DesktopMiniTile({
+  icon: Icon,
+  label,
+  value,
+  category = "research",
+}: {
+  icon: LucideIcon;
+  label: string;
+  value: number | string;
+  category?: "research" | "activity" | "publication" | "warning";
+}) {
+  const numeric = typeof value === "number" ? value : Number(String(value).trim());
+  const isZero = Number.isFinite(numeric) ? numeric === 0 : String(value).trim() === "0";
+
+  const palette =
+    category === "activity"
+      ? {
+          iconText: "text-blue-700",
+          iconBg: "bg-blue-50",
+          iconBorder: "border-blue-200/60",
+          tileBg: "bg-blue-50/30",
+          rail: "border-r-blue-400/40",
+        }
+      : category === "publication"
+      ? {
+          iconText: "text-emerald-700",
+          iconBg: "bg-emerald-50",
+          iconBorder: "border-emerald-200/60",
+          tileBg: "bg-emerald-50/30",
+          rail: "border-r-emerald-400/40",
+        }
+      : category === "warning"
+      ? {
+          iconText: "text-amber-700",
+          iconBg: "bg-amber-50",
+          iconBorder: "border-amber-200/60",
+          tileBg: "bg-amber-50/30",
+          rail: "border-r-amber-400/40",
+        }
+      : {
+          iconText: "text-indigo-700",
+          iconBg: "bg-indigo-50",
+          iconBorder: "border-indigo-200/60",
+          tileBg: "bg-indigo-50/30",
+          rail: "border-r-indigo-400/40",
+        };
+
+  return (
+    <div
+      dir="rtl"
+      title={`${label}: ${value}`}
+      className={[
+        "md:p-3 md:rounded-xl md:border md:border-r-4 md:flex md:items-center md:gap-3 md:flex-row-reverse md:hover:shadow-sm md:hover:border-slate-300 md:transition",
+        isZero
+          ? "md:bg-white md:border-slate-200/70 md:border-dashed md:opacity-80 md:border-r-slate-200/70"
+          : `md:border-slate-200/70 md:${palette.tileBg} md:${palette.rail}`,
+      ].join(" ")}
+    >
+      <div
+        className={[
+          "md:w-[42px] md:h-[42px] md:rounded-full md:border md:flex md:items-center md:justify-center md:shrink-0",
+          isZero ? "bg-slate-50 border-slate-200/70" : `${palette.iconBg} ${palette.iconBorder}`,
+        ].join(" ")}
+      >
+        <Icon
+          className={[
+            "md:w-[22px] md:h-[22px]",
+            isZero ? "text-slate-400" : palette.iconText,
+          ].join(" ")}
+          strokeWidth={2}
+        />
+      </div>
+      <div className="min-w-0 flex-1 text-right">
+        <div className="md:text-[12px] md:leading-4 md:font-semibold md:text-slate-500 overflow-hidden [display:-webkit-box] [-webkit-line-clamp:2] [-webkit-box-orient:vertical]">
+          {label}
+        </div>
+        <div className={`md:mt-1 md:text-[18px] md:leading-5 md:font-extrabold ${isZero ? "text-slate-600" : "text-slate-900"}`}>
+          {value}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DesktopHeroKpiCard({
+  title,
+  value,
+  helper,
+  icon: Icon,
+  accent = "indigo",
+  badge,
+}: {
+  title: string;
+  value: number | string;
+  helper: string;
+  icon: LucideIcon;
+  accent?: "indigo" | "blue" | "emerald" | "amber";
+  badge?: string;
+}) {
+  const accentLine =
+    accent === "blue"
+      ? "after:bg-gradient-to-r after:from-blue-500 after:to-cyan-500"
+      : accent === "emerald"
+      ? "after:bg-gradient-to-r after:from-emerald-500 after:to-teal-500"
+      : accent === "amber"
+      ? "after:bg-gradient-to-r after:from-amber-500 after:to-orange-500"
+      : "after:bg-gradient-to-r after:from-indigo-500 after:to-violet-500";
+
+  const iconBg =
+    accent === "blue"
+      ? "bg-blue-50 border-blue-200/60 text-blue-700"
+      : accent === "emerald"
+      ? "bg-emerald-50 border-emerald-200/60 text-emerald-700"
+      : accent === "amber"
+      ? "bg-amber-50 border-amber-200/60 text-amber-700"
+      : "bg-indigo-50 border-indigo-200/60 text-indigo-700";
+
+  return (
+    <div
+      dir="rtl"
+      className={[
+        "relative overflow-hidden md:bg-white md:border md:border-slate-200/70 md:rounded-2xl md:shadow-sm md:p-5 md:min-h-[140px]",
+        "after:content-[''] after:absolute after:inset-x-0 after:top-0 after:h-[3px]",
+        accentLine,
+      ].join(" ")}
+    >
+      <div className="md:space-y-2">
+        {/* top row: title (single line) + badge */}
+        <div className="flex items-center justify-between gap-3" dir="ltr">
+          <div dir="rtl" className="text-sm text-slate-600 font-bold truncate max-w-[70%]">
+            {title}
+          </div>
+          <div className="shrink-0">
+            {badge ? (
+              <DesktopChip
+                label={badge}
+                tone={accent === "indigo" ? "indigo" : accent === "blue" ? "blue" : accent === "emerald" ? "emerald" : "amber"}
+              />
+            ) : null}
+          </div>
+        </div>
+
+        {/* middle: value + icon (no absolute to avoid overlaps) */}
+        <div className="flex items-end justify-between gap-4" dir="ltr">
+          <div className="text-2xl font-extrabold text-slate-900 leading-none">{value}</div>
+          <div className={`w-11 h-11 rounded-2xl border flex items-center justify-center shrink-0 ${iconBg}`}>
+            <Icon className="w-5 h-5" strokeWidth={2} />
+          </div>
+        </div>
+
+        {/* bottom: helper */}
+        <div className="text-xs text-slate-500">{helper}</div>
+      </div>
+    </div>
+  );
 }
 
 // تحويل تاريخ/سنة/شهر إلى "عام دراسي" بصيغة YYYY-YYYY (من أغسطس إلى يوليو)
@@ -379,7 +651,9 @@ export default function TeachersDashboardPage() {
   useEffect(() => {
     const options = availableAcademicYears.length > 0 ? availableAcademicYears : [getAcademicYear()];
     if (!options.includes(selectedYear)) {
-      setSelectedYear(options[0]);
+      const next = options[0];
+      const t = setTimeout(() => setSelectedYear(next), 0);
+      return () => clearTimeout(t);
     }
   }, [availableAcademicYears, selectedYear]);
 
@@ -521,10 +795,6 @@ export default function TeachersDashboardPage() {
     assignments.filter(a => isInDateRange(a.assignment_date, selectedYear, selectedMonth)).length,
     [assignments, selectedYear, selectedMonth]
   );
-  const participationCertificatesCountByDate = useMemo(() => 
-    participationCertificates.filter(p => isMonthYearInRange(p.month, p.year, selectedYear, selectedMonth)).length,
-    [participationCertificates, selectedYear, selectedMonth]
-  );
   const supervisionCountByDate = useMemo(() => 
     supervision.filter(s => isInDateRange(s.start_date, selectedYear, selectedMonth)).length,
     [supervision, selectedYear, selectedMonth]
@@ -542,14 +812,408 @@ export default function TeachersDashboardPage() {
     [volunteerWork, selectedYear, selectedMonth]
   );
 
+  // Desktop chart: تطور الإنجازات عبر السنوات (مشتق من نفس البيانات المحمّلة)
+  const achievementsByAcademicYear = useMemo(() => {
+    const map = new Map<string, number>();
+    const inc = (y: string | null) => {
+      if (!y) return;
+      map.set(y, (map.get(y) || 0) + 1);
+    };
+
+    // Research
+    researchList.forEach((r) => {
+      inc(getAcademicYearFromDate(r.created_at));
+      if (!r.created_at) inc(getAcademicYearFromYearMonth(r.year, r.publication_month ?? null));
+    });
+
+    // Date-based tables
+    positions.forEach((p) => inc(getAcademicYearFromDate(p.start_date ?? p.created_at)));
+    publications.forEach((p) => inc(getAcademicYearFromDate(p.publication_date ?? p.created_at)));
+    courses.forEach((c) => inc(getAcademicYearFromDate(c.date ?? c.created_at)));
+    seminars.forEach((s) => inc(getAcademicYearFromDate(s.date ?? s.created_at)));
+    workshops.forEach((w) => inc(getAcademicYearFromDate(w.date ?? w.created_at)));
+    conferences.forEach((c) => inc(getAcademicYearFromDate(c.date ?? c.created_at)));
+    committees.forEach((c) => inc(getAcademicYearFromDate(c.assignment_date ?? c.created_at)));
+    assignments.forEach((a) => inc(getAcademicYearFromDate(a.assignment_date ?? a.created_at)));
+    supervision.forEach((s) => inc(getAcademicYearFromDate(s.start_date ?? s.created_at)));
+    scientificEvaluations.forEach((s) => inc(getAcademicYearFromDate(s.evaluation_date ?? s.created_at)));
+    journalMemberships.forEach((j) => inc(getAcademicYearFromDate(j.start_date ?? j.created_at)));
+    volunteerWork.forEach((v) => inc(getAcademicYearFromDate(v.start_date ?? v.created_at)));
+
+    // Month/year based tables
+    thankYouBooks.forEach((t) => inc(getAcademicYearFromYearMonth(t.year, t.month)));
+    participationCertificates.forEach((p) => inc(getAcademicYearFromYearMonth(p.year, p.month)));
+
+    const rows = Array.from(map.entries())
+      .map(([academicYear, total]) => ({
+        academicYear,
+        total,
+        sortKey: parseInt(academicYear.split("-")[0] || "0", 10),
+      }))
+      .filter((r) => Number.isFinite(r.sortKey) && r.sortKey > 0)
+      .sort((a, b) => a.sortKey - b.sortKey)
+      .map(({ academicYear, total }) => ({ academicYear, total }));
+
+    // اعرض آخر 8 سنوات فقط لتجنب تزاحم المحور
+    return rows.length > 8 ? rows.slice(rows.length - 8) : rows;
+  }, [
+    researchList,
+    positions,
+    publications,
+    courses,
+    seminars,
+    workshops,
+    conferences,
+    committees,
+    thankYouBooks,
+    assignments,
+    participationCertificates,
+    supervision,
+    scientificEvaluations,
+    journalMemberships,
+    volunteerWork,
+  ]);
+
   if (!user) {
     return null;
   }
 
+  const displayName = (user.full_name || user.username || "").trim();
+  const todayLabel = new Date().toLocaleDateString("ar-IQ", { year: "numeric", month: "2-digit", day: "2-digit" });
+
   return (
-    <div className="max-[639px]:space-y-4 max-[639px]:text-[14px] max-[639px]:leading-[1.55]">
+    <div className="max-[639px]:space-y-4 max-[639px]:text-[14px] max-[639px]:leading-[1.55] md:flex-1 md:w-full md:px-6 lg:px-8 md:py-6 md:space-y-8 xl:max-w-[1600px] xl:mx-auto">
+      {/* Desktop-only HERO HEADER (premium) */}
+      <div className="hidden md:block">
+        <div
+          className={[
+            "relative overflow-hidden md:rounded-2xl md:border md:border-slate-200/70 md:bg-white md:shadow-sm md:p-5",
+            "before:content-[''] before:absolute before:-inset-24 before:bg-gradient-to-br before:from-indigo-100/60 before:via-white before:to-violet-100/60 before:blur-2xl",
+          ].join(" ")}
+        >
+          <div className="relative md:flex md:items-start md:justify-between md:gap-6">
+            <div dir="rtl" className="min-w-0">
+              <div className="text-[12px] font-bold text-slate-500">مرحباً بعودتك</div>
+              <div className="mt-2 text-[22px] font-extrabold text-slate-900 truncate">
+                {displayName || "مستخدم"}
+              </div>
+              <div className="mt-1 text-xs text-slate-500">
+                لوحة تحكم مختصرة تساعدك على متابعة إنجازاتك بسرعة ووضوح.
+              </div>
+
+              {/* Quick links (NOT metrics) */}
+              <div className="mt-4 hidden md:block" dir="rtl">
+                <div className="md:mt-4 md:rounded-2xl md:border md:border-slate-200/70 md:bg-white/70 md:backdrop-blur md:p-4">
+                  <div className="md:flex md:items-start md:justify-between md:gap-4">
+                    <div className="min-w-0">
+                      <div className="text-sm font-bold text-slate-900">روابط سريعة</div>
+                      <div className="mt-1 text-xs text-slate-500">اختصارات للصفحات الأكثر استخداماً</div>
+                    </div>
+                    <span className="hidden lg:inline-flex items-center h-7 px-2.5 rounded-full border border-slate-200/70 bg-white text-[12px] font-bold text-slate-700">
+                      اختصارات
+                    </span>
+                  </div>
+
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <DesktopQuickLinkButton href="/teachers/research" label="البحوث" icon={FileText} />
+                    <DesktopQuickLinkButton href="/teachers/positions" label="المناصب" icon={Briefcase} />
+                    <DesktopQuickLinkButton href="/teachers/evaluation" label="التقييم" icon={Award} />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-4 md:mt-0 shrink-0">
+              <div className="flex items-center justify-end gap-2" dir="rtl">
+                <DesktopChip label={`اليوم: ${todayLabel}`} tone="neutral" />
+                <DesktopChip label={`العام: ${selectedYear}`} tone="indigo" />
+                <DesktopChip label={selectedMonth === "all" ? "الشهر: الكل" : `الشهر: ${getMonthName(selectedMonth)}`} tone="blue" />
+              </div>
+
+              <div className="mt-3 flex items-center justify-end gap-2">
+                <select
+                  value={selectedYear}
+                  onChange={(e) => setSelectedYear(e.target.value)}
+                  className="h-10 px-3 rounded-xl border border-slate-200/70 bg-white text-[13px] font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-300"
+                >
+                  {(availableAcademicYears.length > 0 ? availableAcademicYears : [getAcademicYear()]).map((y) => (
+                    <option key={y} value={y}>
+                      {y}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  value={selectedMonth}
+                  onChange={(e) => setSelectedMonth(e.target.value)}
+                  className="h-10 px-3 rounded-xl border border-slate-200/70 bg-white text-[13px] font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-300"
+                >
+                  <option value="all">جميع الأشهر</option>
+                  <option value="1">يناير</option>
+                  <option value="2">فبراير</option>
+                  <option value="3">مارس</option>
+                  <option value="4">أبريل</option>
+                  <option value="5">مايو</option>
+                  <option value="6">يونيو</option>
+                  <option value="7">يوليو</option>
+                  <option value="8">أغسطس</option>
+                  <option value="9">سبتمبر</option>
+                  <option value="10">أكتوبر</option>
+                  <option value="11">نوفمبر</option>
+                  <option value="12">ديسمبر</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Desktop-only HERO KPI row */}
+      <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 md:gap-4">
+        {(() => {
+          const allYearsActivities =
+            totalConferencesCount +
+            totalSeminarsCount +
+            totalCoursesCount +
+            totalWorkshopsCount +
+            totalCommitteesCount +
+            totalPositionsCount +
+            totalThankYouBooksCount +
+            totalAssignmentsCount +
+            totalSupervisionCount +
+            totalJournalMembershipsCount +
+            totalScientificEvaluationsCount +
+            totalVolunteerWorkCount +
+            totalParticipationCertificatesCount +
+            totalPublicationsCount;
+
+          const allYearsAchievements = totalResearchCount + allYearsActivities;
+
+          const currentYearActivities =
+            conferencesCountByDate +
+            seminarsCountByDate +
+            coursesCountByDate +
+            workshopsCountByDate +
+            committeesCountByDate +
+            positionsCountByDate +
+            thankYouBooksCountByDate +
+            assignmentsCountByDate +
+            supervisionCountByDate +
+            journalMembershipsCountByDate +
+            scientificEvaluationsCountByDate +
+            volunteerWorkCountByDate;
+
+          const currentYearAchievements = researchStatsByDate.total + currentYearActivities;
+
+          return (
+            <>
+              <DesktopHeroKpiCard
+                title="إجمالي المنجزات"
+                value={allYearsAchievements}
+                helper="جميع السنوات"
+                icon={CheckCircle}
+                accent="indigo"
+                badge="كل السنوات"
+              />
+              <DesktopHeroKpiCard
+                title="إجمالي النشاطات"
+                value={allYearsActivities}
+                helper="بدون البحوث"
+                icon={CalendarDays}
+                accent="blue"
+                badge="محدّث"
+              />
+              <DesktopHeroKpiCard
+                title="إجمالي البحوث"
+                value={totalResearchCount}
+                helper="جميع السنوات"
+                icon={FileText}
+                accent="emerald"
+                badge="كل السنوات"
+              />
+              <DesktopHeroKpiCard
+                title="منجزات العام الدراسي"
+                value={currentYearAchievements}
+                helper={`حسب فلتر السنة: ${selectedYear}`}
+                icon={Award}
+                accent="amber"
+                badge="حسب الفلتر"
+              />
+            </>
+          );
+        })()}
+      </div>
+
+      {/* Desktop-only chart: تطور الإنجازات عبر السنوات */}
+      <div className="hidden md:block">
+        {(() => {
+          const last = achievementsByAcademicYear[achievementsByAcademicYear.length - 1]?.total ?? null;
+          const prev = achievementsByAcademicYear[achievementsByAcademicYear.length - 2]?.total ?? null;
+          const trend =
+            typeof last === "number" && typeof prev === "number"
+              ? last > prev
+                ? "تحسّن مقارنة بالعام السابق"
+                : last < prev
+                ? "تراجع مقارنة بالعام السابق"
+                : "مستقر مقارنة بالعام السابق"
+              : null;
+          const trendTone =
+            trend === "تحسّن مقارنة بالعام السابق"
+              ? "text-emerald-700"
+              : trend === "تراجع مقارنة بالعام السابق"
+              ? "text-amber-700"
+              : "text-slate-600";
+
+          const shortenAcademicYear = (label: unknown) => {
+            const s = String(label);
+            const m = s.match(/^(\d{4})-(\d{4})$/);
+            if (!m) return s;
+            const start = m[1];
+            const end2 = m[2].slice(-2);
+            return `${start}/${end2}`;
+          };
+
+          let bestIdx: number | null = null;
+          let bestTotal = -Infinity;
+          for (let i = 0; i < achievementsByAcademicYear.length; i += 1) {
+            const t = achievementsByAcademicYear[i]?.total ?? 0;
+            if (t > bestTotal) {
+              bestTotal = t;
+              bestIdx = i;
+            }
+          }
+          const bestLabel =
+            bestIdx !== null ? shortenAcademicYear(achievementsByAcademicYear[bestIdx]?.academicYear) : null;
+
+          return (
+        <DesktopCard
+          title="تطور الإنجازات عبر السنوات"
+          subtitle="إجمالي إنجازاتك لكل سنة دراسية (آخر 8 سنوات)"
+          right={
+            <div className="flex items-center gap-2" dir="rtl">
+              {trend ? <span className={`text-xs font-bold ${trendTone}`}>{trend}</span> : null}
+              {bestLabel ? <DesktopChip label={`الأفضل: ${bestLabel}`} tone="neutral" /> : null}
+              <DesktopChip label="مخطط" tone="indigo" />
+            </div>
+          }
+        >
+          <div className="h-[270px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={achievementsByAcademicYear} margin={{ top: 8, right: 12, left: 8, bottom: 8 }}>
+                <CartesianGrid stroke="#E2E8F0" strokeDasharray="3 3" />
+                <XAxis
+                  dataKey="academicYear"
+                  tickFormatter={shortenAcademicYear}
+                  tick={{ fontSize: 12, fill: "#64748B" }}
+                  axisLine={{ stroke: "#E2E8F0" }}
+                  tickLine={{ stroke: "#E2E8F0" }}
+                  interval={0}
+                  angle={-12}
+                  textAnchor="end"
+                  height={52}
+                />
+                <YAxis
+                  tick={{ fontSize: 12, fill: "#64748B" }}
+                  axisLine={{ stroke: "#E2E8F0" }}
+                  tickLine={{ stroke: "#E2E8F0" }}
+                  allowDecimals={false}
+                />
+                <Tooltip
+                  cursor={{ fill: "rgba(99, 102, 241, 0.08)" }}
+                  contentStyle={{ borderRadius: 12, borderColor: "#E2E8F0" }}
+                  labelStyle={{ color: "#0F172A", fontWeight: 800 }}
+                  formatter={(v: unknown) => [
+                    typeof v === "number" ? v : Number(v),
+                    "إجمالي الإنجازات",
+                  ]}
+                  labelFormatter={(l: unknown) => `العام الدراسي: ${String(l)}`}
+                />
+                <Bar
+                  dataKey="total"
+                  name="إجمالي الإنجازات"
+                  fill="#C7D2FE"
+                  radius={[10, 10, 4, 4]}
+                  isAnimationActive={false}
+                >
+                  {achievementsByAcademicYear.map((e, idx) => (
+                    <Cell
+                      key={e.academicYear}
+                      fill={typeof bestIdx === "number" && idx === bestIdx ? "#6366F1" : "#C7D2FE"}
+                    />
+                  ))}
+                  <LabelList
+                    dataKey="total"
+                    position="top"
+                    fill="#475569"
+                    fontSize={11}
+                    formatter={(v: unknown) => (typeof v === "number" ? v : Number(v))}
+                  />
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </DesktopCard>
+          );
+        })()}
+      </div>
+
+      {/* Desktop/Tablet: top stats as clean cards */}
+      <div className="hidden md:grid md:grid-cols-12 md:gap-6 md:items-stretch">
+        <DesktopCard
+          title="إحصائيات البحوث"
+          subtitle="نظرة عامة على نشاطك البحثي"
+          right={
+            <div className="flex items-center gap-2" dir="rtl">
+              <DesktopChip label="بحوث" tone="indigo" />
+              <span className="text-[12px] font-bold text-indigo-600">عرض التفاصيل</span>
+            </div>
+          }
+          className="md:col-span-6 md:h-full"
+        >
+          <div className="md:grid md:grid-cols-3 lg:grid-cols-4 md:gap-3">
+            <DesktopMiniTile icon={FileText} category="research" label="إجمالي البحوث" value={totalResearchCount} />
+            <DesktopMiniTile icon={ClipboardList} category="research" label="البحوث المخططة" value={researchStats.planned} />
+            <DesktopMiniTile icon={CheckCircle} category="research" label="البحوث المنجزة" value={researchStats.completed} />
+            <DesktopMiniTile icon={ClipboardCheck} category="publication" label="البحوث المنشورة" value={researchStats.published} />
+            <DesktopMiniTile icon={CalendarDays} category="warning" label="البحوث غير المنجزة" value={researchStats.uncompleted} />
+            <DesktopMiniTile icon={Globe} category="research" label="البحوث العالمية" value={researchStats.international} />
+            <DesktopMiniTile icon={Users} category="research" label="البحوث المفردة" value={researchStats.individual} />
+            <DesktopMiniTile icon={Landmark} category="research" label="البحوث المحلية" value={researchStats.local} />
+            <DesktopMiniTile icon={FileText} category="publication" label="ثومبسون رويتر" value={researchStats.thomsonReuters} />
+            <DesktopMiniTile icon={Award} category="publication" label="سكوبس" value={researchStats.scopus} />
+          </div>
+        </DesktopCard>
+
+        <DesktopCard
+          title="إحصائيات عامة"
+          subtitle="ملخص نشاطاتك الأكاديمية"
+          right={
+            <div className="flex items-center gap-2" dir="rtl">
+              <DesktopChip label="نشاطات" tone="blue" />
+              <span className="text-[12px] font-bold text-indigo-600">عرض التفاصيل</span>
+            </div>
+          }
+          className="md:col-span-6 md:h-full"
+        >
+          <div className="md:grid md:grid-cols-3 lg:grid-cols-4 md:gap-3">
+            <DesktopMiniTile icon={CalendarDays} category="activity" label="المؤتمرات" value={totalConferencesCount} />
+            <DesktopMiniTile icon={Presentation} category="activity" label="الندوات" value={totalSeminarsCount} />
+            <DesktopMiniTile icon={BookOpen} category="activity" label="الدورات" value={totalCoursesCount} />
+            <DesktopMiniTile icon={BookOpen} category="activity" label="ورش العمل" value={totalWorkshopsCount} />
+            <DesktopMiniTile icon={ClipboardList} category="activity" label="التكليفات" value={totalAssignmentsCount} />
+            <DesktopMiniTile icon={Users} category="activity" label="اللجان" value={totalCommitteesCount} />
+            <DesktopMiniTile icon={CalendarCheck2} category="activity" label="شهادات المشاركة" value={totalParticipationCertificatesCount} />
+            <DesktopMiniTile icon={Landmark} category="activity" label="إدارة المجلات" value={totalJournalMembershipsCount} />
+            <DesktopMiniTile icon={Users} category="activity" label="الإشراف على الطلبة" value={totalSupervisionCount} />
+            <DesktopMiniTile icon={Briefcase} category="activity" label="المناصب" value={totalPositionsCount} />
+            <DesktopMiniTile icon={ClipboardCheck} category="activity" label="التقويم العلمي" value={totalScientificEvaluationsCount} />
+            <DesktopMiniTile icon={HandHeart} category="activity" label="الأعمال الطوعية" value={totalVolunteerWorkCount} />
+            <DesktopMiniTile icon={FileText} category="activity" label="كتب الشكر" value={totalThankYouBooksCount} />
+          </div>
+        </DesktopCard>
+      </div>
+
       {/* General Statistics Section */}
-      <div className="bg-gray-50 rounded-lg border border-blue-200 p-5 mb-6 shadow-sm hover:shadow-md transition-shadow duration-300 max-[639px]:bg-white max-[639px]:rounded-3xl max-[639px]:p-4 max-[639px]:mb-4 max-[639px]:shadow-sm max-[639px]:border-slate-200/70">
+      <div className="bg-gray-50 rounded-lg border border-blue-200 p-5 mb-6 shadow-sm hover:shadow-md transition-shadow duration-300 max-[639px]:bg-white max-[639px]:rounded-3xl max-[639px]:p-4 max-[639px]:mb-4 max-[639px]:shadow-sm max-[639px]:border-slate-200/70 md:hidden">
         <div className="mb-4 pb-2 border-b border-gray-300">
           <h2 className="text-xl font-bold max-[639px]:text-[16px]" style={{ color: '#1F2937' }}>إحصائيات البحوث</h2>
         </div>
@@ -669,7 +1333,7 @@ export default function TeachersDashboardPage() {
       </div>
 
       {/* General Statistics Section */}
-      <div className="bg-gray-50 rounded-lg border border-blue-200 p-5 mb-6 shadow-sm hover:shadow-md transition-shadow duration-300 max-[639px]:bg-white max-[639px]:rounded-3xl max-[639px]:p-4 max-[639px]:mb-4 max-[639px]:shadow-sm max-[639px]:border-slate-200/70">
+      <div className="bg-gray-50 rounded-lg border border-blue-200 p-5 mb-6 shadow-sm hover:shadow-md transition-shadow duration-300 max-[639px]:bg-white max-[639px]:rounded-3xl max-[639px]:p-4 max-[639px]:mb-4 max-[639px]:shadow-sm max-[639px]:border-slate-200/70 md:hidden">
         <div className="mb-4 pb-2 border-b border-gray-300">
           <h2 className="text-xl font-bold max-[639px]:text-[16px]" style={{ color: '#1F2937' }}>إحصائيات عامة</h2>
         </div>
@@ -820,12 +1484,12 @@ export default function TeachersDashboardPage() {
       </div>
 
       {/* Performance Achievements Section */}
-      <div className="bg-white rounded-lg border border-gray-200 p-5 mb-6 shadow-sm hover:shadow-md transition-shadow duration-300 max-[639px]:rounded-3xl max-[639px]:p-4 max-[639px]:mb-4">
+      <div className="bg-white rounded-lg border border-gray-200 p-5 mb-6 shadow-sm hover:shadow-md transition-shadow duration-300 max-[639px]:rounded-3xl max-[639px]:p-4 max-[639px]:mb-4 md:bg-transparent md:border-0 md:shadow-none md:p-0 md:rounded-none md:mb-0">
         <div className="flex items-center justify-between mb-4 pb-2 border-b border-gray-300 max-[639px]:flex-col max-[639px]:items-stretch max-[639px]:gap-3">
-          <h2 className="text-xl font-bold max-[639px]:text-[16px]" style={{ color: '#1F2937' }}>
+          <h2 className="text-xl font-bold max-[639px]:text-[16px] md:text-[18px] md:font-extrabold" style={{ color: '#1F2937' }}>
             إنجازات استمارة الأداء - العام الدراسي {selectedYear}
           </h2>
-          <div className="flex items-center gap-3 max-[639px]:flex-col max-[639px]:items-stretch max-[639px]:w-full max-[639px]:gap-2 max-[639px]:bg-slate-50 max-[639px]:border max-[639px]:border-slate-200/70 max-[639px]:rounded-2xl max-[639px]:p-3">
+          <div className="flex items-center gap-3 max-[639px]:flex-col max-[639px]:items-stretch max-[639px]:w-full max-[639px]:gap-2 max-[639px]:bg-slate-50 max-[639px]:border max-[639px]:border-slate-200/70 max-[639px]:rounded-2xl max-[639px]:p-3 md:hidden">
             {/* Year Selector */}
             <div className="relative max-[639px]:w-full">
               <select
@@ -867,7 +1531,7 @@ export default function TeachersDashboardPage() {
             </div>
           </div>
         </div>
-        <div className="mt-4">
+        <div className="mt-4 md:hidden">
           {/* Research Statistics Card */}
           <div className="bg-gray-50 rounded-lg border border-gray-200 p-5 shadow-sm max-[639px]:bg-white max-[639px]:rounded-3xl max-[639px]:p-4 max-[639px]:border-slate-200/70">
             <div className="mb-4 pb-2 border-b border-gray-300">
@@ -1224,6 +1888,205 @@ export default function TeachersDashboardPage() {
             </div>
           </div>
         </div>
+
+        {/* Desktop/Tablet: clean breakdown + summary layout */}
+        <div className="hidden md:block">
+          <div className="md:grid md:grid-cols-12 md:gap-6 md:items-stretch">
+            <DesktopCard
+              title={`إحصائيات البحوث - ${getMonthName(selectedMonth)} ${selectedYear.split("-")[0]}`}
+              subtitle="ضمن فترة الفلتر الحالية"
+              right={
+                <div className="flex items-center gap-2" dir="rtl">
+                  <DesktopChip label="بحوث" tone="indigo" />
+                  <span className="text-[12px] font-bold text-indigo-600">عرض التفاصيل</span>
+                </div>
+              }
+              className="md:col-span-6 md:h-full"
+            >
+              <div className="md:grid md:grid-cols-3 lg:grid-cols-4 md:gap-3">
+                <DesktopMiniTile icon={ClipboardList} category="research" label="البحوث المخططة" value={researchStatsByDate.planned} />
+                <DesktopMiniTile icon={CheckCircle} category="research" label="البحوث المنجزة" value={researchStatsByDate.completed} />
+                <DesktopMiniTile icon={CalendarDays} category="warning" label="البحوث غير المنجزة" value={researchStatsByDate.uncompleted} />
+                <DesktopMiniTile icon={ClipboardCheck} category="publication" label="البحوث المنشورة" value={researchStatsByDate.published} />
+              </div>
+            </DesktopCard>
+
+            <DesktopCard
+              title={`الإحصائيات العامة - ${getMonthName(selectedMonth)} ${selectedYear.split("-")[0]}`}
+              subtitle="ضمن فترة الفلتر الحالية"
+              right={
+                <div className="flex items-center gap-2" dir="rtl">
+                  <DesktopChip label="نشاطات" tone="blue" />
+                  <span className="text-[12px] font-bold text-indigo-600">عرض التفاصيل</span>
+                </div>
+              }
+              className="md:col-span-6 md:h-full"
+            >
+              <div className="md:grid md:grid-cols-3 lg:grid-cols-4 md:gap-3">
+                <DesktopMiniTile icon={CalendarDays} category="activity" label="المؤتمرات" value={conferencesCountByDate} />
+                <DesktopMiniTile icon={Presentation} category="activity" label="الندوات" value={seminarsCountByDate} />
+                <DesktopMiniTile icon={BookOpen} category="activity" label="الدورات" value={coursesCountByDate} />
+                <DesktopMiniTile icon={BookOpen} category="activity" label="ورش العمل" value={workshopsCountByDate} />
+                <DesktopMiniTile icon={Users} category="activity" label="اللجان" value={committeesCountByDate} />
+                <DesktopMiniTile icon={Briefcase} category="activity" label="المناصب" value={positionsCountByDate} />
+                <DesktopMiniTile icon={FileText} category="activity" label="كتب الشكر" value={thankYouBooksCountByDate} />
+                <DesktopMiniTile icon={ClipboardList} category="activity" label="التكليفات" value={assignmentsCountByDate} />
+                <DesktopMiniTile icon={Users} category="activity" label="الإشراف على الطلبة" value={supervisionCountByDate} />
+                <DesktopMiniTile icon={Landmark} category="activity" label="إدارة المجلات" value={journalMembershipsCountByDate} />
+                <DesktopMiniTile icon={ClipboardCheck} category="activity" label="التقويم العلمي" value={scientificEvaluationsCountByDate} />
+                <DesktopMiniTile icon={HandHeart} category="activity" label="الأعمال الطوعية" value={volunteerWorkCountByDate} />
+              </div>
+            </DesktopCard>
+          </div>
+
+          <div className="mt-6 md:grid md:grid-cols-12 md:gap-6 md:items-stretch" style={{ direction: "ltr" }}>
+            {/* Left: highlight total */}
+            <div className="md:col-span-12 lg:col-span-5">
+              <div
+                dir="rtl"
+                className="relative h-full md:rounded-2xl md:bg-gradient-to-br md:from-indigo-600 md:to-violet-600 md:p-5 md:shadow-sm md:border md:border-indigo-200/30 overflow-hidden"
+              >
+                {/* micro bars (derived, no new libs) */}
+                <div className="hidden md:flex absolute left-5 top-5 items-end gap-1 h-10 opacity-90">
+                  {(() => {
+                    const activities =
+                      conferencesCountByDate +
+                      seminarsCountByDate +
+                      coursesCountByDate +
+                      workshopsCountByDate +
+                      committeesCountByDate +
+                      positionsCountByDate +
+                      thankYouBooksCountByDate +
+                      assignmentsCountByDate +
+                      supervisionCountByDate +
+                      journalMembershipsCountByDate +
+                      scientificEvaluationsCountByDate +
+                      volunteerWorkCountByDate;
+                    const total = researchStatsByDate.total + activities;
+                    const bars = [
+                      researchStatsByDate.planned,
+                      researchStatsByDate.completed,
+                      researchStatsByDate.published,
+                      researchStatsByDate.uncompleted,
+                      activities,
+                      total,
+                    ];
+                    const max = Math.max(...bars, 1);
+                    return bars.map((v, i) => {
+                      const h = Math.max(8, Math.round((v / max) * 40));
+                      return (
+                        <div
+                          key={i}
+                          className="w-2 rounded-sm bg-white/35 border border-white/10"
+                          style={{ height: `${h}px` }}
+                        />
+                      );
+                    });
+                  })()}
+                </div>
+
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <div className="text-[16px] font-extrabold text-white">إجمالي المنجزات</div>
+                    <div className="mt-1 text-[12px] text-white/80">للـعام الدراسي {selectedYear}</div>
+                  </div>
+                  <div className="w-10 h-10 rounded-2xl bg-white/15 border border-white/20 flex items-center justify-center shrink-0">
+                    <CheckCircle className="w-5 h-5 text-white" strokeWidth={2} />
+                  </div>
+                </div>
+
+                <div className="mt-4 text-[46px] leading-none font-extrabold text-white">
+                  {(() => {
+                    const activities =
+                      conferencesCountByDate +
+                      seminarsCountByDate +
+                      coursesCountByDate +
+                      workshopsCountByDate +
+                      committeesCountByDate +
+                      positionsCountByDate +
+                      thankYouBooksCountByDate +
+                      assignmentsCountByDate +
+                      supervisionCountByDate +
+                      journalMembershipsCountByDate +
+                      scientificEvaluationsCountByDate +
+                      volunteerWorkCountByDate;
+                    return researchStatsByDate.total + activities;
+                  })()}
+                </div>
+                <div className="mt-2 text-[12px] text-white/80">إجمالي الإنجازات ضمن فلتر السنة/الشهر</div>
+
+                <div className="mt-4 grid grid-cols-2 gap-3">
+                  <div className="rounded-xl bg-white/10 border border-white/15 p-3 text-center">
+                    <div className="text-[20px] font-extrabold text-white">{researchStatsByDate.total}</div>
+                    <div className="mt-1 text-[12px] text-white/80">بحوث</div>
+                  </div>
+                  <div className="rounded-xl bg-white/10 border border-white/15 p-3 text-center">
+                    <div className="text-[20px] font-extrabold text-white">
+                      {conferencesCountByDate +
+                        seminarsCountByDate +
+                        coursesCountByDate +
+                        workshopsCountByDate +
+                        committeesCountByDate +
+                        positionsCountByDate +
+                        thankYouBooksCountByDate +
+                        assignmentsCountByDate +
+                        supervisionCountByDate +
+                        journalMembershipsCountByDate +
+                        scientificEvaluationsCountByDate +
+                        volunteerWorkCountByDate}
+                    </div>
+                    <div className="mt-1 text-[12px] text-white/80">نشاطات</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right: stacked summaries */}
+            <div className="md:col-span-12 lg:col-span-7">
+              <div className="h-full flex flex-col gap-6">
+                <DesktopCard title="ملخص البحوث" subtitle="أوضح حالة البحوث ضمن الفترة" className="md:h-full">
+                  <div className="space-y-2" dir="rtl">
+                    {[
+                      ["البحوث المخططة", researchStatsByDate.planned],
+                      ["البحوث المنجزة", researchStatsByDate.completed],
+                      ["البحوث المنشورة", researchStatsByDate.published],
+                      ["البحوث غير المنجزة", researchStatsByDate.uncompleted],
+                    ].map(([label, v]) => (
+                      <div key={label as string} className="flex items-center justify-between text-[13px]">
+                        <span className="text-slate-600">{label as string}</span>
+                        <span className="font-extrabold text-slate-900">{v as number}</span>
+                      </div>
+                    ))}
+                  </div>
+                </DesktopCard>
+
+                <DesktopCard title="ملخص النشاطات" subtitle="أهم النشاطات ضمن الفترة" className="md:h-full">
+                  <div className="space-y-2" dir="rtl">
+                    {[
+                      ["المؤتمرات", conferencesCountByDate],
+                      ["الندوات", seminarsCountByDate],
+                      ["الدورات", coursesCountByDate],
+                      ["ورش العمل", workshopsCountByDate],
+                      ["اللجان", committeesCountByDate],
+                      ["المناصب", positionsCountByDate],
+                      ["كتب الشكر", thankYouBooksCountByDate],
+                      ["التكليفات", assignmentsCountByDate],
+                      ["الإشراف على الطلبة", supervisionCountByDate],
+                      ["إدارة المجلات", journalMembershipsCountByDate],
+                      ["التقويم العلمي", scientificEvaluationsCountByDate],
+                      ["الأعمال الطوعية", volunteerWorkCountByDate],
+                    ].map(([label, v]) => (
+                      <div key={label as string} className="flex items-center justify-between text-[13px]">
+                        <span className="text-slate-600">{label as string}</span>
+                        <span className="font-extrabold text-slate-900">{v as number}</span>
+                      </div>
+                    ))}
+                  </div>
+                </DesktopCard>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* General Achievements Section - All Years */}
@@ -1420,6 +2283,131 @@ export default function TeachersDashboardPage() {
           >
             {allYearsExpanded ? "إخفاء" : "عرض المزيد"}
           </button>
+        </div>
+      </div>
+
+      {/* Desktop/Tablet: All-years achievements (clean + consistent) */}
+      <div className="hidden md:block">
+        <div className="md:bg-white md:border md:border-slate-200/70 md:rounded-2xl md:shadow-sm md:p-5">
+          <div className="md:flex md:items-end md:justify-between md:gap-6 md:pb-4 md:border-b md:border-slate-200/70" dir="rtl">
+            <div>
+              <div className="text-[18px] font-extrabold text-slate-900">المنجزات العامة</div>
+              <div className="mt-1 text-[13px] text-slate-500">جميع السنوات</div>
+            </div>
+          </div>
+
+          <div className="mt-5 md:grid md:grid-cols-12 md:gap-6 md:items-stretch" style={{ direction: "ltr" }}>
+            {/* Left: highlight total */}
+            <div className="md:col-span-12 lg:col-span-4 lg:order-1">
+              <div
+                dir="rtl"
+                className="h-full md:rounded-2xl md:bg-gradient-to-br md:from-emerald-600 md:to-teal-600 md:p-5 md:shadow-sm md:border md:border-emerald-200/30"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <div className="text-[16px] font-extrabold text-white">إجمالي المنجزات</div>
+                    <div className="mt-1 text-[13px] text-white/80">لكل السنوات</div>
+                  </div>
+                  <div className="w-10 h-10 rounded-[10px] bg-white/15 border border-white/20 flex items-center justify-center shrink-0">
+                    <CheckCircle className="w-5 h-5 text-white" strokeWidth={2} />
+                  </div>
+                </div>
+
+                <div className="mt-4 text-[44px] leading-none font-extrabold text-white">
+                  {totalResearchCount +
+                    totalConferencesCount +
+                    totalSeminarsCount +
+                    totalCoursesCount +
+                    totalWorkshopsCount +
+                    totalCommitteesCount +
+                    totalPositionsCount +
+                    totalThankYouBooksCount +
+                    totalAssignmentsCount +
+                    totalSupervisionCount +
+                    totalJournalMembershipsCount +
+                    totalScientificEvaluationsCount +
+                    totalVolunteerWorkCount +
+                    totalParticipationCertificatesCount +
+                    totalPublicationsCount}
+                </div>
+                <div className="mt-2 text-[13px] text-white/80">إجمالي الإنجازات</div>
+
+                <div className="mt-4 grid grid-cols-2 gap-3">
+                  <div className="rounded-xl bg-white/10 border border-white/15 p-3 text-center">
+                    <div className="text-[20px] font-extrabold text-white">{totalResearchCount}</div>
+                    <div className="mt-1 text-[12px] text-white/80">بحوث</div>
+                  </div>
+                  <div className="rounded-xl bg-white/10 border border-white/15 p-3 text-center">
+                    <div className="text-[20px] font-extrabold text-white">
+                      {totalConferencesCount +
+                        totalSeminarsCount +
+                        totalCoursesCount +
+                        totalWorkshopsCount +
+                        totalCommitteesCount +
+                        totalPositionsCount +
+                        totalThankYouBooksCount +
+                        totalAssignmentsCount +
+                        totalSupervisionCount +
+                        totalJournalMembershipsCount +
+                        totalScientificEvaluationsCount +
+                        totalVolunteerWorkCount +
+                        totalParticipationCertificatesCount +
+                        totalPublicationsCount}
+                    </div>
+                    <div className="mt-1 text-[12px] text-white/80">نشاطات</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Middle: activities summary */}
+            <DesktopCard title="ملخص النشاطات" subtitle="تفصيل سريع للنشاطات" className="md:col-span-12 lg:col-span-4 lg:order-2 md:h-full">
+              <div className="space-y-2" dir="rtl">
+                {[
+                  ["المؤتمرات", totalConferencesCount],
+                  ["الندوات", totalSeminarsCount],
+                  ["الدورات", totalCoursesCount],
+                  ["ورش العمل", totalWorkshopsCount],
+                  ["اللجان", totalCommitteesCount],
+                  ["المناصب", totalPositionsCount],
+                  ["كتب الشكر", totalThankYouBooksCount],
+                  ["التكليفات", totalAssignmentsCount],
+                  ["الإشراف على الطلبة", totalSupervisionCount],
+                  ["إدارة المجلات", totalJournalMembershipsCount],
+                  ["التقويم العلمي", totalScientificEvaluationsCount],
+                  ["الأعمال الطوعية", totalVolunteerWorkCount],
+                  ["شهادات المشاركة", totalParticipationCertificatesCount],
+                  ["المؤلفات", totalPublicationsCount],
+                ].map(([label, v]) => (
+                  <div key={label as string} className="flex items-center justify-between text-[13px]">
+                    <span className="text-slate-600">{label as string}</span>
+                    <span className="font-extrabold text-slate-900">{v as number}</span>
+                  </div>
+                ))}
+              </div>
+            </DesktopCard>
+
+            {/* Right: research summary */}
+            <DesktopCard title="ملخص البحوث" subtitle="تفصيل سريع للبحوث" className="md:col-span-12 lg:col-span-4 lg:order-3 md:h-full">
+              <div className="space-y-2" dir="rtl">
+                {[
+                  ["البحوث المخططة", researchStats.planned],
+                  ["البحوث المنجزة", researchStats.completed],
+                  ["البحوث المنشورة", researchStats.published],
+                  ["البحوث غير المنجزة", researchStats.uncompleted],
+                ].map(([label, v]) => (
+                  <div key={label as string} className="flex items-center justify-between text-[13px]">
+                    <span className="text-slate-600">{label as string}</span>
+                    <span className="font-extrabold text-slate-900">{v as number}</span>
+                  </div>
+                ))}
+                <div className="pt-3 mt-3 border-t border-slate-200/70 flex items-center justify-between">
+                  <span className="text-[13px] font-bold text-slate-700">المجموع</span>
+                  <span className="text-[18px] font-extrabold text-slate-900">{totalResearchCount}</span>
+                </div>
+              </div>
+            </DesktopCard>
+          </div>
         </div>
       </div>
     </div>
