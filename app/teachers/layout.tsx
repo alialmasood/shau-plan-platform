@@ -609,11 +609,16 @@ export default function TeachersLayout({
                 {/* Top Bar Row */}
                 <div className="md:px-6 lg:px-8 md:h-[72px] md:py-0 flex items-center">
                   <div
-                    className="w-full md:grid md:grid-cols-[1fr_minmax(420px,720px)_1fr] md:items-center md:gap-4"
+                    className={[
+                      "w-full md:grid md:items-center md:gap-4",
+                      // Prevent overlap on narrow desktop/tablet by allowing tracks to shrink
+                      "md:grid-cols-[minmax(0,1fr)_minmax(260px,560px)_minmax(0,1fr)]",
+                      "lg:grid-cols-[minmax(0,1fr)_minmax(420px,720px)_minmax(0,1fr)]",
+                    ].join(" ")}
                     dir="ltr"
                   >
                     {/* Left zone: actions */}
-                    <div className="flex items-center gap-3 justify-self-start" dir="rtl">
+                    <div className="flex items-center gap-3 justify-self-start min-w-0" dir="rtl">
                       {/* Notifications */}
                       <button type="button" className={`${iconButtonClass} relative`} aria-label="الإشعارات">
                         <Bell className="w-5 h-5" />
@@ -722,7 +727,7 @@ export default function TeachersLayout({
                     </div>
 
                     {/* Center zone: search */}
-                    <div className="justify-self-center w-full" dir="rtl">
+                    <div className="justify-self-center w-full min-w-0" dir="rtl">
                       <div className="relative mx-auto w-full">
                         <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
                         <input
@@ -730,13 +735,13 @@ export default function TeachersLayout({
                           placeholder="ابحث في المنصة..."
                           value={searchQuery}
                           onChange={(e) => setSearchQuery(e.target.value)}
-                          className="w-full h-11 pr-11 pl-4 rounded-2xl border border-slate-200/70 bg-white/70 backdrop-blur text-sm text-slate-900 placeholder:text-slate-400/70 shadow-[inset_0_1px_1px_rgba(15,23,42,0.05)] focus:outline-none focus:border-[#6366F1]/40 focus:ring-2 focus:ring-[#6366F1]/15"
+                          className="w-full h-11 pr-11 pl-4 rounded-2xl border border-slate-200/70 bg-white/70 backdrop-blur text-sm text-slate-900 placeholder:text-slate-400/70 shadow-[inset_0_1px_1px_rgba(15,23,42,0.05)] focus:outline-none focus:border-[#6366F1]/40 focus:ring-2 focus:ring-[#6366F1]/15 min-w-0"
                         />
                       </div>
                     </div>
 
                     {/* Right zone: breadcrumb/title */}
-                    <div className="justify-self-end min-w-0" dir="rtl">
+                    <div className="justify-self-end min-w-0 max-w-[220px] lg:max-w-none" dir="rtl">
                       <div className="flex items-center justify-end gap-2 min-w-0">
                         {/* Sidebar toggle (placed next to page title) */}
                         <button
