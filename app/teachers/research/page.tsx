@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { useLayout } from "../layout";
+import { useLayout } from "../layout-context";
 import jsPDF from "jspdf";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { formatDate } from "@/lib/utils/academic";

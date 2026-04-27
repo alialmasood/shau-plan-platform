@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useLayout } from "../layout";
+import { useLayout } from "../layout-context";
 import { getAcademicTitleLabel, getDepartmentLabel } from "@/lib/utils/academic";
 
 interface AcademicQualification {

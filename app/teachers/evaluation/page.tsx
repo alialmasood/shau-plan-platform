@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { useLayout } from "../layout";
+import { useLayout } from "../layout-context";
 
 // Get academic year based on current year
 function getAcademicYear(): string {

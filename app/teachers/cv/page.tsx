@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useLayout } from "../layout";
+import { useLayout } from "../layout-context";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { getAcademicTitleLabel, getDepartmentLabel, formatDate } from "@/lib/utils/academic";

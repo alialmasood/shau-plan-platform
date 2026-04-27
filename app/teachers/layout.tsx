@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, createContext, useContext, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -8,20 +8,7 @@ import { createPortal } from "react-dom";
 import { Bell, Search } from "lucide-react";
 import { getAcademicTitleLabel } from "@/lib/utils/academic";
 import MobileRankBar from "./_components/MobileRankBar";
-
-interface User {
-  id: number;
-  username: string;
-  email: string;
-  full_name: string;
-  role: string;
-  department: string;
-  phone?: string;
-  academic_title?: string;
-  is_active: boolean;
-  profile_picture?: string;
-  created_at: string;
-}
+import { LayoutContext, type User } from "./layout-context";
 
 // Get academic year based on current year
 function getAcademicYear(): string {
@@ -37,31 +24,6 @@ function getAcademicYear(): string {
   }
 }
 
-
-// Context for layout state
-interface LayoutContextType {
-  sidebarOpen: boolean;
-  setSidebarOpen: (open: boolean) => void;
-  activeMenuItem: string;
-  setActiveMenuItem: (item: string) => void;
-  searchQuery: string;
-  setSearchQuery: (query: string) => void;
-  notificationCount: number;
-  setNotificationCount: (count: number) => void;
-  activitiesDropdownOpen: boolean;
-  setActivitiesDropdownOpen: (open: boolean) => void;
-  user: User | null;
-}
-
-const LayoutContext = createContext<LayoutContextType | undefined>(undefined);
-
-export function useLayout() {
-  const context = useContext(LayoutContext);
-  if (!context) {
-    throw new Error("useLayout must be used within TeachersLayout");
-  }
-  return context;
-}
 
 export default function TeachersLayout({
   children,

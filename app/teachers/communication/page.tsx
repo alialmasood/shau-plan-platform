@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayout } from "../layout";
+import { useLayout } from "../layout-context";
 
 export default function CommunicationPage() {
   const { user } = useLayout();

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, type ReactNode } from "react";
 import Link from "next/link";
-import { useLayout } from "../layout";
+import { useLayout } from "../layout-context";
 import {
   Bar,
   BarChart,
