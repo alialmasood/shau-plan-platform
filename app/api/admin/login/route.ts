@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-const ADMIN_CODE = "332211";
+const ADMIN_CODE = "3216";
 const ADMIN_COOKIE_NAME = "spsh_admin";
 
 export async function POST(req: Request) {

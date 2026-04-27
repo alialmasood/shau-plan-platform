@@ -54,7 +54,7 @@ export default function AdminLoginForm() {
           onChange={(e) => setCode(e.target.value)}
           inputMode="numeric"
           autoComplete="one-time-code"
-          placeholder="مثال: 332211"
+          placeholder="أدخل رقم الدخول"
           className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>
