@@ -16,6 +16,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "نظام إدارة الخطة العلمية - كلية الشرق للعلوم التنقنية التخصصية",
   description: "منصة متكاملة لإدارة البحوث العلمية والخطة البحثية باشراف مباشر من مكتب المساعد العلمي",
+  icons: {
+    icon: "/igon.png",
+    shortcut: "/igon.png",
+    apple: "/igon.png",
+  },
 };
 
 export default function RootLayout({
