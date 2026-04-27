@@ -6,9 +6,9 @@ import { formatEnglishDepartmentName } from "@/lib/utils/formatting";
 export default async function DepartmentDetailsPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const { id } = params;
+  const { id } = await params;
   const departmentId = Number(id);
 
   if (!Number.isFinite(departmentId)) {

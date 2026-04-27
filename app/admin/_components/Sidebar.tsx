@@ -35,9 +35,9 @@ export default function Sidebar({
   const items = useMemo<SidebarItem[]>(
     () => [
       { key: "dashboard", label: "الرئيسية", href: "/admin", icon: <IconHome /> },
-      { key: "researchers", label: "الباحثون", href: "/admin", icon: <IconUsers /> },
+      { key: "researchers", label: "الباحثون", href: "/admin/researchers", icon: <IconUsers /> },
       { key: "departments", label: "الأقسام العلمية", href: "/admin/departments", icon: <IconBuilding /> },
-      { key: "publishing", label: "البحوث والنشر", href: "/admin", icon: <IconBookOpen /> },
+      { key: "publishing", label: "البحوث والنشر", href: "/admin/publishing", icon: <IconBookOpen /> },
       { key: "conferences", label: "المؤتمرات", href: "/admin", icon: <IconCalendar /> },
       {
         key: "activities",

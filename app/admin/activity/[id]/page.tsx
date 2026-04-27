@@ -9,8 +9,9 @@ const ADMIN_COOKIE_NAME = "spsh_admin";
 export default async function ActivityDetailsPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const { id } = await params;
   const cookieStore = await cookies();
   const isAuthed = cookieStore.get(ADMIN_COOKIE_NAME)?.value === "1";
   if (!isAuthed) {
@@ -26,7 +27,7 @@ export default async function ActivityDetailsPage({
     );
   }
 
-  const logId = Number(params.id);
+  const logId = Number(id);
   if (!Number.isFinite(logId)) {
     return (
       <div className="min-h-screen bg-slate-50 px-4 py-8" dir="rtl">

@@ -94,7 +94,7 @@ export default function LineChart({
       {/* labels */}
       <div className="mt-3 grid grid-cols-6 gap-2 text-[11px] text-slate-500">
         {safeLabels.slice(-6).map((l, idx) => (
-          <div key={l} className="truncate">
+          <div key={`${l}-${idx}`} className="truncate">
             {l}
           </div>
         ))}

@@ -8,9 +8,10 @@ import { formatNumber } from "@/lib/utils/numberFormat";
 export default async function ResearcherDetailsPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const userId = Number(params.id);
+  const { id } = await params;
+  const userId = Number(id);
   if (!Number.isFinite(userId)) {
     return (
       <div className="min-h-screen bg-slate-50 px-4 py-8" dir="rtl">
