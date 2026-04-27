@@ -35,12 +35,40 @@ export default function ResearchersPageShell({
   researchers: ResearcherRow[];
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [rows, setRows] = useState(researchers);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [feedback, setFeedback] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
-  const total = useMemo(() => researchers.length, [researchers]);
+  const total = useMemo(() => rows.length, [rows]);
   const active = useMemo(
-    () => researchers.filter((r) => r.isActive).length,
-    [researchers]
+    () => rows.filter((r) => r.isActive).length,
+    [rows]
   );
+
+  async function handleDeleteResearcher(researcher: ResearcherRow) {
+    const label = researcher.fullName || researcher.username;
+    const confirmed = window.confirm(`هل أنت متأكد من حذف حساب التدريسي "${label}"؟ لا يمكن التراجع عن هذا الإجراء.`);
+    if (!confirmed) return;
+
+    setFeedback(null);
+    setDeletingId(researcher.id);
+    try {
+      const res = await fetch(`/api/admin/researchers/${researcher.id}`, {
+        method: "DELETE",
+      });
+      const data = (await res.json().catch(() => ({}))) as { ok?: boolean; error?: string; message?: string };
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error || "فشل حذف الحساب");
+      }
+
+      setRows((prev) => prev.filter((r) => r.id !== researcher.id));
+      setFeedback({ type: "success", text: data.message || "تم حذف حساب التدريسي بنجاح" });
+    } catch (error: any) {
+      setFeedback({ type: "error", text: error?.message || "تعذر حذف الحساب حالياً" });
+    } finally {
+      setDeletingId(null);
+    }
+  }
 
   return (
     <div dir="rtl" className="min-h-screen bg-slate-50 text-slate-900 antialiased">
@@ -84,6 +112,19 @@ export default function ResearchersPageShell({
             </section>
 
             <section>
+              {feedback ? (
+                <div
+                  className={[
+                    "mb-3 rounded-xl border px-3 py-2 text-sm font-bold",
+                    feedback.type === "success"
+                      ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                      : "border-rose-200 bg-rose-50 text-rose-700",
+                  ].join(" ")}
+                >
+                  {feedback.text}
+                </div>
+              ) : null}
+
               <Card className="overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="min-w-full text-sm">
@@ -97,10 +138,11 @@ export default function ResearchersPageShell({
                         <th className="px-4 py-3 text-right font-extrabold">الهاتف</th>
                         <th className="px-4 py-3 text-right font-extrabold">الحالة</th>
                         <th className="px-4 py-3 text-right font-extrabold">تاريخ التسجيل</th>
+                        <th className="px-4 py-3 text-right font-extrabold">إجراءات</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {researchers.map((r, idx) => (
+                      {rows.map((r, idx) => (
                         <tr key={r.id} className="border-t border-slate-200/80 hover:bg-slate-50/70">
                           <td className="px-4 py-3 font-bold text-slate-600">{idx + 1}</td>
                           <td className="px-4 py-3">
@@ -129,12 +171,22 @@ export default function ResearchersPageShell({
                             </span>
                           </td>
                           <td className="px-4 py-3 text-slate-700">{formatDate(r.createdAt)}</td>
+                          <td className="px-4 py-3">
+                            <button
+                              type="button"
+                              onClick={() => void handleDeleteResearcher(r)}
+                              disabled={deletingId === r.id}
+                              className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-extrabold text-rose-700 hover:bg-rose-100 disabled:opacity-60 disabled:cursor-not-allowed"
+                            >
+                              {deletingId === r.id ? "جارِ الحذف..." : "حذف"}
+                            </button>
+                          </td>
                         </tr>
                       ))}
 
-                      {researchers.length === 0 ? (
+                      {rows.length === 0 ? (
                         <tr>
-                          <td className="px-4 py-8 text-center text-slate-500" colSpan={8}>
+                          <td className="px-4 py-8 text-center text-slate-500" colSpan={9}>
                             لا يوجد باحثون مسجلون حالياً.
                           </td>
                         </tr>
